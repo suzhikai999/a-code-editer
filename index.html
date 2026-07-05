@@ -174,7 +174,7 @@ function Expr(str){
 }
 function prefixLocalVars(codeStr,globalVars=[]){
     const builtInGlobals=[
-        'window','document','console','Math','Date','Array','Object','String','Number','Boolean',
+        'window','document','console','Math','Date','Array','Object','String','Number','Boolean','setTimeout','setInterval',
         'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const',
         'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','_runner','print'];
     const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','event','alert'];
@@ -315,7 +315,7 @@ const hasChil={
     ,{text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".remove()",back:1,has:[],type:"AR"}]
 };
 const staticFiller=[
-    {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},
+    {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
     {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
