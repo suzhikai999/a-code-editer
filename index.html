@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CH">
+<head>
+    <meta charset="UTF-8">
+    <title>a-code-editer</title>
+    <style>
+        * {
+            box-sizing:border-box;
+        }
+        body{
+            margin:0;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:16px;
+            padding:20px;
+            background:#f5f7fa;
+            font-family:system-ui, Consolas, "Microsoft YaHei", sans-serif;
+        }
+        #canvas {
+            border:2px solid #c5cde0;
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.08);
+        }
+        .ctrl-panel {
+            width:1200px;
+            padding:16px;
+            border:solid 2px #b4c2e0;
+            border-radius:10px;
+            background:#ffffff;
+            box-shadow:0 2px 8px rgba(0,0,0,0.05);
+        }
+        .btn-group {
+            display:flex;
+            gap:12px;
+            margin-bottom:14px;
+        }
+        .ctrl-btn {
+            padding:8px 22px;
+            border:none;
+            border-radius:6px;
+            background:#366ed8;
+            color:white;
+            font-size:15px;
+            cursor:pointer;
+        }
+        .ctrl-btn:hover {background:#2856b8;}
+        .ctrl-btn:active {background:#1e4290;}
+        #runner_log {
+            margin-top:10px;
+            padding:12px;
+            min-height:100px;
+            border:dashed 2px #8fa0c7;
+            border-radius:8px;
+            background:#f8faff;
+            font-family:Consolas, monospace;
+            font-size:14px;
+            line-height:1.6;
+            max-height:180px;
+            overflow-y:auto;
+        }
+    </style>
+</head>
+<body>
+    <div style="display:flex;gap:16px;">
+        <div class="canvas-wrap">
+            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none"></canvas>
+            <div class="ctrl-panel" style="margin-top:16px;">
+                <div class="btn-group">
+                    <button class="ctrl-btn" onclick="_runner._log.innerText='日志：'">清空日志</button>
+                    <button class="ctrl-btn" onclick="
+_runner={
+    _log:document.getElementById('runner_log'),
+    _return:null,
+};
+for(const u of unit){
+    const s=prefixLocalVars(Expr(u.val.trim()));
+    if(u.type=='main')u.Fu=`return 0;`;else
+    if(u.type=='if'){
+        u.Fu=`if(${s}){return 0;}return 1;`;
+    }else{
+        if(s.includes('print')){
+            const temp=s.slice(6,-2);
+            u.Fu=`_runner._log.innerText+=(${temp});return 0;`;
+        }else if(s.includes('return')){
+            const temp=s.slice(7,-1);
+            u.Fu=`_runner._return=(${temp});return 0;`;
+        }else
+        u.Fu=`${s};return 0;`;
+    }
+    u.fu=new Function(u.Fu);
+}
+for(const u of unit){
+    if(u.type=='function'){
+        const temp2=u.val.indexOf('('),temp3=u.val.slice(temp2+1,-2)+' ';
+        let STR='',word='';
+        for(let i=0;i<temp3.length;++i){
+            if(Chars.includes(temp3[i])){
+                word+=temp3[i];
+            }else STR+='_runner.'+word+'='+word+';';
+        }
+        const temp=new Function(`
+_runner.${u.val.slice(0,temp2)}=new Function(\`${temp3.replace(/,/g,'\`,\`')}\`,\`
+${STR}
+let now=unit[${u.POS}];
+_runner._return=null;
+while(true){
+    const temp=now.fu();
+    if(now.to.length==0||_runner._return){;
+        break;
+    }else{;
+        now=now.to[temp];
+    };
+};
+return _runner._return;
+
+\`);
+`);
+        temp();
+
+        u.fu=new Function(`return 0;`);
+    }
+}
+_runner._log.innerText+=`\n⭮ 已将全部编译完成`;
+                    ">编译</button>
+                    <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
+                    <button class="ctrl-btn" onclick="saveCurrentUnit()">保存副本(Ctrl+S)</button>
+                    <button class="ctrl-btn" onclick="localStorage.clear();renderSaveList()">清空副本</button>
+                    <button class="ctrl-btn" onclick="Download()">下载HTA</button>
+                </div>
+                <div id="runner_log">日志：</div>
+            </div>
+        </div>
+        <div class="ctrl-panel" style="width:260px;height:700px;overflow-y:auto;">
+            <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表（点击覆盖画布）</h3>
+            <div id="saveList"></div>
+        </div>
+    </div>
+    <script>
+
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height;
+let lastTime=performance.now();
+let frameCount=0;
+let fps=0;
+let mousex=0,mousey=0,mousexf=0,mouseyf=0,mousedown=false,dragOffX,dragOffY;
+const Chars="abcdefghijklnmopqrstuvwxyzABCDEFGHIJKLNMOPQRSTUVWXYZ";//Why is this?
+function RunFrom(now){
+    while(true){
+        const temp=now.fu();
+        if(now.to.length==0){
+            break;
+        }else{
+            now=now.to[temp];
+        }
+    }
+}
+let _runner={
+    _log:document.getElementById("runner_log"),
+    _return:null,
+};
+function Expr(str){
+    let code=str
+        .replace(/√([^}]+)`/g,'Math.sqrt($1)')
+        .replace(/⌈([^}]+)⌉/g,'Math.ceil($1)')
+        .replace(/⌊([^}]+)⌋/g,'Math.floor($1)')
+        .replace(/㏑\((.+?)\)/g,'Math.log($1)')
+        .replace(/(.+?)\^(.+?)}/g,'Math.pow($1,$2)')
+        .replace(/\*/g,'*');
+    return code;
+}
+function prefixLocalVars(codeStr,globalVars=[]){
+    const builtInGlobals=[
+        'window','document','console','Math','Date','Array','Object','String','Number','Boolean',
+        'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const',
+        'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','_runner','print'];
+    const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','event','alert'];
+    codeStr+=" ";
+    const globalSet=new Set([...builtInGlobals,...globalVars]);
+    const MathSet=new Set([...MathGlobals]);
+    let code=``,IsIns=false,IsInS=false,word="",spe=false;
+    for(let i=0;i<codeStr.length;++i){
+        if(Chars.includes(codeStr[i])){
+            word+=codeStr[i];
+        }else{
+            if(!globalSet.has(word)&&!IsIns&&!IsInS&&word&&!spe){
+                if(MathSet.has(word))code+="Math.";else code+="_runner.";
+            }
+            code+=word;
+            word="",spe=false;
+            if(codeStr[i]=='"')IsIns=!IsIns;else
+            if(codeStr[i]=="'")IsInS=!IsInS;else
+            if(codeStr[i]==".")spe=true;
+            code+=codeStr[i];
+        }
+    }
+    return code;
+}
+let cursorWA,SeCus=-1;
+function show(u,x,y){
+    let s=u.val,word="",fir="",fty="";
+    const TELIS=[...staticFiller,...globalObj];
+    let temp=[],Temp=[],temp3;
+    if(!s)s=lanw[u.type];
+    if(!s)s=u.type;
+    if(!s)s=u;
+    const len=s.length;
+    const p=[{size:20,y:0}];
+    const SQs=[],NLKC=["rgb(229,178,9)","rgb(130,55,158)","rgb(0,0,150)"];
+    let left_se=0,NLK=0,IsInS=false,IsIns=false, SeLeX=-1,SeRiX=-1;
+    ctx.font=`20px Consolas`;
+    ctx.fillStyle="#333";
+    ctx.textBaseline="middle";
+    for(let i=0;i<len;++i){
+        const now=p[p.length-1];
+        if(u===dragUnit){
+            if(x<mousex-now.size/4)cursorWA=i+1;
+            if(cursorAt==i)ctx.fillText(cursorLook,x,y+now.y,100),SeRiX=x,x+=1,filler=(!IsIns&&!IsInS)?filler:[];
+            if(SeCus==i)SeLeX=x;}
+        let flag=false;
+        if("([{".includes(s[i]))NLK++;
+        if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
+        if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
+        if(!IsIns&&!IsInS){
+            if((Chars).includes(s[i]))word+=s[i];else{if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
+                if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
+            }if(s[i]=='.')word+=s[i];
+            if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
+            if(s[i]=='^')p.push({size:now.size*0.7,y:now.y-now.size*0.3,else:0});else
+            if(s[i]=='_')p.push({size:now.size*0.7,y:now.y+now.size*0.3,else:0});else
+            if(s[i]=='`'){
+                if(now.else==1){
+                    const temp=SQs[SQs.length-1];
+                    ctx.beginPath();
+                    ctx.lineWidth=1;
+                    ctx.moveTo(temp+now.size/2-2,now.y-now.size*0.6+y);
+                    ctx.lineTo(x                ,now.y-now.size*0.6+y);
+                    ctx.strokeStyle="#000";
+                    ctx.stroke();
+                    SQs.pop();
+                }
+                p.pop();
+            }else flag=true;
+        }else flag=true;
+        if(flag||IsIns||IsInS){
+            let ws=s[i];
+            if(ws=="*")ws="∙";
+            ctx.font=`${now.size}px Consolas`;
+            ctx.fillStyle="#333";
+            ctx.textBaseline="middle";
+            if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
+                if(u!=s&&(u.type=="main"||u.type=="function")&&":;,?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
+                if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
+            }else ctx.fillStyle="rgb(151,60,25)";
+            ctx.fillText(ws,x,y+now.y,100);
+            if(s.codePointAt(i)<=256)x+=now.size/2;else
+            if("⌈⌉⌊⌋√".includes(s[i]))x+=now.size/2;else
+            x+=now.size;
+        }
+        if(")]}".includes(s[i]))NLK--;
+    }
+    const now=p[p.length-1];
+    const temp2=TELIS.findIndex(obj=>obj.text.replace(/ /g,"").replace(/[^()]/g,"")==fir);
+    if(temp2==-1){
+        if(temp3==`[`)temp=hasChil.array;else
+        if(temp3==`"`||temp3==`'`)temp=hasChil.string;
+        if(fir.includes("()")&&u.type=="function"){
+            globalObj.push(...(Temp.filter(Now=>TELIS.findIndex(obj=>obj.text==Now.text&&obj.type==Now.type)==-1)));
+            globalObj.push({text:fir,back:1,has:[],type:"BS"});}else
+        globalObj.push({text:fir,back:0,has:temp,type:"BS"});
+    }else if(TELIS[temp2].type=="UD")staticFiller[temp2].type="BS";
+    if(u===dragUnit&&cursorAt==len)ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
+    if(SeCus==len)SeLeX=x;
+    if(SeLeX!==-1&&SeRiX!==-1){
+        ctx.beginPath();
+        ctx.lineWidth=30;
+        ctx.moveTo(SeLeX,y);
+        ctx.lineTo(SeRiX,y);
+        ctx.strokeStyle="rgba(0,0,200,0.2)";
+        ctx.stroke();
+    }
+    if(SeRiX!==-1){
+        for(let i=0;i<filler.length;++i){
+            const fil=filler[i];
+            ctx.beginPath();
+            ctx.lineWidth=30;
+            ctx.moveTo(SeRiX-30,y+30);
+            ctx.lineTo(SeRiX+200,y+30);
+            ctx.strokeStyle="rgba(0,0,0,0.7)";
+            if(ChoosingFiller==i)ctx.strokeStyle="rgba(0,0,100,0.7)";
+            ctx.stroke();
+            ctx.fillStyle="#fff";
+            ctx.font="17px Consolas";
+            ctx.fillText(fil.text,SeRiX,y+30);
+            ctx.fillStyle="rgb(150,150,150)";
+            ctx.fillText(fil.text.slice(0,fillerPos),SeRiX,y+30);
+            ctx.fillStyle="rgb(250,250,250)";
+            if(fil.type=="AR")ctx.fillText("⿻",SeRiX-23,y+30);else if(fil.type=="BS")ctx.fillText("🔤︎",SeRiX-23,y+30);else 
+            if(fil.type=="RC")ctx.fillText("♺",SeRiX-23,y+30);else ctx.fillText("⚪︎",SeRiX-23,y+30);
+            y+=30;
+        }
+    }
+    return x;
+}
+const hasChil={
+    number:[{text:".toString()",back:1,has:[],type:"AR"},{text:".toFixed()",back:1,has:[],type:"AR"},{text:".toPrecision()",back:1,has:[],type:"AR"},],
+    string:[{text:".length",back:0,has:"number",type:"AR"},{text:".codePointAt()",back:1,has:[],type:"AR"},{text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:[],type:"AR"}
+    ,{text:".replace()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},{text:".toUpperCase()",back:0,has:"this",type:"AR"},],
+    array:[{text:".includes()",back:1,has:[],type:"AR"},{text:".pop()",back:1,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},{text:".unshift()",back:1,has:[],type:"AR"},{text:".shift()",back:1,has:[],type:"AR"},
+    {text:".fill()",back:1,has:[],type:"AR"},{text:".splice()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:[],type:"AR"}],
+    object:[],element:[{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".classList",back:0,has:"array",type:"AR"},{text:".className",back:0,has:"string",type:"AR"}
+    ,{text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".remove()",back:1,has:[],type:"AR"}]
+};
+const staticFiller=[
+    {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},
+    {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
+    {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
+    {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
+    {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},
+    {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
+    {text:"event",back:0,has:[{text:".screenX",back:0,has:hasChil.number,type:"AR"},{text:".screenY",back:0,has:hasChil.number,type:"AR"},
+        {text:".pageX",back:0,has:hasChil.number,type:"AR"},{text:".pageY",back:0,has:hasChil.number,type:"AR"},{text:".button",back:0,has:hasChil.number,type:"AR"},
+        {text:".key",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
+    {text:"document",back:0,has:[{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
+        {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
+        {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElemnet()",back:1,has:[],type:"AR"},
+        {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:[],type:"AR"},
+        {text:".getElementsByClassName()",back:1,has:[],type:"AR"},{text:".getElementsByName()",back:1,has:[],type:"AR"}],type:"AR"},
+    {text:"onclick()",back:1,has:[],type:"UD"},{text:"onmousedown()",back:1,has:[],type:"UD"},{text:"onmouseup()",back:1,has:[],type:"UD"},{text:"onmousemove()",back:1,has:[],type:"UD"},
+];
+let globalObj=[],addFiller=[];
+let filler=[{text:"print()",has:[],back:6}];
+let fillerPos=0,ChoosingFiller=0;
+let cam={x:0,y:0};
+function getPos(u){
+    return {x:u.x-cam.x,y:u.y-cam.y,endx:u.endx-cam.x};
+}
+function find(x,y){
+    for(let i=unit.length-1;i>=0;i--){
+        const u=unit[i];
+        const temp=getPos(u);
+        if(mousex>=temp.x&&mousex<=temp.endx+20&&mousey>=temp.y&&mousey<=temp.y+40){
+            return u;
+        }
+    }
+    return null;
+}
+canvas.addEventListener("mousemove",(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const X=e.clientX-rect.left,Y=e.clientY-rect.top;
+    mousex=X,mousey=Y;
+});
+document.addEventListener("mousedown",(e)=>{
+    mousedown=true,filler=[];
+    SeCus=-1;
+    dragOffX=mousex;
+    dragOffY=mousey;
+    dragUnit=find(mousex,mousey);
+    cursorAt="un";
+});
+document.addEventListener("mouseup",(e)=>{
+    mousedown=false;
+    if(!dragUnit)return ;
+    let temp=find(mousex,mousey);
+    if(key.Shift)return ;
+    if(temp&&key.Delete){
+        temp.to.splice(temp.to.findIndex(item=>item==dragUnit),1);
+        dragUnit.to.splice(dragUnit.to.findIndex(item=>item==temp),1);
+        return ;}
+    if(temp==dragUnit){return ;}
+    if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length},unit.push(temp);
+    dragUnit.to.push(temp);
+    if(dragUnit.to.length>=2&&dragUnit.type!=="if")dragUnit.type="if";
+    dragUnit=null;
+});
+const key={Shift:false,Delete:false,Ctrl:false};
+const alter=[{from:"sqrt",to:"√`",back:1},
+    {from:"pow",to:"^`",back:1},
+    {from:"ln",to:"㏑()",back:2},
+    {from:"ceil",to:"⌈⌉",back:1},
+    {from:"floor",to:"⌊⌋",back:1},];
+canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
+document.addEventListener("keydown",async(e)=>{
+    key[e.key]=true;
+    if(e.ctrlKey&&e.key=="f")unit.push({type:"function",val:"func(a) ",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});
+    if(dragUnit&&!mousedown){
+        if(SeCus!==-1){
+            if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
+            if(e.key==="'"||e.key==='"'){
+                dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
+                dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt))+e.key+
+                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt++,SeCus++;}else
+            if(e.key==='('||e.key==='['||e.key==='{'){
+                const mapping={'(':')','[':']','{':'}'};
+                dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
+                dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt))+mapping[e.key]+
+                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt++,SeCus++;}else
+            if(e.key==="ArrowLeft"){if(!e.shiftKey)cursorAt=Math.min(SeCus,cursorAt);else{cursorAt--;if(cursorAt<0)cursorAt=0;}}else
+            if(e.key==="ArrowRight"){if(!e.shiftKey)cursorAt=Math.max(SeCus,cursorAt);else{cursorAt++;if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}}else
+            if(e.key==="Backspace"||e.key==="Delete"){
+                dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+
+                dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
+                dragUnit.val.slice(Math.max(SeCus,cursorAt));
+                cursorAt=Math.min(SeCus,cursorAt);
+            }else if(e.key!=="Shift"&&e.key!=="Control")dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
+                dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
+                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt++;
+            if(!e.ctrlKey&&!e.shiftKey)SeCus=-1;
+            return ;}
+        if(e.ctrlKey&&e.key=="v"){
+            const text=await navigator.clipboard.readText();
+            dragUnit.val=dragUnit.val.slice(0,cursorAt)+text+dragUnit.val.slice(cursorAt);
+            cursorAt+=text.length;}else
+        if(e.ctrlKey&&e.key=="c"){await navigator.clipboard.writeText(dragUnit.val);}else
+        if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
+        if(e.key.length==1&&!"`".includes(e.key)){dragUnit.val=dragUnit.val.slice(0,cursorAt)+e.key+dragUnit.val.slice(cursorAt),cursorAt++;
+            if((Chars+".").includes(e.key)){
+                if(filler.length==0&&!Chars.includes(dragUnit.val[cursorAt-2])){
+                    fillerPos=1,ChoosingFiller=0;
+                    filler.push(...(addFiller.filter(str=>str.text[0].toLowerCase()===e.key.toLowerCase())));
+                }else{
+                    filler=filler.filter(str=>str.text[fillerPos]===e.key);
+                    fillerPos++;
+                }
+            }else filler=[];}else{
+            if(e.key==="ArrowLeft"){if(e.shiftKey)SeCus=cursorAt;const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(cursorAt==0&&temp!=-1)dragUnit=unit[temp],cursorAt=dragUnit.val.length+1;cursorAt--,CLFC=0,cursorLook=' ';}else
+            if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
+            if(e.key==="Enter"){temp={type:"void",val:"",to:[],x:dragUnit.x+1,y:dragUnit.y},unit.push(temp),dragUnit.to.push(temp),dragUnit=temp;}else
+            if(e.key==="Backspace"){
+                filler=[];let temp=dragUnit.val[cursorAt-1];
+                if(cursorAt==0)temp="none";
+                if(["^`","_`","√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
+                if(temp=="^"||temp=="_"||temp=="√"||temp=="`");
+                else if(dragUnit.val[cursorAt-1]!='`')dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
+                cursorAt--;}else
+            if(e.key==="Delete"){
+                if(dragUnit.val.length==0)unit.splice(unit.findIndex(u=>u===dragUnit),1);
+                const temp=dragUnit.val[cursorAt];
+                const temp2=dragUnit.val[cursorAt-1];
+                if((temp=="^"||temp=="_"||temp=="√")&&dragUnit.val[cursorAt+1]=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+2);else
+                if((temp2=="^"||temp2=="_"||temp2=="√")&&temp=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
+                if(temp=="^"||temp=="_"||temp=="√"||temp=="`")cursorAt++;
+                else dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+1);}
+            if(e.key==="Tab"&&filler.length>0){dragUnit.val=dragUnit.val.slice(0,cursorAt)+filler[ChoosingFiller].text.slice(fillerPos)+dragUnit.val.slice(cursorAt);
+               cursorAt+=filler[ChoosingFiller].text.length-filler[ChoosingFiller].back-fillerPos,filler=filler[ChoosingFiller].has,fillerPos=0;
+            }else if(e.key==="ArrowDown"){ChoosingFiller++;}else
+            if(e.key==="ArrowUp"){ChoosingFiller--;}else
+            if(e.key!=="Shift")filler=[];}
+        if(e.key==="^"||e.key=="_")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"`"+dragUnit.val.slice(cursorAt);else
+        if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
+        if(e.key==="[")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"]"+dragUnit.val.slice(cursorAt);else
+        if(e.key==="{")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"}"+dragUnit.val.slice(cursorAt);else
+        if(e.key==="\"")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"\""+dragUnit.val.slice(cursorAt);else
+        if(e.key==="\'")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"\'"+dragUnit.val.slice(cursorAt);
+        ChoosingFiller=(ChoosingFiller%filler.length+filler.length)%filler.length;
+        if(cursorAt<0)cursorAt=0;if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;
+        for(const alte of alter){
+            if(dragUnit.val.slice(cursorAt-alte.from.length,cursorAt)==alte.from)dragUnit.val=dragUnit.val.slice(0,cursorAt-alte.from.length)+alte.to+dragUnit.val.slice(cursorAt),cursorAt-=alte.from.length-alte.back;
+        }
+    }
+});
+document.addEventListener("keyup",(e)=>{
+    key[e.key]=false;
+});
+const lanw={
+    main:"主函数",
+    void:"行为",
+    if:"如果",
+    else:"否则",
+    case:"值为",
+    function:"函数",
+};
+let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;"}];
+let dragUnit=null,cursorAt=0;
+function Init(){
+    for(const obj in hasChil){
+        if(hasChil.hasOwnProperty(obj))
+        for(const obj2 of hasChil[obj]){
+            if(obj2.has=="this")obj2.has=obj;
+            else if(typeof obj2.has=="string")obj2.has=hasChil[obj2.has];
+        }
+    }
+    filler=[];
+    requestAnimationFrame(loop);}
+let cursorLook="⎸",CLFC=20;
+function loop(){
+    mousexf=mousex-mousexf;
+    mouseyf=mousey-mouseyf;
+    frameCount++;
+    const currentTime=performance.now();
+    const deltaTime=currentTime-lastTime;
+    if(frameCount>=10){
+        fps=Math.round(10*1000.0/deltaTime*100)/100;
+        frameCount=0,lastTime=currentTime;}
+    unit[0].type="main";
+    if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
+    if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
+    if(dragUnit&&key.Shift)dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
+    if(filler.length==1&&filler[0].text.length==fillerPos)filler=filler[0].has,fillerPos=0;
+    ctx.fillStyle="#fff";
+    ctx.fillRect(0,0,W,H);
+    ctx.save();
+    for(const u of unit){
+        const p=getPos(u);
+        let i=0;
+        for(const u2 of u.to){
+            const p2=getPos(u2);
+            ctx.beginPath();
+            ctx.moveTo((p.x+p.endx)/2,p.y+20);
+            ctx.lineTo((p2.x+p2.endx)/2,p2.y+20);
+            ctx.fillStyle="#999";
+            ctx.strokeStyle="#000";
+            ctx.stroke();
+            ctx.beginPath();
+            const o={x:(p.x+p.endx)/2,y:p.y+20};
+            const o2={x:(p2.x+p2.endx)/2,y:p2.y+20};
+            const temlen=Math.hypot(o.x-o2.x,o.y-o2.y);
+            const temlen2=p.endx-o.x+23;
+            const temp={x:(o2.x-o.x)/temlen,y:(o2.y-o.y)/temlen};
+            ctx.moveTo(o.x+temp.x*temlen2+temp.y*10,o.y+temp.y*temlen2-temp.x*10);
+            ctx.lineTo(o.x+temp.x*temlen2-temp.y*10,o.y+temp.y*temlen2+temp.x*10);
+            ctx.lineTo(o.x+temp.x*(temlen2+10),     o.y+temp.y*(temlen2+10));
+            ctx.fill();
+            if(i==0);else
+            if(i===1)show(lanw.else,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
+            else show(lanw.case+`${i}`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
+            i++;
+        }
+    }
+    globalObj=[];
+    let CountI=0;
+    for(const u of unit){
+        u.POS=CountI;CountI++;
+        const p=getPos(u);
+        ctx.fillStyle="#e0e0e0";
+        ctx.strokeStyle="#999";
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        const r=8;
+        ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
+        ctx.fill();
+        const end=show(u,p.x+20,p.y+20)+cam.x;
+        u.endx=end;
+        if(u.type=="if"&&u.to.length==0)u.type="void";
+        let i=0;
+        for(const u2 of u.to){
+            if(!unit.includes(u2))u.to.splice(i,1);
+            if(u2.x>u.x&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
+           ++i;}
+    }
+    addFiller=[...globalObj,...staticFiller];
+    if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
+        SeCus=cursorWA;if(SeCus>dragUnit.val.length)SeCus=dragUnit.val.length;if(SeCus==cursorAt)SeCus=-1;}
+
+    ctx.font="18px sans-serif";
+    ctx.fillStyle="#000";
+    ctx.textAlign="left";
+    ctx.textBaseline="alphabetic";
+    ctx.fillText(`FPS:${fps}`,12,24);
+    ctx.restore();
+    if(find(mousex,mousey)){
+        if(key.Shift)canvas.style.cursor="grabbing";
+        else canvas.style.cursor="text";
+    }else{canvas.style.cursor=mousedown?"grabbing":"grab";}
+    mousexf=mousex;
+    mouseyf=mousey;
+    requestAnimationFrame(loop);
+}
+const SAVE_KEY="flow_editor_saves";
+function getSaves(){
+    const raw=localStorage.getItem(SAVE_KEY);
+    return raw?JSON.parse(raw):[];
+}
+function saveCurrentUnit(){
+    const saves=getSaves();
+    const unitCopy=[];
+    for(const u of unit){
+        const indexArr=[];
+        for(const targetObj of u.to){
+            const realIdx=targetObj.POS;
+            indexArr.push(realIdx);
+        }
+        unitCopy.push({x:u.x,y:u.y,val:u.val,type:u.type,to:indexArr});
+    }
+    saves.push({
+        time:new Date().toLocaleString(),
+        data:JSON.parse(JSON.stringify(unitCopy))
+    });
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+    renderSaveList();
+    _runner._log.innerText+=`\n⎗ 已保存副本，当前共${saves.length}份存档`;
+}
+function loadSave(index){
+    const saves=getSaves();
+    if(!saves[index])return;
+    const saveData=JSON.parse(JSON.stringify(saves[index].data));
+    unit=saveData;
+    for(const u of unit){
+        for(let i=0;i<u.to.length;++i){
+            u.to[i]=unit[u.to[i]];
+        }}
+    cam.x=0,cam.y=0;
+    _runner._log.innerText+=`\n⎘ 已加载存档 #${index+1}`;
+}
+function renderSaveList(){
+    const listDom=document.getElementById("saveList");
+    const saves=getSaves();
+    if(saves.length===0){
+        listDom.innerHTML="<p style='color:#666;font-size:14px;'>暂无存档</p>";
+        return;}
+    let html="";
+    saves.forEach((save, idx)=>{
+        html+=`
+        <div style="padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;"
+             onclick="loadSave(${idx})">
+            <div style="font-weight:bold;font-size:14px;">存档 #${idx+1}</div>
+            <div style="font-size:12px;color:#666;">${save.time}</div>
+            <div style="font-size:12px;color:#666;">节点数:${save.data.length}</div>
+        </div>
+        `;
+    });
+    listDom.innerHTML=html;
+}
+function UnitToHtml(){
+    let str="",Str="";
+    for(const u of unit){
+        if(u.type=='function'){
+            const temp2=u.val.indexOf('('),temp3=u.val.slice(temp2+1,-1)+' ';
+            let STR='',word='';
+            for(let i=0;i<temp3.length;++i){
+                if(Chars.includes(temp3[i])){
+                    word+=temp3[i];
+                }else STR+='_runner.'+word+'='+word+';';
+            }
+            Str+=`
+
+_runner.${u.val.slice(0,temp2)}=new Function(\`${temp3.replace(/,/g,'\`,\`')}\`,\`
+${STR}
+var now=unit[${u.POS}];
+_runner._return=null;
+while(true){
+    const temp=now.fu();
+    if(now.to.length==0||_runner._return){;
+        break;
+    }else{;
+        now=unit[now.to[temp]];
+    };
+};
+return _runner._return;
+\`);
+
+`
+        }else{
+            str+=`{type:\"${u.type}\",fu:new Function(\'${u.Fu.replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\\n/g,"\\\\n")}\'),to:[`;
+            for(const u2 of u.to){
+                str+=`${u2.POS},`;
+            }
+            str+=`]},`;
+        }
+    }
+    const htmlContent=`
+<html onclick="_runner.onclick(event)" onmousemove="_runner.onmousemove(event)" onmousedown="_runner.onmousedown(event)" onmouseup="_runner.onmouseup(event)">
+    <head>
+        <meta charset="UTF-8">
+        <title>TEST</title>
+    </head>
+    <body>
+        <div id="runner_log"></div>
+    </${"body"}>
+    <script>
+        var _runner={
+            _log:document.getElementById("runner_log"),
+            _return:null,
+            onclick:new Function("event","return 0;"),
+            onmousemove:new Function("event","return 0;"),
+            onmousedown:new Function("event","return 0;"),
+            onmouseup:new Function("event","return 0;"),
+        }
+        ${Str}
+        var unit=[
+            ${str}
+        ];
+        var now=unit[0];
+        while(true){
+            var temp=now.fu();
+            if(now.to.length==0||_runner._return){;
+                break;
+            }else{;
+                now=unit[now.to[temp]];
+            };
+        }
+    </${"script"}>
+</html>`;
+    return htmlContent;
+}
+function Download(){
+    const htmlContent=UnitToHtml();
+    const blob=new Blob([htmlContent],{type:'text/hta'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='test.hta';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+function openDebugChildPage() {
+    const pageHtml=UnitToHtml();
+    const blob=new Blob([pageHtml],{type:"text/html"});
+    const pageUrl=URL.createObjectURL(blob);
+    const childWin=window.open(
+        pageUrl,
+        "flow_debug_child",
+        "width=1100,height=750,scrollbars=yes,resizable"
+    );
+    childWin.onload=()=>URL.revokeObjectURL(pageUrl);
+    _runner._log.innerText+="\n➫ 已打开独立子页面";
+}
+document.addEventListener("keydown",e=>{
+    if(e.ctrlKey && e.key.toLowerCase()==="s"){
+        e.preventDefault();
+        saveCurrentUnit();
+    }
+});
+// window.addEventListener("beforeunload",(e)=>{
+//     const msg="确定没有未保存修改吗？";
+//     e.returnValue=msg;
+//     return msg;
+// });
+renderSaveList();
+Init();
+
+
+    </script>
+</body>
+</html>
