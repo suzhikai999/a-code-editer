@@ -650,7 +650,7 @@ function UnitToHtml(){
             }
             Str+=`
 
-_runner.${u.val.slice(0,temp2)}=new Function(\`${safeEscape(temp3)}\`,\`
+_runner.${u.val.slice(0,temp2)}=new Function(\`${temp3}\`,\`
 ${STR}
 var now=unit[${u.POS}];
 _runner._return=null;
