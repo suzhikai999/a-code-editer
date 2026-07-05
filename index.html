@@ -278,15 +278,16 @@ function show(u,x,y){
         if(")]}".includes(s[i]))NLK--;
     }
     const now=p[p.length-1];
-    const temp2=TELIS.findIndex(obj=>obj.text.replace(/ /g,"").replace(/[^()]/g,"")==fir);
+    const temp2=TELIS.findIndex(obj=>obj.text.replace(/ /g,"").replace(/[()]/g,"")==fir.replace(/[()]/g,""));
     if(temp2==-1){
+        if(fir!=""){
         if(temp3==`[`)temp=hasChil.array;else
         if(temp3==`"`||temp3==`'`)temp=hasChil.string;
         if(fir.includes("()")&&u.type=="function"){
             globalObj.push(...(Temp.filter(Now=>TELIS.findIndex(obj=>obj.text==Now.text&&obj.type==Now.type)==-1)));
             let TemStr=Temp[0].text;for(let i=1;i<Temp.length;++i){TemStr+=`,${Temp[i].text}`;}
             globalObj.push({text:fir,back:1,has:[],type:"BS"});globalFunc.push({name:fir.slice(0,-2),text:`${fir.slice(0,-2)}(${TemStr}): any`})}else
-        globalObj.push({text:fir.replace(/[()]/g,""),back:0,has:temp,type:"BS"});
+        globalObj.push({text:fir.replace(/[()]/g,""),back:0,has:temp,type:"BS"});}
     }else if(TELIS[temp2].type=="UD")staticFiller[temp2].type="BS";
     if(u===dragUnit&&cursorAt==len)ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
     if(SeCus==len)SeLeX=x;
@@ -410,7 +411,6 @@ document.addEventListener("mouseup",(e)=>{
     if(temp==dragUnit){return ;}
     if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length},unit.push(temp);
     dragUnit.to.push(temp);
-    if(dragUnit.to.length>=2&&dragUnit.type!=="if")dragUnit.type="if";
     dragUnit=null;
 });
 const key={Shift:false,Delete:false,Ctrl:false};
@@ -422,7 +422,7 @@ const alter=[{from:"sqrt",to:"√`",back:1},
 canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
     key[e.key]=true;
-    if(e.ctrlKey&&e.key=="f")unit.push({type:"function",val:"func(a) ",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});
+    if(e.ctrlKey&&e.key=="f")unit.unshift({type:"function",val:"func(a) ",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
@@ -532,7 +532,6 @@ function loop(){
     if(frameCount>=10){
         fps=Math.round(10*1000.0/deltaTime*100)/100;
         frameCount=0,lastTime=currentTime;}
-    unit[0].type="main";
     if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
     if(dragUnit&&key.Shift)dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
@@ -543,6 +542,8 @@ function loop(){
     for(const u of unit){
         const p=getPos(u);
         let i=0;
+        if(u.type=='main'&&u.to.length>1)u.to=[u.to[0]];
+        if(u.to.length>1)u.type="if";
         for(const u2 of u.to){
             const p2=getPos(u2);
             ctx.beginPath();
@@ -586,7 +587,7 @@ function loop(){
         for(const u2 of u.to){
             if(!unit.includes(u2))u.to.splice(i,1);
             if(u2.x>u.x&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
-           ++i;}
+            ++i;}
     }
     addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc],globalFunc=[];
     if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
@@ -729,21 +730,23 @@ return _runner._return;
             onclick:new Function("event","return 0;"),
             onmousemove:new Function("event","return 0;"),
             onmousedown:new Function("event","return 0;"),
-            onmouseup:new Function("event","return 0;"),
+            onmouseup:new Function("event","return 0;")
         }
         ${Str}
         var unit=[
             ${str}
         ];
-        var now=unit[0];
-        while(true){
-            var temp=now.fu();
-            if(now.to.length==0||_runner._return){;
-                break;
-            }else{;
-                now=unit[now.to[temp]];
-            };
+        function RunFrom(now){
+            while(true){
+                var temp=now.fu();
+                if(now.to.length==0){;
+                    break;
+                }else{;
+                    now=unit[now.to[temp]];
+                };
+            }
         }
+        RunFrom(unit[0]);
     </${"script"}>
 </html>`;
     return htmlContent;
