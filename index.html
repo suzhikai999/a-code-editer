@@ -624,6 +624,18 @@ function renderSaveList(){
     });
     listDom.innerHTML=html;
 }
+function safeEscape(str) {
+    let Str=str;
+    for(let i=0;i<str.length;++i){
+        Str+=str[i];
+        if(str[i]=="\\"){
+            Str+="\\";
+        }
+    }
+    return Str
+        .replace(/'/g,"\\'")
+        .replace(/"/g,'\\"');
+}
 function UnitToHtml(){
     let str="",Str="";
     for(const u of unit){
@@ -637,7 +649,7 @@ function UnitToHtml(){
             }
             Str+=`
 
-_runner.${u.val.slice(0,temp2)}=new Function(\`${temp3.replace(/,/g,'\`,\`')}\`,\`
+_runner.${u.val.slice(0,temp2)}=new Function(\`${safeEscape(temp3)}\`,\`
 ${STR}
 var now=unit[${u.POS}];
 _runner._return=null;
