@@ -201,7 +201,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
 }
 let cursorWA,SeCus=-1;
 function show(u,x,y){
-    let s=u.val,word="",fir="",fty="";
+    let s=u.val,word="",fir="",fty="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
     let temp=[],Temp=[],temp3;
     if(!s)s=lanw[u.type];
@@ -218,14 +218,28 @@ function show(u,x,y){
         const now=p[p.length-1];
         if(u===dragUnit){
             if(x<mousex-now.size/4)cursorWA=i+1;
-            if(cursorAt==i)ctx.fillText(cursorLook,x,y+now.y,100),SeRiX=x,x+=1,filler=(!IsIns&&!IsInS)?filler:[];
+            if(cursorAt==i){
+                ctx.fillText(cursorLook,x,y+now.y,100),SeRiX=x,x+=1,filler=(!IsIns&&!IsInS)?filler:[];
+                if(Funcs.length>0){
+                let temp2=[...funcTour,...globalFuncBuff].find(FU=>FU.name==Funcs[Funcs.length-1][0]);
+                if(temp2!=undefined){
+                    const temx=Funcs[Funcs.length-1][1]-(temp2.text.indexOf("(")+1)*now.size/2;
+                    ctx.beginPath();
+                    ctx.lineWidth=30;
+                    ctx.moveTo(temx,y-30);
+                    ctx.lineTo(temx+400,y-30);
+                    ctx.strokeStyle="rgba(0,0,0,0.7)";
+                    ctx.stroke();
+                    ctx.fillStyle="#fff";
+                    ctx.fillText(temp2.text,temx,y-30);}}
+            }
             if(SeCus==i)SeLeX=x;}
         let flag=false;
         if("([{".includes(s[i]))NLK++;
         if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
         if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
         if(!IsIns&&!IsInS){
-            if((Chars).includes(s[i]))word+=s[i];else{if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
+            if((Chars).includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
                 if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
             }if(s[i]=='.')word+=s[i];
             if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
@@ -244,6 +258,7 @@ function show(u,x,y){
                 }
                 p.pop();
             }else flag=true;
+            if(s[i]==')'&&dragUnit===u&&i<cursorAt)Funcs.pop();
         }else flag=true;
         if(flag||IsIns||IsInS){
             let ws=s[i];
@@ -269,8 +284,9 @@ function show(u,x,y){
         if(temp3==`"`||temp3==`'`)temp=hasChil.string;
         if(fir.includes("()")&&u.type=="function"){
             globalObj.push(...(Temp.filter(Now=>TELIS.findIndex(obj=>obj.text==Now.text&&obj.type==Now.type)==-1)));
-            globalObj.push({text:fir,back:1,has:[],type:"BS"});}else
-        globalObj.push({text:fir,back:0,has:temp,type:"BS"});
+            let TemStr=Temp[0].text;for(let i=1;i<Temp.length;++i){TemStr+=`,${Temp[i].text}`;}
+            globalObj.push({text:fir,back:1,has:[],type:"BS"});globalFunc.push({name:fir.slice(0,-2),text:`${fir.slice(0,-2)}(${TemStr}): any`})}else
+        globalObj.push({text:fir.replace(/[()]/g,""),back:0,has:temp,type:"BS"});
     }else if(TELIS[temp2].type=="UD")staticFiller[temp2].type="BS";
     if(u===dragUnit&&cursorAt==len)ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
     if(SeCus==len)SeLeX=x;
@@ -305,8 +321,29 @@ function show(u,x,y){
     }
     return x;
 }
+const funcTour=[
+    {name:".toFixed",text:"Number.toFixed(fractionDigits?): string"},{name:".toPrecision",text:"Number.toPrecision(precision?): string"},
+    {name:".codePointAt",text:"String.codePointAt(index): number"},{name:".includes",text:"String.includes(searchStr, position?): boolean"},
+    {name:".indexOf",text:"String.indexOf(searchStr, fromIndex?): number"},{name:".findIndex",text:"String.findIndex(callback): number"},
+    {name:".replace",text:"String.replace(pattern, replacement): string"},{name:".slice",text:"String.slice(start, end?): string"},
+    {name:".includes",text:"Array.includes(item, fromIndex?): boolean"},{name:".push",text:"Array.push(...items): number"},
+    {name:".unshift",text:"Array.unshift(...items): number"},{name:".fill",text:"Array.fill(value, start?, end?): Array"},
+    {name:".splice",text:"Array.splice(start, deleteCount?, ...items): Array"},{name:".slice",text:"Array.slice(start?, end?): Array"},
+    {name:".findIndex",text:"Array.findIndex(callback): number"},{name:".append",text:"Element.append(...nodes/text)"},
+    {name:".appendChild",text:"Element.appendChild(childNode): Node"},
+    {name:"max",text:"Math.max(...values): number"},{name:"min",text:"Math.min(...values): number"},
+    {name:"sin",text:"Math.sin(radians): number"},{name:"cos",text:"Math.cos(radians): number"},{name:"tan",text:"Math.tan(radians): number"},
+    {name:"asin",text:"Math.asin(x): number"},{name:"acos",text:"Math.acos(x): number"},{name:"atan",text:"Math.atan(x): number"},{name:"atan2",text:"Math.atan2(y, x): number"},
+    {name:"setTimeout",text:"setTimeout(callback, delay?, ...args): number"},{name:"setInterval",text:"setInterval(callback, delay?, ...args): number"},
+    {name:".getElementById",text:"document.getElementById(id): Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className): HTMLCollection"},
+    {name:".getElementsByName",text:"document.getElementsByName(name): NodeList"},{name:".createElemnet",text:"document.createElemnet(tagName): HTMLElement"},
+    {name:".exitPointerLock",text:"document.exitPointerLock()"},{name:".exitFullscreen",text:"document.exitFullscreen()"},
+    {name:"print",text:"print(...content): void"},{name:"onclick",text:"onclick = function(event){}"},
+    {name:"onmousedown",text:"onmousedown = function(event){}"},{name:"onmouseup",text:"onmouseup = function(event){}"},
+    {name:"onmousemove",text:"onmousemove = function(event){}"}
+];
 const hasChil={
-    number:[{text:".toString()",back:1,has:[],type:"AR"},{text:".toFixed()",back:1,has:[],type:"AR"},{text:".toPrecision()",back:1,has:[],type:"AR"},],
+    number:[{text:".toString()",back:0,has:[],type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},],
     string:[{text:".length",back:0,has:"number",type:"AR"},{text:".codePointAt()",back:1,has:[],type:"AR"},{text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:[],type:"AR"}
     ,{text:".replace()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},{text:".toUpperCase()",back:0,has:"this",type:"AR"},],
     array:[{text:".includes()",back:1,has:[],type:"AR"},{text:".pop()",back:1,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},{text:".unshift()",back:1,has:[],type:"AR"},{text:".shift()",back:1,has:[],type:"AR"},
@@ -326,12 +363,12 @@ const staticFiller=[
         {text:".key",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
     {text:"document",back:0,has:[{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
         {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
-        {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElemnet()",back:1,has:[],type:"AR"},
+        {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:[],type:"AR"},
         {text:".getElementsByClassName()",back:1,has:[],type:"AR"},{text:".getElementsByName()",back:1,has:[],type:"AR"}],type:"AR"},
     {text:"onclick()",back:1,has:[],type:"UD"},{text:"onmousedown()",back:1,has:[],type:"UD"},{text:"onmouseup()",back:1,has:[],type:"UD"},{text:"onmousemove()",back:1,has:[],type:"UD"},
 ];
-let globalObj=[],addFiller=[];
+let globalFunc=[],globalObj=[],globalFuncBuff=[],addFiller=[];
 let filler=[{text:"print()",has:[],back:6}];
 let fillerPos=0,ChoosingFiller=0;
 let cam={x:0,y:0};
@@ -551,7 +588,7 @@ function loop(){
             if(u2.x>u.x&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
            ++i;}
     }
-    addFiller=[...globalObj,...staticFiller];
+    addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc],globalFunc=[];
     if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
         SeCus=cursorWA;if(SeCus>dragUnit.val.length)SeCus=dragUnit.val.length;if(SeCus==cursorAt)SeCus=-1;}
 
@@ -592,6 +629,7 @@ function saveCurrentUnit(){
     localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
     renderSaveList();
     _runner._log.innerText+=`\n⎗ 已保存副本，当前共${saves.length}份存档`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
 }
 function loadSave(index){
     const saves=getSaves();
@@ -604,6 +642,7 @@ function loadSave(index){
         }}
     cam.x=0,cam.y=0;
     _runner._log.innerText+=`\n⎘ 已加载存档 #${index+1}`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
 }
 function renderSaveList(){
     const listDom=document.getElementById("saveList");
@@ -730,6 +769,7 @@ function openDebugChildPage() {
     );
     childWin.onload=()=>URL.revokeObjectURL(pageUrl);
     _runner._log.innerText+="\n➫ 已打开独立子页面";
+    _runner._log.scrollTop=_runner._log.scrollHeight;
 }
 document.addEventListener("keydown",e=>{
     if(e.ctrlKey && e.key.toLowerCase()==="s"){
