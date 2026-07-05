@@ -625,16 +625,17 @@ function renderSaveList(){
     listDom.innerHTML=html;
 }
 function safeEscape(str) {
-    let Str=str;
+    let Str="";
     for(let i=0;i<str.length;++i){
-        Str+=str[i];
         if(str[i]=="\\"){
             Str+="\\";
+        }else
+        if(str[i]=="'"||str[i]=='"'){
+            Str+="\\";
         }
+        Str+=str[i];
     }
-    return Str
-        .replace(/'/g,"\\'")
-        .replace(/"/g,'\\"');
+    return Str;
 }
 function UnitToHtml(){
     let str="",Str="";
@@ -666,7 +667,7 @@ return _runner._return;
 
 `
         }else{
-            str+=`{type:\"${u.type}\",fu:new Function(\'${u.Fu.replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\\n/g,"\\\\n")}\'),to:[`;
+            str+=`{type:\"${u.type}\",fu:new Function(\'${safeEscape(u.Fu)}\'),to:[`;
             for(const u2 of u.to){
                 str+=`${u2.POS},`;
             }
