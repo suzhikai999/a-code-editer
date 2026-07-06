@@ -85,7 +85,7 @@ for(const u of unit){
             u.Fu=`_runner._log.innerText+=(${temp});return 0;`;
         }else if(s.includes('return')){
             const temp=s.slice(7,-1);
-            u.Fu=`_runner._return=(${temp});return 0;`;
+            u.Fu=`_runner._res=(${temp});return 0;`;
         }else
         u.Fu=`${s};return 0;`;
     }
@@ -285,7 +285,7 @@ function show(u,x,y){
         if(temp3==`"`||temp3==`'`)temp=hasChil.string;
         if(fir.includes("()")&&u.type=="function"){
             globalObj.push(...(Temp.filter(Now=>TELIS.findIndex(obj=>obj.text==Now.text&&obj.type==Now.type)==-1)));
-            let TemStr=Temp[0].text;for(let i=1;i<Temp.length;++i){TemStr+=`,${Temp[i].text}`;}
+            let TemStr="";if(Temp.length>0){TemStr=Temp[0].text;for(let i=1;i<Temp.length;++i){TemStr+=`,${Temp[i].text}`;}}
             globalObj.push({text:fir,back:1,has:[],type:"BS"});globalFunc.push({name:fir.slice(0,-2),text:`${fir.slice(0,-2)}(${TemStr}): any`})}else
         globalObj.push({text:fir.replace(/[()]/g,""),back:0,has:temp,type:"BS"});}
     }else if(TELIS[temp2].type=="UD")staticFiller[temp2].type="BS";
@@ -422,7 +422,7 @@ const alter=[{from:"sqrt",to:"√`",back:1},
 canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
     key[e.key]=true;
-    if(e.ctrlKey&&e.key=="f")unit.unshift({type:"function",val:"func(a) ",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});
+    if(e.ctrlKey&&e.key=="f")unit.unshift({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
@@ -678,36 +678,49 @@ function safeEscape(str) {
     return Str;
 }
 function UnitToHtml(){
-    let str="",Str="";
+    let str="",Str="",mainPOS=0;
     for(const u of unit){
         if(u.type=='function'){
-            const temp2=u.val.indexOf('('),temp3=u.val.slice(temp2+1,-1)+' ';
+            const temp2=u.val.indexOf('('),temp3=u.val.slice(temp2+1,-1);
             let STR='',word='';
             for(let i=0;i<temp3.length;++i){
                 if(Chars.includes(temp3[i])){
                     word+=temp3[i];
                 }else STR+='_runner.'+word+'='+word+';';
             }
+            STR+='_runner.'+word+'='+word+';';
             Str+=`
 
-_runner.${u.val.slice(0,temp2)}=new Function(\`${temp3}\`,\`
-${STR}
-var now=unit[${u.POS}];
-_runner._return=null;
-while(true){
-    const temp=now.fu();
-    if(now.to.length==0||_runner._return){;
-        break;
-    }else{;
-        now=unit[now.to[temp]];
-    };
-};
-return _runner._return;
-\`);
-
-`
+_runner.${u.val.slice(0,temp2)}=function(${temp3}){
+    ${STR}
+    var now=unit[${u.POS}];
+    _runner._res=null;
+    while(true){
+        var temp=now.fu();
+        if(now.to.length==0){
+            break;
         }else{
+            now=unit[now.to[temp]];
+        }
+    }
+    return _runner._res;
+};
+
+`;
+            str+=`{type:\"void\",fu:new Function(\'return 0;\'),to:[`;
+            for(const u2 of u.to){
+                str+=`${u2.POS},`;
+            }
+            str+=`]},`;
+        }else if(u.type=='void'){
             str+=`{type:\"${u.type}\",fu:new Function(\'${safeEscape(u.Fu)}\'),to:[`;
+            for(const u2 of u.to){
+                str+=`${u2.POS},`;
+            }
+            str+=`]},`;
+        }else {
+            mainPOS=u.POS;
+            str+=`{type:\"void\",fu:new Function(\'return 0;\'),to:[`;
             for(const u2 of u.to){
                 str+=`${u2.POS},`;
             }
@@ -724,29 +737,31 @@ return _runner._return;
         <div id="runner_log"></div>
     </${"body"}>
     <script>
-        var _runner={
-            _log:document.getElementById("runner_log"),
-            _return:null,
-            onclick:new Function("event","return 0;"),
-            onmousemove:new Function("event","return 0;"),
-            onmousedown:new Function("event","return 0;"),
-            onmouseup:new Function("event","return 0;")
+
+var _runner={
+    _log:document.getElementById("runner_log"),
+    _res:null,
+    onclick:new Function("event","return 0"),
+    onmousemove:new Function("event","return 0"),
+    onmousedown:new Function("event","return 0"),
+    onmouseup:new Function("event","return 0")
+}
+${Str}
+var unit=[
+    ${str}
+];
+function RunFrom(now){
+    while(true){
+        var temp=now.fu();
+        if(now.to.length==0){
+            break;
+        }else{
+            now=unit[now.to[temp]];
         }
-        ${Str}
-        var unit=[
-            ${str}
-        ];
-        function RunFrom(now){
-            while(true){
-                var temp=now.fu();
-                if(now.to.length==0){;
-                    break;
-                }else{;
-                    now=unit[now.to[temp]];
-                };
-            }
-        }
-        RunFrom(unit[0]);
+    }
+}
+RunFrom(unit[${mainPOS}]);
+
     </${"script"}>
 </html>`;
     return htmlContent;
@@ -780,6 +795,7 @@ document.addEventListener("keydown",e=>{
         saveCurrentUnit();
     }
 });
+
 // window.addEventListener("beforeunload",(e)=>{
 //     const msg="确定没有未保存修改吗？";
 //     e.returnValue=msg;
