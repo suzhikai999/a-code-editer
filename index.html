@@ -47,6 +47,40 @@
         }
         .ctrl-btn:hover {background:#2856b8;}
         .ctrl-btn:active {background:#1e4290;}
+        .del-save-btn {
+            position: absolute;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: none;
+            background: #eee;
+            color: #666;
+            font-size: 14px;
+            line-height: 22px;
+            padding: 0;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .del-save-btn:hover {background: #ef4444;color: white;}
+        .del-save-btn:active {transform: scale(0.9);}
+        .del-alter-btn {
+            position: absolute;
+            right: 30px;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: none;
+            background: #eee;
+            color: #666;
+            font-size: 14px;
+            line-height: 22px;
+            padding: 0;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .del-alter-btn:hover {background: rgb(202, 176, 145);color: white;}
+        .del-alter-btn:active {transform: scale(0.9);}
         #runner_log {
             margin-top:10px;
             padding:12px;
@@ -93,17 +127,28 @@ for(const u of unit){
 _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                     ">编译</button>
                     <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
-                    <button class="ctrl-btn" onclick="saveCurrentUnit()">保存副本(Ctrl+S)</button>
-                    <button class="ctrl-btn" onclick="localStorage.clear();renderSaveList()">清空副本</button>
+                    <button class="ctrl-btn" onclick="saveCurrentUnit()">保存副本<sub><sup>(Ctrl+S)</sup></sub></button>
+                    <button class="ctrl-btn" onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button>
                     <button class="ctrl-btn" onclick="Download()">下载HTA</button>
                 </div>
                 <div id="runner_log">日志：</div>
             </div>
         </div>
         <div class="ctrl-panel" style="width:260px;height:700px;overflow-y:auto;">
-            <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表（点击覆盖画布）</h3>
+            <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表</h3>
             <div id="saveList"></div>
         </div>
+    </div>
+    <div class="ctrl-panel" style="width:1476px;margin-top:10px;">
+        <h3 style="margin:0 0 8px 0;font-size:16px;">自定义页面DOM</h3>
+        <textarea 
+            id="domHtmlInput"
+            style="width:100%;min-height:120px;padding:10px;font-family:Consolas;font-size:14px;white-space:pre;resize:vertical;"
+            placeholder='在此编写页面元素，例如：
+<button onclick="_runner.test()">测试按钮</button>
+<div id="box" style="width:200px;height:200px;background:#eee;"></div>
+'
+        ></textarea>
     </div>
     <script>
 
@@ -202,43 +247,51 @@ function show(u,x,y){
             }
             if(SeCus==i)SeLeX=x;}
         let flag=false;
-        if("([{".includes(s[i]))NLK++;
-        if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
-        if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
-        if(!IsIns&&!IsInS){
-            if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
-                if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
-            }if(s[i]=='.')word+=s[i];
-            if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
-            if(s[i]=='`'){
-                if(now.else==1){
-                    const temp=SQs[SQs.length-1];
-                    ctx.beginPath();
-                    ctx.lineWidth=1;
-                    ctx.moveTo(temp+now.size/2-2,now.y-now.size*0.6+y);
-                    ctx.lineTo(x                ,now.y-now.size*0.6+y);
-                    ctx.strokeStyle="#000";
-                    ctx.stroke();
-                    SQs.pop();
-                }
-                p.pop();
+        if(s[i-1]!='\\'&&s[i]!='\\'){
+            if("([{".includes(s[i]))NLK++;
+            if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
+            if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
+            if(!IsIns&&!IsInS){
+                if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
+                    if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
+                }if(s[i]=='.')word+=s[i];
+                if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
+                if(s[i]=='`'){
+                    if(now.else==1){
+                        const temp=SQs[SQs.length-1];
+                        ctx.beginPath();
+                        ctx.lineWidth=1;
+                        ctx.moveTo(temp+now.size/2-2,now.y-now.size*0.6+y);
+                        ctx.lineTo(x                ,now.y-now.size*0.6+y);
+                        ctx.strokeStyle="#000";
+                        ctx.stroke();
+                        SQs.pop();
+                    }
+                    p.pop();
+                }else flag=true;
+                if(s[i]==')'&&dragUnit===u&&i<cursorAt)Funcs.pop();
             }else flag=true;
-            if(s[i]==')'&&dragUnit===u&&i<cursorAt)Funcs.pop();
-        }else flag=true;
-        if(flag||IsIns||IsInS){
-            let ws=s[i];
-            if(ws=="*")ws="∙";
+            if(flag||IsIns||IsInS){
+                let ws=s[i];
+                if(ws=="*")ws="∙";
+                ctx.font=`${now.size}px Consolas`;
+                ctx.fillStyle="#333";
+                ctx.textBaseline="middle";
+                if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
+                    if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
+                    if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
+                }else ctx.fillStyle="rgb(151,60,25)";
+                ctx.fillText(ws,x,y+now.y,100);
+                if(s.codePointAt(i)<=256)x+=now.size/2;else
+                if("⌈⌉⌊⌋√".includes(s[i]))x+=now.size/2;else
+                x+=now.size;
+            }
+        }else{
             ctx.font=`${now.size}px Consolas`;
-            ctx.fillStyle="#333";
+            ctx.fillStyle="rgb(161,70,35)";
             ctx.textBaseline="middle";
-            if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
-                if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
-                if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
-            }else ctx.fillStyle="rgb(151,60,25)";
-            ctx.fillText(ws,x,y+now.y,100);
-            if(s.codePointAt(i)<=256)x+=now.size/2;else
-            if("⌈⌉⌊⌋√".includes(s[i]))x+=now.size/2;else
-            x+=now.size;
+            ctx.fillText(s[i],x,y+now.y,100);
+            x+=now.size/2;
         }
         if(")]}".includes(s[i]))NLK--;
     }
@@ -590,7 +643,7 @@ function saveCurrentUnit(){
     }
     saves.push({
         time:new Date().toLocaleString(),
-        data:JSON.parse(JSON.stringify(unitCopy))
+        data:JSON.parse(JSON.stringify([unitCopy,document.getElementById("domHtmlInput").value,`存档#${saves.length+1}`]))
     });
     localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
     renderSaveList();
@@ -601,13 +654,33 @@ function loadSave(index){
     const saves=getSaves();
     if(!saves[index])return;
     const saveData=JSON.parse(JSON.stringify(saves[index].data));
-    unit=saveData;
+    unit=saveData[0];
     for(const u of unit){
         for(let i=0;i<u.to.length;++i){
             u.to[i]=unit[u.to[i]];
         }}
     cam.x=0,cam.y=0;
-    _runner._log.innerText+=`\n⎘ 已加载存档 #${index+1}`;
+    document.getElementById("domHtmlInput").value=saveData[1];
+    _runner._log.innerText+=`\n⎘ 已加载 ${saveData[2]}`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
+}
+function deleteSave(index){
+    if(!confirm("确定删除该存档？"))return;
+    const saves=getSaves();
+    _runner._log.innerText+=`\n🗑 已删除 ${saves[index].data[2]}`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
+    saves.splice(index,1);
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
+    renderSaveList();
+}
+function renameSave(index){
+    const saves=getSaves();
+    const text=prompt(`命名为:`,saves[index].data[2]);
+    if(!text)return;
+    saves[index].data[2]=text;
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
+    renderSaveList();
+    _runner._log.innerText+=`\n🖎 已命名为 ${text}`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
 }
 function renderSaveList(){
@@ -619,17 +692,18 @@ function renderSaveList(){
     let html="";
     saves.forEach((save, idx)=>{
         html+=`
-        <div style="padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;"
-             onclick="loadSave(${idx})">
-            <div style="font-weight:bold;font-size:14px;">存档 #${idx+1}</div>
+        <div style="position:relative;padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;" onclick="loadSave(${idx})">
+            <button class="del-save-btn" onclick="event.stopPropagation();deleteSave(${idx})">🗙</button>
+            <button class="del-alter-btn" onclick="event.stopPropagation();renameSave(${idx})">🖎</button>
+            <div style="font-weight:bold;font-size:14px;">${save.data[2]}</div>
             <div style="font-size:12px;color:#666;">${save.time}</div>
-            <div style="font-size:12px;color:#666;">节点数:${save.data.length}</div>
+            <div style="font-size:12px;color:#666;">节点数:${save.data[0].length}</div>
         </div>
         `;
     });
     listDom.innerHTML=html;
 }
-function safeEscape(str) {
+function safeEscape(str){
     let Str="";
     for(let i=0;i<str.length;++i){
         if(str[i]=="\\"){
@@ -701,6 +775,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
     </head>
     <body>
         <div id="runner_log"></div>
+        ${document.getElementById("domHtmlInput").value}
     </${"body"}>
     <script>
 
