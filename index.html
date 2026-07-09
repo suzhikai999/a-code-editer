@@ -99,7 +99,7 @@
 <body>
     <div style="display:flex;gap:16px;">
         <div class="canvas-wrap">
-            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none"></canvas>
+            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;"></canvas>
             <div class="ctrl-panel" style="margin-top:16px;">
                 <div class="btn-group">
                     <button class="ctrl-btn" onclick="_runner._log.innerText='日志：'">清空日志</button>
@@ -253,7 +253,7 @@ function show(u,x,y){
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
                 if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
-                    if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
+                    if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:(word=='event')?(hasChil.event):(hasChil.number),type:"RC"});word="";
                 }if(s[i]=='.')word+=s[i];
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
@@ -341,7 +341,8 @@ function show(u,x,y){
     return x;
 }
 const funcTour=[
-    {name:"wait",text:"wait(delay): void"},
+    {name:"wait",text:"wait(delay): void"},{name:"print",text:"print(...content): void"},
+    {name:"alert",text:"alert(message?): void"},{name:"confirm",text:"confirm(message?): void"},{name:"prompt",text:"prompt(message?,default?): string | null"},
     {name:".toFixed",text:"Number.toFixed(fractionDigits?): string"},{name:".toPrecision",text:"Number.toPrecision(precision?): string"},
     {name:".codePointAt",text:"String.codePointAt(index): number"},{name:".includes",text:"String.includes(searchStr, position?): boolean"},
     {name:".indexOf",text:"String.indexOf(searchStr, fromIndex?): number"},{name:".findIndex",text:"String.findIndex(callback): number"},
@@ -358,9 +359,9 @@ const funcTour=[
     {name:".getElementById",text:"document.getElementById(id): Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className): HTMLCollection"},
     {name:".getElementsByName",text:"document.getElementsByName(name): NodeList"},{name:".createElement",text:"document.createElement(tagName): HTMLElement"},
     {name:".exitPointerLock",text:"document.exitPointerLock()"},{name:".exitFullscreen",text:"document.exitFullscreen()"},
-    {name:"print",text:"print(...content): void"},{name:"onclick",text:"onclick = function(event){}"},
+    {name:"onclick",text:"onclick = function(event){}"},{name:"oncontextmenu",text:"oncontextmenu = function(event){}"},
     {name:"onmousedown",text:"onmousedown = function(event){}"},{name:"onmouseup",text:"onmouseup = function(event){}"},
-    {name:"onmousemove",text:"onmousemove = function(event){}"}
+    {name:"onmousemove",text:"onmousemove = function(event){}"},{name:"onmousewheel",text:"onmousewheel = function(event){}"},
 ];
 const hasChil={
     number:[{text:".toString()",back:0,has:[],type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},],
@@ -369,10 +370,13 @@ const hasChil={
     array:[{text:".includes()",back:1,has:[],type:"AR"},{text:".pop()",back:1,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},{text:".unshift()",back:1,has:[],type:"AR"},{text:".shift()",back:1,has:[],type:"AR"},
     {text:".fill()",back:1,has:[],type:"AR"},{text:".splice()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:[],type:"AR"}],
     object:[],element:[{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".classList",back:0,has:"array",type:"AR"},{text:".className",back:0,has:"string",type:"AR"}
-    ,{text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".remove()",back:1,has:[],type:"AR"}]
+    ,{text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".remove()",back:1,has:[],type:"AR"}],
+    event:[{text:".screenX",back:0,has:"number",type:"AR"},{text:".screenY",back:0,has:"number",type:"AR"},
+        {text:".pageX",back:0,has:"number",type:"AR"},{text:".pageY",back:0,has:"number",type:"AR"},{text:".button",back:0,has:"number",type:"AR"},
+        {text:".key",back:0,has:"number",type:"AR"},{text:".target",back:0,has:"element",type:"AR"},{text:".wheelDelta",back:0,has:"number",type:"AR"},]
 };
 const staticFiller=[
-    {text:"typeof ",back:0,has:hasChil.number,type:"AR"},
+    {text:"typeof ",back:0,has:hasChil.number,type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"comfirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
     {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:hasChil.number,type:"AR"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
@@ -380,15 +384,13 @@ const staticFiller=[
     {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
     {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},{text:"pow()",back:1,has:[],type:"AR"},
     {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
-    {text:"event",back:0,has:[{text:".screenX",back:0,has:hasChil.number,type:"AR"},{text:".screenY",back:0,has:hasChil.number,type:"AR"},
-        {text:".pageX",back:0,has:hasChil.number,type:"AR"},{text:".pageY",back:0,has:hasChil.number,type:"AR"},{text:".button",back:0,has:hasChil.number,type:"AR"},
-        {text:".key",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
     {text:"document",back:0,has:[{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
         {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
         {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:[],type:"AR"},
         {text:".getElementsByClassName()",back:1,has:[],type:"AR"},{text:".getElementsByName()",back:1,has:[],type:"AR"}],type:"AR"},
     {text:"onclick(event)",back:0,has:[],type:"UD"},{text:"onmousedown(event)",back:0,has:[],type:"UD"},{text:"onmouseup(event)",back:0,has:[],type:"UD"},{text:"onmousemove(event)",back:0,has:[],type:"UD"},
+    {text:"onmousewheel(event)",back:0,has:[],type:"UD"},{text:"oncontextmenu(event)",back:0,has:[],type:"UD"},
 ];
 let globalFunc=[],globalObj=[],globalFuncBuff=[],addFiller=[];
 let filler=[{text:"print()",has:[],back:6}];
@@ -768,7 +770,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
         }
     }
     const htmlContent=`
-<html onclick="_runner.onclick(event)" onmousemove="_runner.onmousemove(event)" onmousedown="_runner.onmousedown(event)" onmouseup="_runner.onmouseup(event)">
+<html onclick="_runner.onclick(event)" onmousemove="_runner.onmousemove(event)" onmousedown="_runner.onmousedown(event)" onmouseup="_runner.onmouseup(event)" onmousewheel="_runner.onmousewheel(event)" oncontextmenu="_runner.oncontextmenu(event)">
     <head>
         <meta charset="UTF-8">
         <title>TEST</title>
@@ -782,10 +784,13 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 var _runner={
     _log:document.getElementById("runner_log"),
     _res:null,
-    onclick:function(event){return 0;},
-    onmousemove:function(event){return 0;},
-    onmousedown:function(event){return 0;},
-    onmouseup:function(event){return 0;}
+    onclick:function(event){return ;},
+    onmousemove:function(event){return ;},
+    onmousedown:function(event){return ;},
+    onmouseup:function(event){return ;},
+    onmousewheel:function(event){return ;},
+    onbeforeunload:function(event){return ;},
+    oncontextmenu:function(event){return ;}
 };
 ${Str}
 var unit=[
