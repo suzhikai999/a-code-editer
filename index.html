@@ -136,7 +136,6 @@ function Expr(str){
         .replace(/⌈([^}]+)⌉/g,'Math.ceil($1)')
         .replace(/⌊([^}]+)⌋/g,'Math.floor($1)')
         .replace(/㏑\((.+?)\)/g,'Math.log($1)')
-        .replace(/(.+?)\^(.+?)}/g,'Math.pow($1,$2)')
         .replace(/\*/g,'*');
     return code;
 }
@@ -144,12 +143,12 @@ function prefixLocalVars(codeStr,globalVars=[]){
     const builtInGlobals=[
         'window','document','console','Math','Date','Array','Object','String','Number','Boolean','setTimeout','setInterval',
         'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const',
-        'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','_runner','print'];
-    const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','event','alert'];
+        'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert'];
+    const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','pow'];
     codeStr+=" ";
     const globalSet=new Set([...builtInGlobals,...globalVars]);
     const MathSet=new Set([...MathGlobals]);
-    let code=``,IsIns=false,IsInS=false,word="",spe=false;
+    let code="",IsIns=false,IsInS=false,word="",spe=false;
     for(let i=0;i<codeStr.length;++i){
         if(Chars.includes(codeStr[i])){
             word+=codeStr[i];
@@ -211,8 +210,6 @@ function show(u,x,y){
                 if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
             }if(s[i]=='.')word+=s[i];
             if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
-            if(s[i]=='^')p.push({size:now.size*0.7,y:now.y-now.size*0.3,else:0});else
-            if(s[i]=='_')p.push({size:now.size*0.7,y:now.y+now.size*0.3,else:0});else
             if(s[i]=='`'){
                 if(now.else==1){
                     const temp=SQs[SQs.length-1];
@@ -303,7 +300,7 @@ const funcTour=[
     {name:".appendChild",text:"Element.appendChild(childNode): Node"},
     {name:"max",text:"Math.max(...values): number"},{name:"min",text:"Math.min(...values): number"},
     {name:"sin",text:"Math.sin(radians): number"},{name:"cos",text:"Math.cos(radians): number"},{name:"tan",text:"Math.tan(radians): number"},
-    {name:"asin",text:"Math.asin(x): number"},{name:"acos",text:"Math.acos(x): number"},{name:"atan",text:"Math.atan(x): number"},{name:"atan2",text:"Math.atan2(y, x): number"},
+    {name:"asin",text:"Math.asin(x): number"},{name:"acos",text:"Math.acos(x): number"},{name:"atan",text:"Math.atan(x): number"},{name:"atan2",text:"Math.atan2(y, x): number"},{name:"pow",text:"Math.pow(base, power): number"},
     {name:"setTimeout",text:"setTimeout(callback, delay?, ...args): number"},{name:"setInterval",text:"setInterval(callback, delay?, ...args): number"},
     {name:".getElementById",text:"document.getElementById(id): Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className): HTMLCollection"},
     {name:".getElementsByName",text:"document.getElementsByName(name): NodeList"},{name:".createElement",text:"document.createElement(tagName): HTMLElement"},
@@ -322,12 +319,13 @@ const hasChil={
     ,{text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".remove()",back:1,has:[],type:"AR"}]
 };
 const staticFiller=[
+    {text:"typeof ",back:0,has:hasChil.number,type:"AR"},
     {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:hasChil.number,type:"AR"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
     {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
-    {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},
+    {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},{text:"pow()",back:1,has:[],type:"AR"},
     {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
     {text:"event",back:0,has:[{text:".screenX",back:0,has:hasChil.number,type:"AR"},{text:".screenY",back:0,has:hasChil.number,type:"AR"},
         {text:".pageX",back:0,has:hasChil.number,type:"AR"},{text:".pageY",back:0,has:hasChil.number,type:"AR"},{text:".button",back:0,has:hasChil.number,type:"AR"},
@@ -350,7 +348,7 @@ function find(x,y){
     for(let i=unit.length-1;i>=0;i--){
         const u=unit[i];
         const temp=getPos(u);
-        if(mousex>=temp.x&&mousex<=temp.endx+20&&mousey>=temp.y&&mousey<=temp.y+40){
+        if(mousex>=temp.x-20&&mousex<=temp.endx+20&&mousey>=temp.y&&mousey<=temp.y+40){
             return u;
         }
     }
@@ -385,7 +383,6 @@ document.addEventListener("mouseup",(e)=>{
 });
 const key={Shift:false,Delete:false,Ctrl:false};
 const alter=[{from:"sqrt",to:"√`",back:1},
-    {from:"pow",to:"^`",back:1},
     {from:"ln",to:"㏑()",back:2},
     {from:"ceil",to:"⌈⌉",back:1},
     {from:"floor",to:"⌊⌋",back:1},];
@@ -429,17 +426,17 @@ document.addEventListener("keydown",async(e)=>{
         if(e.key==="Backspace"){
             let temp=dragUnit.val[cursorAt-1];
             if(cursorAt==0)temp="none";
-            if(["^`","_`","√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
-            if(temp=="^"||temp=="_"||temp=="√"||temp=="`");
+            if(["√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
+            if(temp=="√"||temp=="`");
             else if(dragUnit.val[cursorAt-1]!='`')dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
             cursorAt--;}else
         if(e.key==="Delete"){
             if(dragUnit.val.length==0)unit.splice(unit.findIndex(u=>u===dragUnit),1);
             const temp=dragUnit.val[cursorAt];
             const temp2=dragUnit.val[cursorAt-1];
-            if((temp=="^"||temp=="_"||temp=="√")&&dragUnit.val[cursorAt+1]=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+2);else
-            if((temp2=="^"||temp2=="_"||temp2=="√")&&temp=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
-            if(temp=="^"||temp=="_"||temp=="√"||temp=="`")cursorAt++;
+            if((temp=="√")&&dragUnit.val[cursorAt+1]=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+2);else
+            if((temp2=="√")&&temp=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
+            if(temp=="√"||temp=="`")cursorAt++;
             else dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+1);}else
         if(e.key==="Tab"&&filler.length>0){dragUnit.val=dragUnit.val.slice(0,cursorAt)+filler[ChoosingFiller].text.slice(fillerPos)+dragUnit.val.slice(cursorAt);
             cursorAt+=filler[ChoosingFiller].text.length-filler[ChoosingFiller].back-fillerPos,filler=filler[ChoosingFiller].has,fillerPos=0;
@@ -454,8 +451,7 @@ document.addEventListener("keydown",async(e)=>{
                 if(Chars.includes(s[i]))word+=s[i];
                 else{temp=filler.findIndex(fil=>fil.text==word);if(temp!=-1)filler=filler[temp].has;else{filler=[];break;}if(s[i]=='.')word='.';else word="";}
             }
-            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));fillerPos=word.length;}else filler=[];
-        if(e.key==="^"||e.key=="_")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"`"+dragUnit.val.slice(cursorAt);else
+            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
         if(e.key==="[")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"]"+dragUnit.val.slice(cursorAt);else
         if(e.key==="{")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"}"+dragUnit.val.slice(cursorAt);else
