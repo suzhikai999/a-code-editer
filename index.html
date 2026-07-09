@@ -150,7 +150,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
     const MathSet=new Set([...MathGlobals]);
     let code="",IsIns=false,IsInS=false,word="",spe=false;
     for(let i=0;i<codeStr.length;++i){
-        if(Chars.includes(codeStr[i])){
+        if((Chars+"_").includes(codeStr[i])){
             word+=codeStr[i];
         }else{
             if(!globalSet.has(word)&&!IsIns&&!IsInS&&word&&!spe){
@@ -206,7 +206,7 @@ function show(u,x,y){
         if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
         if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
         if(!IsIns&&!IsInS){
-            if((Chars).includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
+            if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
                 if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:hasChil.number,type:"RC"});word="";
             }if(s[i]=='.')word+=s[i];
             if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
@@ -335,7 +335,7 @@ const staticFiller=[
         {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:[],type:"AR"},
         {text:".getElementsByClassName()",back:1,has:[],type:"AR"},{text:".getElementsByName()",back:1,has:[],type:"AR"}],type:"AR"},
-    {text:"onclick()",back:1,has:[],type:"UD"},{text:"onmousedown()",back:1,has:[],type:"UD"},{text:"onmouseup()",back:1,has:[],type:"UD"},{text:"onmousemove()",back:1,has:[],type:"UD"},
+    {text:"onclick(event)",back:0,has:[],type:"UD"},{text:"onmousedown(event)",back:0,has:[],type:"UD"},{text:"onmouseup(event)",back:0,has:[],type:"UD"},{text:"onmousemove(event)",back:0,has:[],type:"UD"},
 ];
 let globalFunc=[],globalObj=[],globalFuncBuff=[],addFiller=[];
 let filler=[{text:"print()",has:[],back:6}];
@@ -443,12 +443,12 @@ document.addEventListener("keydown",async(e)=>{
         }else if(e.key==="ArrowDown"){ChoosingFiller++;}else
         if(e.key==="ArrowUp"){ChoosingFiller--;}else
         if(e.key.length==1&&!"`".includes(e.key))dragUnit.val=dragUnit.val.slice(0,cursorAt)+e.key+dragUnit.val.slice(cursorAt),cursorAt++;
-        if((Chars+".").includes(e.key)||e.key==="Backspace"){
+        if((Chars+"_.").includes(e.key)||e.key==="Backspace"){
             const s=dragUnit.val;let temp=-1,word="";
             filler=[...globalObj,...staticFiller];
-            for(let i=cursorAt-1;i>=0&&(Chars+".").includes(s[i]);i--)temp=i;
+            for(let i=cursorAt-1;i>=0&&(Chars+"_.").includes(s[i]);i--)temp=i;
             for(let i=temp;i<cursorAt;++i){
-                if(Chars.includes(s[i]))word+=s[i];
+                if((Chars+"_").includes(s[i]))word+=s[i];
                 else{temp=filler.findIndex(fil=>fil.text==word);if(temp!=-1)filler=filler[temp].has;else{filler=[];break;}if(s[i]=='.')word='.';else word="";}
             }
             if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
