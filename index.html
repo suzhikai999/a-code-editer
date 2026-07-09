@@ -89,35 +89,16 @@ for(const u of unit){
         }else
         u.Fu=`${s};return 0;`;
     }
-    u.fu=new Function(u.Fu);
 }
 for(const u of unit){
     if(u.type=='function'){
-        const temp2=u.val.indexOf('('),temp3=u.val.slice(temp2+1,-2)+' ';
+        const temp2=u.val.indexOf('('),temp3=u.val.trim().slice(temp2+1,-2)+' ';
         let STR='',word='';
         for(let i=0;i<temp3.length;++i){
             if(Chars.includes(temp3[i])){
                 word+=temp3[i];
             }else STR+='_runner.'+word+'='+word+';';
         }
-        const temp=new Function(`
-_runner.${u.val.slice(0,temp2)}=new Function(\`${temp3.replace(/,/g,'\`,\`')}\`,\`
-${STR}
-let now=unit[${u.POS}];
-_runner._return=null;
-while(true){
-    const temp=now.fu();
-    if(now.to.length==0||_runner._return){;
-        break;
-    }else{;
-        now=now.to[temp];
-    };
-};
-return _runner._return;
-
-\`);
-`);
-        temp();
 
         u.fu=new Function(`return 0;`);
     }
@@ -323,6 +304,7 @@ function show(u,x,y){
     return x;
 }
 const funcTour=[
+    {name:"wait",text:"wait(delay): void"},
     {name:".toFixed",text:"Number.toFixed(fractionDigits?): string"},{name:".toPrecision",text:"Number.toPrecision(precision?): string"},
     {name:".codePointAt",text:"String.codePointAt(index): number"},{name:".includes",text:"String.includes(searchStr, position?): boolean"},
     {name:".indexOf",text:"String.indexOf(searchStr, fromIndex?): number"},{name:".findIndex",text:"String.findIndex(callback): number"},
@@ -353,6 +335,7 @@ const hasChil={
     ,{text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".remove()",back:1,has:[],type:"AR"}]
 };
 const staticFiller=[
+    {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:hasChil.number,type:"AR"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
@@ -484,7 +467,7 @@ document.addEventListener("keydown",async(e)=>{
                 if(Chars.includes(s[i]))word+=s[i];
                 else{temp=filler.findIndex(fil=>fil.text==word);if(temp!=-1)filler=filler[temp].has;else{filler=[];break;}if(s[i]=='.')word='.';else word="";}
             }
-            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));fillerPos=word.length;}
+            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));fillerPos=word.length;}else filler=[];
         if(e.key==="^"||e.key=="_")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"`"+dragUnit.val.slice(cursorAt);else
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
         if(e.key==="[")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"]"+dragUnit.val.slice(cursorAt);else
@@ -668,9 +651,6 @@ function safeEscape(str) {
     for(let i=0;i<str.length;++i){
         if(str[i]=="\\"){
             Str+="\\";
-        }else
-        if(str[i]=="'"||str[i]=='"'){
-            Str+="\\";
         }
         Str+=str[i];
     }
@@ -680,14 +660,14 @@ function UnitToHtml(){
     let str="",Str="",mainPOS=0;
     for(const u of unit){
         if(u.type=='function'){
-            const temp2=u.val.indexOf('('),temp3=u.val.slice(temp2+1,-1);
+            const temp2=u.val.indexOf('('),temp3=u.val.trim().slice(temp2+1,-1);
             let STR='',word='';
             for(let i=0;i<temp3.length;++i){
                 if(Chars.includes(temp3[i])){
                     word+=temp3[i];
-                }else STR+='_runner.'+word+'='+word+';';
+                }else if(word.length>0)STR+='_runner.'+word+'='+word+';';
             }
-            STR+='_runner.'+word+'='+word+';';
+            if(word.length>0)STR+='_runner.'+word+'='+word+';';
             Str+=`
 
 _runner.${u.val.slice(0,temp2)}=function(${temp3}){
@@ -706,24 +686,28 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 };
 
 `;
-            str+=`{type:\"void\",fu:new Function(\'return 0;\'),to:[`;
+            str+=`{type:\"void\",fu:function(){return 0;},to:[`;
             for(const u2 of u.to){
                 str+=`${u2.POS},`;
             }
-            str+=`]},`;
+            str+=`]},\n`;
         }else if(u.type=='void'){
-            str+=`{type:\"${u.type}\",fu:new Function(\'${safeEscape(u.Fu)}\'),to:[`;
-            for(const u2 of u.to){
-                str+=`${u2.POS},`;
+            if(u.val.includes("wait")){
+                str+=`{type:\"void\",fu:function(){now=unit[${u.to[0].POS}];setTimeout(RunFrom,${u.val.trim().slice(5,-1)});return 0;},to:[]},`;
+            }else{
+                str+=`{type:\"void\",fu:function(){${safeEscape(u.Fu)}},to:[`;
+                for(const u2 of u.to){
+                    str+=`${u2.POS},`;
+                }
+                str+=`]},\n`;
             }
-            str+=`]},`;
-        }else {
+        }else if(u.type=='main'){
             mainPOS=u.POS;
-            str+=`{type:\"void\",fu:new Function(\'return 0;\'),to:[`;
+            str+=`{type:\"void\",fu:function(){return 0;},to:[`;
             for(const u2 of u.to){
                 str+=`${u2.POS},`;
             }
-            str+=`]},`;
+            str+=`]},\n`;
         }
     }
     const htmlContent=`
@@ -740,26 +724,28 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 var _runner={
     _log:document.getElementById("runner_log"),
     _res:null,
-    onclick:new Function("event","return 0;"),
-    onmousemove:new Function("event","return 0;"),
-    onmousedown:new Function("event","return 0;"),
-    onmouseup:new Function("event","return 0;")
+    onclick:function(event){return 0;},
+    onmousemove:function(event){return 0;},
+    onmousedown:function(event){return 0;},
+    onmouseup:function(event){return 0;}
 };
 ${Str}
 var unit=[
     ${str}
 ];
-function RunFrom(now){
+var now=unit[${mainPOS}];
+function RunFrom(){
     while(true){
-        var temp=now.fu();
-        if(now.to.length==0){
+        var temnow=now;
+        var temp=temnow.fu();
+        if(temnow.to.length==0){
             break;
         }else{
-            now=unit[now.to[temp]];
+            now=unit[temnow.to[temp]];
         }
     }
 }
-RunFrom(unit[${mainPOS}]);
+RunFrom();
 
     </${"script"}>
 </html>`;
@@ -775,6 +761,7 @@ function Download(){
     a.click();
     URL.revokeObjectURL(url);
 }
+    
 function openDebugChildPage() {
     const pageHtml=UnitToHtml();
     const blob=new Blob([pageHtml],{type:"text/html"});
@@ -789,7 +776,7 @@ function openDebugChildPage() {
     _runner._log.scrollTop=_runner._log.scrollHeight;
 }
 document.addEventListener("keydown",e=>{
-    if(e.ctrlKey && e.key.toLowerCase()==="s"){
+    if(e.ctrlKey&&e.key.toLowerCase()==="s"){
         e.preventDefault();
         saveCurrentUnit();
     }
