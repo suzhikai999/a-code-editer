@@ -105,6 +105,13 @@
         .color-canvas{width:200px;height:200px;cursor:crosshair;padding-right:6px;}
         .color-hue{width:20px;height:200px;cursor:pointer;background:linear-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
         .color-preview{width:100%;height:24px;margin-top:6px;background:rgb(123,95,95);border-radius:4px;color:#fff;text-align:center;line-height:24px;font-size:13px;}
+        .drop-wrap {position:relative;display:inline-block;}
+        .drop-btn {padding:8px 22px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
+        .drop-menu {transition:0.15s;position:absolute;top:50%;left:0;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
+        .drop-wrap:hover .drop-menu {filter:opacity(1);top:100%;}
+        .drop-menu li {list-style:none;padding:0;}
+        .drop-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
+        .drop-menu button:hover {background:#f0f4fc;}
     </style>
 </head>
 <body>
@@ -138,9 +145,14 @@ for(const u of unit){
 _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                     ">编译</button>
                     <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
-                    <button class="ctrl-btn" onclick="saveCurrentUnit()">保存副本<sub><sup>(Ctrl+S)</sup></sub></button>
-                    <button class="ctrl-btn" onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button>
-                    <button class="ctrl-btn" onclick="Download()">下载HTA</button>
+                    <div class="drop-wrap">
+                        <button class="drop-btn">工程操作 ▾</button>
+                        <ul class="drop-menu">
+                            <li><button onclick="saveCurrentUnit()" style="display:flex;">保存副本<p style="font-size:8px;">(Ctrl+S)</p></button></li>
+                            <li><button onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button></li>
+                            <li><button onclick="Download()">下载HTA</button></li>
+                        </ul>
+                    </div>
                 </div>
                 <div id="runner_log">日志：</div>
             </div>
