@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>a-code-editer</title>
     <style>
-        * {
+       *{
             box-sizing:border-box;
         }
         body{
@@ -16,7 +16,14 @@
             gap:16px;
             padding:20px;
             background:#f5f7fa;
-            font-family:system-ui, Consolas, "Microsoft YaHei", sans-serif;
+            font-family:system-ui,Consolas,"Microsoft YaHei",sans-serif;
+        }
+        .wrap-row{
+            display:flex;
+            gap:16px;
+            width:100%;
+            max-width:1460px;
+            color:rgb(123,95,95);
         }
         #canvas {
             border:2px solid #c5cde0;
@@ -48,39 +55,39 @@
         .ctrl-btn:hover {background:#2856b8;}
         .ctrl-btn:active {background:#1e4290;}
         .del-save-btn {
-            position: absolute;
-            right: 6px;
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            border: none;
-            background: #eee;
-            color: #666;
-            font-size: 14px;
-            line-height: 22px;
-            padding: 0;
-            cursor: pointer;
-            transition: 0.15s;
+            position:absolute;
+            right:6px;
+            width:22px;
+            height:22px;
+            border-radius:4px;
+            border:none;
+            background:#eee;
+            color:#666;
+            font-size:14px;
+            line-height:22px;
+            padding:0;
+            cursor:pointer;
+            transition:0.15s;
         }
-        .del-save-btn:hover {background: #ef4444;color: white;}
-        .del-save-btn:active {transform: scale(0.9);}
+        .del-save-btn:hover {background:#ef4444;color:white;}
+        .del-save-btn:active {transform:scale(0.9);}
         .del-alter-btn {
-            position: absolute;
-            right: 30px;
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            border: none;
-            background: #eee;
-            color: #666;
-            font-size: 14px;
-            line-height: 22px;
-            padding: 0;
-            cursor: pointer;
-            transition: 0.15s;
+            position:absolute;
+            right:30px;
+            width:22px;
+            height:22px;
+            border-radius:4px;
+            border:none;
+            background:#eee;
+            color:#666;
+            font-size:14px;
+            line-height:22px;
+            padding:0;
+            cursor:pointer;
+            transition:0.15s;
         }
-        .del-alter-btn:hover {background: rgb(202, 176, 145);color: white;}
-        .del-alter-btn:active {transform: scale(0.9);}
+        .del-alter-btn:hover {background:rgb(202,176,145);color:white;}
+        .del-alter-btn:active {transform:scale(0.9);}
         #runner_log {
             margin-top:10px;
             padding:12px;
@@ -88,18 +95,22 @@
             border:dashed 2px #8fa0c7;
             border-radius:8px;
             background:#f8faff;
-            font-family:Consolas, monospace;
+            font-family:Consolas,monospace;
             font-size:14px;
             line-height:1.6;
             max-height:180px;
             overflow-y:auto;
         }
+        .color-panel{margin-top:12px;border:2px solid #b4c2e0;border-radius:10px;background:#222;padding:8px;display:block;gap:8px;}
+        .color-canvas{width:200px;height:200px;cursor:crosshair;padding-right:6px;}
+        .color-hue{width:20px;height:200px;cursor:pointer;background:linear-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
+        .color-preview{width:100%;height:24px;margin-top:6px;background:rgb(123,95,95);border-radius:4px;color:#fff;text-align:center;line-height:24px;font-size:13px;}
     </style>
 </head>
 <body>
-    <div style="display:flex;gap:16px;">
+    <div class="wrap-row">
         <div class="canvas-wrap">
-            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;"></canvas>
+            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="if(window.scrollY<10){event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;}"></canvas>
             <div class="ctrl-panel" style="margin-top:16px;">
                 <div class="btn-group">
                     <button class="ctrl-btn" onclick="_runner._log.innerText='日志：'">清空日志</button>
@@ -134,9 +145,18 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                 <div id="runner_log">日志：</div>
             </div>
         </div>
-        <div class="ctrl-panel" style="width:260px;height:700px;overflow-y:auto;">
-            <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表</h3>
-            <div id="saveList"></div>
+        <div style="width:1200px;">
+            <div class="ctrl-panel" style="width:260px;height:700px;">
+                <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表</h3>
+                <div id="saveList"></div>
+            </div>
+            <div class="color-panel">
+                <div class="color-preview" id="colorText" onclick="navigator.clipboard.writeText(cText.innerText);alert('已复制!');">rgb(123,95,95)</div>
+                <div style="display:flex;padding-top:6px;">
+                    <canvas class="color-canvas" id="colorMain"></canvas>
+                    <div class="color-hue" id="colorHue"></div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="ctrl-panel" style="width:1476px;margin-top:10px;">
@@ -222,7 +242,7 @@ function show(u,x,y){
     const len=s.length;
     const p=[{size:20,y:0}];
     const SQs=[],NLKC=["rgb(229,178,9)","rgb(130,55,158)","rgb(0,0,150)"];
-    let left_se=0,NLK=0,IsInS=false,IsIns=false, SeLeX=-1,SeRiX=-1;
+    let left_se=0,NLK=0,IsInS=false,IsIns=false,SeLeX=-1,SeRiX=-1;
     ctx.font=`20px Consolas`;
     ctx.fillStyle="#333";
     ctx.textBaseline="middle";
@@ -305,7 +325,7 @@ function show(u,x,y){
         if(fir.includes("()")&&u.type=="function"){
             globalObj.push(...(Temp.filter(Now=>TELIS.findIndex(obj=>obj.text==Now.text&&obj.type==Now.type)==-1)));
             let TemStr="";if(Temp.length>0){TemStr=Temp[0].text;for(let i=1;i<Temp.length;++i){TemStr+=`,${Temp[i].text}`;}}
-            globalObj.push({text:fir,back:1,has:[],type:"BS"});globalFunc.push({name:fir.slice(0,-2),text:`${fir.slice(0,-2)}(${TemStr}): any`})}else
+            globalObj.push({text:fir,back:1,has:[],type:"BS"});globalFunc.push({name:fir.slice(0,-2),text:`${fir.slice(0,-2)}(${TemStr}):any`})}else
         globalObj.push({text:fir.replace(/[()]/g,""),back:0,has:temp,type:"BS"});}
     }else if(TELIS[temp2].type=="UD")staticFiller[temp2].type="BS";
     if(u===dragUnit&&cursorAt==len)ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
@@ -342,27 +362,27 @@ function show(u,x,y){
     return x;
 }
 const funcTour=[
-    {name:"wait",text:"wait(delay): void"},{name:"print",text:"print(...content): void"},
-    {name:"alert",text:"alert(message?): void"},{name:"confirm",text:"confirm(message?): void"},{name:"prompt",text:"prompt(message?,default?): string | null"},
-    {name:".toFixed",text:"Number.toFixed(fractionDigits?): string"},{name:".toPrecision",text:"Number.toPrecision(precision?): string"},
-    {name:".codePointAt",text:"String.codePointAt(index): number"},{name:".includes",text:"String.includes(searchStr, position?): boolean"},
-    {name:".indexOf",text:"String.indexOf(searchStr, fromIndex?): number"},{name:".findIndex",text:"String.findIndex(callback): number"},
-    {name:".replace",text:"String.replace(pattern, replacement): string"},{name:".slice",text:"String.slice(start, end?): string"},
-    {name:".includes",text:"Array.includes(item, fromIndex?): boolean"},{name:".push",text:"Array.push(...items): number"},
-    {name:".unshift",text:"Array.unshift(...items): number"},{name:".fill",text:"Array.fill(value, start?, end?): Array"},
-    {name:".splice",text:"Array.splice(start, deleteCount?, ...items): Array"},{name:".slice",text:"Array.slice(start?, end?): Array"},
-    {name:".findIndex",text:"Array.findIndex(callback): number"},{name:".append",text:"Element.append(...nodes/text)"},
-    {name:".appendChild",text:"Element.appendChild(childNode): Node"},
-    {name:"max",text:"Math.max(...values): number"},{name:"min",text:"Math.min(...values): number"},
-    {name:"sin",text:"Math.sin(radians): number"},{name:"cos",text:"Math.cos(radians): number"},{name:"tan",text:"Math.tan(radians): number"},
-    {name:"asin",text:"Math.asin(x): number"},{name:"acos",text:"Math.acos(x): number"},{name:"atan",text:"Math.atan(x): number"},{name:"atan2",text:"Math.atan2(y, x): number"},{name:"pow",text:"Math.pow(base, power): number"},
-    {name:"setTimeout",text:"setTimeout(callback, delay?, ...args): number"},{name:"setInterval",text:"setInterval(callback, delay?, ...args): number"},
-    {name:".getElementById",text:"document.getElementById(id): Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className): HTMLCollection"},
-    {name:".getElementsByName",text:"document.getElementsByName(name): NodeList"},{name:".createElement",text:"document.createElement(tagName): HTMLElement"},
+    {name:"wait",text:"wait(delay):void"},{name:"print",text:"print(...content):void"},
+    {name:"alert",text:"alert(message?):void"},{name:"confirm",text:"confirm(message?):void"},{name:"prompt",text:"prompt(message?,default?):string | null"},
+    {name:".toFixed",text:"Number.toFixed(fractionDigits?):string"},{name:".toPrecision",text:"Number.toPrecision(precision?):string"},
+    {name:".codePointAt",text:"String.codePointAt(index):number"},{name:".includes",text:"String.includes(searchStr,position?):boolean"},
+    {name:".indexOf",text:"String.indexOf(searchStr,fromIndex?):number"},{name:".findIndex",text:"String.findIndex(callback):number"},
+    {name:".replace",text:"String.replace(pattern,replacement):string"},{name:".slice",text:"String.slice(start,end?):string"},
+    {name:".includes",text:"Array.includes(item,fromIndex?):boolean"},{name:".push",text:"Array.push(...items):number"},
+    {name:".unshift",text:"Array.unshift(...items):number"},{name:".fill",text:"Array.fill(value,start?,end?):Array"},
+    {name:".splice",text:"Array.splice(start,deleteCount?,...items):Array"},{name:".slice",text:"Array.slice(start?,end?):Array"},
+    {name:".findIndex",text:"Array.findIndex(callback):number"},{name:".append",text:"Element.append(...nodes/text)"},
+    {name:".appendChild",text:"Element.appendChild(childNode):Node"},
+    {name:"max",text:"Math.max(...values):number"},{name:"min",text:"Math.min(...values):number"},
+    {name:"sin",text:"Math.sin(radians):number"},{name:"cos",text:"Math.cos(radians):number"},{name:"tan",text:"Math.tan(radians):number"},
+    {name:"asin",text:"Math.asin(x):number"},{name:"acos",text:"Math.acos(x):number"},{name:"atan",text:"Math.atan(x):number"},{name:"atan2",text:"Math.atan2(y,x):number"},{name:"pow",text:"Math.pow(base,power):number"},
+    {name:"setTimeout",text:"setTimeout(callback,delay?,...args):number"},{name:"setInterval",text:"setInterval(callback,delay?,...args):number"},
+    {name:".getElementById",text:"document.getElementById(id):Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className):HTMLCollection"},
+    {name:".getElementsByName",text:"document.getElementsByName(name):NodeList"},{name:".createElement",text:"document.createElement(tagName):HTMLElement"},
     {name:".exitPointerLock",text:"document.exitPointerLock()"},{name:".exitFullscreen",text:"document.exitFullscreen()"},
-    {name:"onclick",text:"onclick = function(event){}"},{name:"oncontextmenu",text:"oncontextmenu = function(event){}"},
-    {name:"onmousedown",text:"onmousedown = function(event){}"},{name:"onmouseup",text:"onmouseup = function(event){}"},
-    {name:"onmousemove",text:"onmousemove = function(event){}"},{name:"onmousewheel",text:"onmousewheel = function(event){}"},
+    {name:"onclick",text:"onclick=function(event){}"},{name:"oncontextmenu",text:"oncontextmenu=function(event){}"},
+    {name:"onmousedown",text:"onmousedown=function(event){}"},{name:"onmouseup",text:"onmouseup=function(event){}"},
+    {name:"onmousemove",text:"onmousemove=function(event){}"},{name:"onmousewheel",text:"onmousewheel=function(event){}"},
 ];
 const hasChil={
     number:[{text:".toString()",back:0,has:[],type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},],
@@ -648,7 +668,7 @@ function saveCurrentUnit(){
         time:new Date().toLocaleString(),
         data:JSON.parse(JSON.stringify([unitCopy,document.getElementById("domHtmlInput").value,`存档#${saves.length+1}`]))
     });
-    localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
     renderSaveList();
     _runner._log.innerText+=`\n⎗ 已保存副本，当前共${saves.length}份存档`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
@@ -686,6 +706,72 @@ function renameSave(index){
     _runner._log.innerText+=`\n🖎 已命名为 ${text}`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
 }
+let currentHue=0;
+let currentColor={r:123,g:95,b:95};
+const cMain=document.getElementById('colorMain');
+const cCtx=cMain.getContext('2d');
+const cHue=document.getElementById('colorHue');
+const cText=document.getElementById('colorText');
+const cw=cMain.width,ch=cMain.height;
+function hwbToRgb(h,w,b) {
+    h=((h%360)+360)%360/360;
+    if (w+b>=1){
+        const gray=w/(w+b);
+        const val=Math.round(gray*255);
+        return [val,val,val];
+    }
+    const v=1-b;
+    const s=1-w/v;
+    let r,g,bl;
+    const i=Math.floor(h*6);
+    const f=h*6-i;
+    const p=v*(1-s);
+    const q=v*(1-s*f);
+    const t=v*(1-s*(1-f));
+    switch (i%6) {
+        case 0:r=v;g=t;bl=p;break;
+        case 1:r=q;g=v;bl=p;break;
+        case 2:r=p;g=v;bl=t;break;
+        case 3:r=p;g=q;bl=v;break;
+        case 4:r=t;g=p;bl=v;break;
+        case 5:r=v;g=p;bl=q;break;
+    }
+    return [
+        Math.round(r*255),
+        Math.round(g*255),
+        Math.round(bl*255)
+    ];
+}
+function drawColorBox(){
+    const img=cCtx.createImageData(cw,ch);
+    for(let y=0;y<ch;y++){
+        for(let x=0;x<cw;x++){
+            const i=(y*cw+x)*4;
+            const [r,g,b]=hwbToRgb(currentHue,(1-x/cw)*(1-y/ch),y/ch);
+            img.data[i]=r;img.data[i+1]=g;img.data[i+2]=b;img.data[i+3]=255;
+        }
+    }
+    cCtx.putImageData(img,0,0);
+    updatePreview();
+}
+function updatePreview(){
+    cText.textContent=`rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+    cText.style.background=`rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+}
+cHue.onclick=e=>{
+    const rect=cHue.getBoundingClientRect();
+    currentHue=360*(e.clientY-rect.top)/rect.height;
+    drawColorBox();
+};
+cMain.onmousedown=e=>{
+    const rect=cMain.getBoundingClientRect();
+    const x=(e.clientX-rect.left)*1.57;
+    const y=(e.clientY-rect.top)/1.339;
+    const [r,g,b]=hwbToRgb(currentHue,(1-x/cw)*(1-y/ch),y/ch);
+    currentColor={r:r,g:g,b:b};
+    updatePreview();
+};
+drawColorBox();
 function renderSaveList(){
     const listDom=document.getElementById("saveList");
     const saves=getSaves();
@@ -693,7 +779,7 @@ function renderSaveList(){
         listDom.innerHTML="<p style='color:#666;font-size:14px;'>暂无存档</p>";
         return;}
     let html="";
-    saves.forEach((save, idx)=>{
+    saves.forEach((save,idx)=>{
         html+=`
         <div style="position:relative;padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;" onclick="loadSave(${idx})">
             <button class="del-save-btn" onclick="event.stopPropagation();deleteSave(${idx})">🗙</button>
