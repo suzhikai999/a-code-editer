@@ -736,11 +736,7 @@ function hwbToRgb(h,w,b) {
         case 4:r=t;g=p;bl=v;break;
         case 5:r=v;g=p;bl=q;break;
     }
-    return [
-        Math.round(r*255),
-        Math.round(g*255),
-        Math.round(bl*255)
-    ];
+    return [Math.round(r*255),Math.round(g*255),Math.round(bl*255)];
 }
 function drawColorBox(){
     const img=cCtx.createImageData(cw,ch);
@@ -763,13 +759,15 @@ cHue.onclick=e=>{
     currentHue=360*(e.clientY-rect.top)/rect.height;
     drawColorBox();
 };
-cMain.onmousedown=e=>{
-    const rect=cMain.getBoundingClientRect();
-    const x=(e.clientX-rect.left)*1.57;
-    const y=(e.clientY-rect.top)/1.339;
-    const [r,g,b]=hwbToRgb(currentHue,(1-x/cw)*(1-y/ch),y/ch);
-    currentColor={r:r,g:g,b:b};
-    updatePreview();
+cMain.onmousemove=e=>{
+    if(mousedown){
+        const rect=cMain.getBoundingClientRect();
+        const x=(e.clientX-rect.left)*1.57;
+        const y=(e.clientY-rect.top)/1.339;
+        const [r,g,b]=hwbToRgb(currentHue,(1-x/cw)*(1-y/ch),y/ch);
+        currentColor={r:r,g:g,b:b};
+        updatePreview();
+    }
 };
 drawColorBox();
 function renderSaveList(){
@@ -839,7 +837,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
             str+=`]},\n`;
         }else if(u.type=='void'){
             if(u.val.includes("wait")){
-                str+=`{type:\"void\",fu:function(){now=unit[${u.to[0].POS}];setTimeout(RunFrom,${u.val.trim().slice(5,-1)});return 0;},to:[]},`;
+                str+=`{type:\"void\",fu:function(){setTimeout(RunFrom,${u.val.trim().slice(5,-1)},unit[${u.to[0].POS}]);return 0;},to:[]},`;
             }else{
                 str+=`{type:\"void\",fu:function(){${safeEscape(u.Fu)}},to:[`;
                 for(const u2 of u.to){
@@ -883,19 +881,17 @@ ${Str}
 var unit=[
     ${str}
 ];
-var now=unit[${mainPOS}];
-function RunFrom(){
+function RunFrom(now){
     while(true){
-        var temnow=now;
-        var temp=temnow.fu();
-        if(temnow.to.length==0){
+        var temp=now.fu();
+        if(now.to.length==0){
             break;
         }else{
-            now=unit[temnow.to[temp]];
+            now=unit[now.to[temp]];
         }
     }
 }
-RunFrom();
+RunFrom(unit[${mainPOS}]);
 
     </${"script"}>
 </html>`;
@@ -911,7 +907,6 @@ function Download(){
     a.click();
     URL.revokeObjectURL(url);
 }
-    
 function openDebugChildPage() {
     const pageHtml=UnitToHtml();
     const blob=new Blob([pageHtml],{type:"text/html"});
