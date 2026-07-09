@@ -90,19 +90,6 @@ for(const u of unit){
         u.Fu=`${s};return 0;`;
     }
 }
-for(const u of unit){
-    if(u.type=='function'){
-        const temp2=u.val.indexOf('('),temp3=u.val.trim().slice(temp2+1,-2)+' ';
-        let STR='',word='';
-        for(let i=0;i<temp3.length;++i){
-            if(Chars.includes(temp3[i])){
-                word+=temp3[i];
-            }else STR+='_runner.'+word+'='+word+';';
-        }
-
-        u.fu=new Function(`return 0;`);
-    }
-}
 _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                     ">编译</button>
                     <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
@@ -248,7 +235,7 @@ function show(u,x,y){
             ctx.fillStyle="#333";
             ctx.textBaseline="middle";
             if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
-                if(u!=s&&(u.type=="main"||u.type=="function")&&":;,?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
+                if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
                 if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
             }else ctx.fillStyle="rgb(151,60,25)";
             ctx.fillText(ws,x,y+now.y,100);
@@ -665,7 +652,7 @@ function UnitToHtml(){
             for(let i=0;i<temp3.length;++i){
                 if(Chars.includes(temp3[i])){
                     word+=temp3[i];
-                }else if(word.length>0)STR+='_runner.'+word+'='+word+';';
+                }else{if(word.length>0)STR+='_runner.'+word+'='+word+';';word="";}
             }
             if(word.length>0)STR+='_runner.'+word+'='+word+';';
             Str+=`
