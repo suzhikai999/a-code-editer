@@ -274,7 +274,7 @@ function show(u,x,y){
                     ctx.beginPath();
                     ctx.lineWidth=30;
                     ctx.moveTo(temx,y-30);
-                    ctx.lineTo(temx+400,y-30);
+                    ctx.lineTo(temx+700,y-30);
                     ctx.strokeStyle="rgba(0,0,0,0.7)";
                     ctx.stroke();
                     ctx.fillStyle="#fff";
@@ -599,7 +599,7 @@ const domFiller=["div","span","input","button","option","img","table","a","ifram
 "width","height","top","left","right","bottom","backgroundColor","color","fontSize","fontWeight","display","position","margin","padding","border","zIndex","opacity","cursor","textAlign","overflow",
 "width:0px","height:0px","top:0px","left:0px","right:0px","bottom:0px","backgroundColor:'red'","backgroundColor:#000000","backgroundColor:rgb(0,0,0)","color:'red'",
 "color:'white'","color:#000","color:rgb(0,0,0)","fontSize:14px","fontWeight:bold","display:block","display:none","position:absolute","position:relative","margin:0px",
-"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden"];
+"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden","transition","filter","id"];
 let dofil=[],dofilPos=0;
 function updateHtmlInputTip(){
     const ta=domHtmlInput;
@@ -943,7 +943,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
             str+=`]},\n`;
         }else if(u.type=='void'||u.type=='if'){
             if(u.val.includes("wait")){
-                str+=`{type:\"void\",fu:function(){setTimeout(RunFrom,${u.val.trim().slice(5,-1)},unit[${u.to[0].POS}]);return 0;},to:[]},\n`;
+                str+=`{type:\"void\",fu:function(){setTimeout(function(){RunFrom(unit[${u.to[0].POS}]);return;},${u.val.trim().slice(5,-1)});return 0;},to:[]},\n`;
             }else{
                 str+=`{type:\"void\",fu:function(){${u.Fu}},to:[`;
                 for(const u2 of u.to){
@@ -1032,20 +1032,22 @@ function Help(){
 <u class="log-btn" onclick="HelpFun()">- 功能帮助</u>
 `;}
 function HelpKey(){
-    _runner._log.innerText+=`
-滚轮                                  --> 滚动画布
-shift+滚轮                            --> 横向滚动画布
-Alt+滚轮                              --> 滚动页面
-未选择文本 Ctrl+c                     --> 复制当前单位的所有内容
-鼠标从一个单位拖到另一单位             --> 创建连线
-鼠标从一个单位拖到另一单位+Ctrl+Delete --> 删除已有连线
+    _runner._log.innerHTML+=`<br><br>
+滚轮                                   --> 滚动画布<br>
+Alt+滚轮                               --> 滚动页面<br>
+shift+滚轮                             --> 横向滚动画布<br>
+未选择文本 Ctrl+c                      --> 复制当前单位的所有内容<br>
+当前单位为空 Delete                    --> 删除单位<br>
+光标在单位最左端 LeftArrow             --> 移到上一个单位<br>
+光标在单位最右端 RightArrow            --> 移到下一个单位<br>
+鼠标从一个单位拖到另一单位             --> 创建连线<br>
+鼠标从一个单位拖到另一单位+Ctrl+Delete --> 删除已有连线<br>
 `;}
 function HelpFun(){
-    _runner._log.innerText+=`
-所有变量、函数均挂载到_runner下，
-自定义DOM元素内调用需看好。
-所有错误信息均不会输出到日志内，需用原生F12查看。
-输出为HTA，所以进行向下兼容，部分新版功能无法使用。
+    _runner._log.innerHTML+=`<br><br>
+所有变量、函数均挂载到_runner下，自定义DOM元素调用需注意。<br>
+所有错误信息均不会输出到日志内，需用原生F12查看。<br>
+输出为HTA，向下兼容，所以部分新版功能无法使用。<br>
 `;}
 document.addEventListener("keydown",e=>{
     if(e.ctrlKey&&e.key.toLowerCase()==="s"){
