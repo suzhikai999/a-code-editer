@@ -117,6 +117,7 @@
         <div class="canvas-wrap">
             <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="if(window.scrollY<10&&!key.Alt){event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;}"></canvas>
             <div class="ctrl-panel" style="margin-top:16px;">
+                <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
                 <div class="btn-group">
                     <button class="ctrl-btn" onclick="_runner._log.innerText='日志：'">清空日志</button>
                     <button class="ctrl-btn" onclick="
@@ -149,6 +150,8 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                             <li><button onclick="saveCurrentUnit()" style="display:flex;">保存副本<p style="font-size:8px;">(Ctrl+S)</p></button></li>
                             <li><button onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button></li>
                             <li><button onclick="Download()">下载HTA</button></li>
+                            <li><button onclick="TakeJSON()">下载JSON</button></li>
+                            <li><button onclick="LoadJSON()">加载JSON</button></li>
                         </ul>
                     </div>
                 </div>
@@ -164,7 +167,7 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                 <div id="saveList" style="max-height:620px;overflow-y:auto;"></div>
             </div>
             <div class="color-panel">
-                <div class="color-preview" id="colorText" onclick="navigator.clipboard.writeText(cText.innerText);alert('已复制!');">rgb(123,95,95)</div>
+                <div class="color-preview" id="colorText" onclick="navigator.clipboard.writeText(cText.innerText);alert('已复制到粘贴板!');">rgb(123,95,95)</div>
                 <div style="display:flex;padding-top:6px;">
                     <canvas class="color-canvas" id="colorMain"></canvas>
                     <div class="color-hue" id="colorHue"></div>
@@ -758,64 +761,6 @@ function loop(){
     mouseyf=mousey;
     requestAnimationFrame(loop);
 }
-const SAVE_KEY="flow_editor_saves";
-function getSaves(){
-    const raw=localStorage.getItem(SAVE_KEY);
-    return raw?JSON.parse(raw):[];
-}
-function saveCurrentUnit(){
-    const saves=getSaves();
-    const unitCopy=[];
-    for(const u of unit){
-        const indexArr=[];
-        for(const targetObj of u.to){
-            const realIdx=targetObj.POS;
-            indexArr.push(realIdx);
-        }
-        unitCopy.push({x:u.x,y:u.y,val:u.val,type:u.type,to:indexArr});
-    }
-    saves.push({
-        time:new Date().toLocaleString(),
-        data:JSON.parse(JSON.stringify([unitCopy,domHtmlInput.value,`存档#${saves.length+1}`]))
-    });
-    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
-    renderSaveList();
-    _runner._log.innerText+=`\n⎗ 已保存副本，当前共${saves.length}份存档`;
-    _runner._log.scrollTop=_runner._log.scrollHeight;
-}
-function loadSave(index){
-    const saves=getSaves();
-    if(!saves[index])return;
-    const saveData=JSON.parse(JSON.stringify(saves[index].data));
-    unit=saveData[0];
-    for(const u of unit){
-        for(let i=0;i<u.to.length;++i){
-            u.to[i]=unit[u.to[i]];
-        }}
-    cam.x=0,cam.y=0;
-    domHtmlInput.value=saveData[1];
-    _runner._log.innerText+=`\n⎘ 已加载 ${saveData[2]}`;
-    _runner._log.scrollTop=_runner._log.scrollHeight;
-}
-function deleteSave(index){
-    if(!confirm("确定删除该存档？"))return;
-    const saves=getSaves();
-    _runner._log.innerText+=`\n🗑 已删除 ${saves[index].data[2]}`;
-    _runner._log.scrollTop=_runner._log.scrollHeight;
-    saves.splice(index,1);
-    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
-    renderSaveList();
-}
-function renameSave(index){
-    const saves=getSaves();
-    const text=prompt(`命名为:`,saves[index].data[2]);
-    if(!text)return;
-    saves[index].data[2]=text;
-    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
-    renderSaveList();
-    _runner._log.innerText+=`\n🖎 已命名为 ${text}`;
-    _runner._log.scrollTop=_runner._log.scrollHeight;
-}
 let currentHue=0;
 let currentColor={r:123,g:95,b:95};
 const cMain=document.getElementById('colorMain');
@@ -886,6 +831,110 @@ cMain.onmousedown=(e)=>{
     drawColorBox();
 };
 drawColorBox();
+const SAVE_KEY="flow_editor_saves";
+function getSaves(){
+    const raw=localStorage.getItem(SAVE_KEY);
+    return raw?JSON.parse(raw):[];
+}
+function UnitToJSON(){
+    const unitCopy=[];
+    for(const u of unit){
+        const indexArr=[];
+        for(const targetObj of u.to){
+            const realIdx=targetObj.POS;
+            indexArr.push(realIdx);
+        }
+        unitCopy.push({x:u.x,y:u.y,val:u.val,type:u.type,to:indexArr});
+    }
+    return unitCopy;
+}
+function TakeJSON(){
+    const htmlContent=JSON.stringify([UnitToJSON(),domHtmlInput.value]);
+    const blob=new Blob([htmlContent],{type:'text/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='test.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+function LoadJSON() {
+    const fileInput=document.getElementById('jsonFileInput');
+    fileInput.onchange=function(e) {
+        const file=e.target.files[0];
+        if(!file)return;
+        const reader=new FileReader();
+        reader.onload=function(res){
+            try{
+                const data=JSON.parse(res.target.result);
+                if(!Array.isArray(data)||data.length !== 2||!Array.isArray(data[0])) {
+                    throw new Error("文件不是编辑器导出的JSON");
+                }
+                const nodeArr=data[0];
+                const domStr=data[1];
+                unit=nodeArr;
+                for(const u of unit){u.to=u.to.map(idx=>unit[idx]);}
+                domHtmlInput.value=domStr;
+                cam.x=0;
+                cam.y=0;
+                _runner._log.innerText+=`\n⎙ JSON加载完成，已自动应用画布与DOM`;
+                _runner._log.scrollTop=_runner._log.scrollHeight;
+                fileInput.value='';
+            }catch(err){
+                alert("加载失败："+err.message);
+                _runner._log.innerText+=`\n⚠ 加载异常：${err.message}`;
+                _runner._log.scrollTop=_runner._log.scrollHeight;
+                fileInput.value='';
+            }
+        }
+        reader.readAsText(file);
+    }
+    fileInput.click();
+}
+function saveCurrentUnit(){
+    const saves=getSaves();
+    saves.push({
+        time:new Date().toLocaleString(),
+        data:JSON.parse(JSON.stringify([UnitToJSON(),domHtmlInput.value,`存档#${saves.length+1}`]))
+    });
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
+    renderSaveList();
+    _runner._log.innerText+=`\n⎗ 已保存副本，当前共${saves.length}份存档`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
+}
+function loadSave(index){
+    const saves=getSaves();
+    if(!saves[index])return;
+    const saveData=JSON.parse(JSON.stringify(saves[index].data));
+    unit=saveData[0];
+    for(const u of unit){
+        for(let i=0;i<u.to.length;++i){
+            u.to[i]=unit[u.to[i]];
+        }}
+    cam.x=0,cam.y=0;
+    domHtmlInput.value=saveData[1];
+    _runner._log.innerText+=`\n⎘ 已加载 ${saveData[2]}`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
+}
+function deleteSave(index){
+    if(!confirm("确定删除该存档？"))return;
+    const saves=getSaves();
+    _runner._log.innerText+=`\n🗑 已删除 ${saves[index].data[2]}`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
+    saves.splice(index,1);
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
+    renderSaveList();
+}
+function renameSave(index){
+    const saves=getSaves();
+    const text=prompt(`命名为:`,saves[index].data[2]);
+    if(!text)return;
+    saves[index].data[2]=text;
+    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
+    renderSaveList();
+    _runner._log.innerText+=`\n🖎 已命名为 ${text}`;
+    _runner._log.scrollTop=_runner._log.scrollHeight;
+}
 function renderSaveList(){
     const listDom=document.getElementById("saveList");
     const saves=getSaves();
