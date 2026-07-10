@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <title>a-code-editer</title>
     <style>
-        *{
-            box-sizing:border-box;
-        }
+        *{box-sizing:border-box;}
         body{
             margin:0;
             min-height:100vh;
@@ -18,18 +16,8 @@
             background:#f5f7fa;
             font-family:system-ui,Consolas,"Microsoft YaHei",sans-serif;
         }
-        .wrap-row{
-            display:flex;
-            gap:16px;
-            width:100%;
-            max-width:1460px;
-            color:rgb(123,95,95);
-        }
-        #canvas {
-            border:2px solid #c5cde0;
-            border-radius:8px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.08);
-        }
+        .wrap-row{display:flex;gap:16px;width:100%;max-width:1460px;color:rgb(123,95,95);}
+        #canvas {border:2px solid #c5cde0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
         .ctrl-panel {
             width:1200px;
             padding:16px;
@@ -38,11 +26,7 @@
             background:#ffffff;
             box-shadow:0 2px 8px rgba(0,0,0,0.05);
         }
-        .btn-group {
-            display:flex;
-            gap:12px;
-            margin-bottom:14px;
-        }
+        .btn-group {display:flex;gap:12px;margin-bottom:14px;}
         .log-btn {color:black;cursor:pointer;}
         .log-btn:hover {color:gray;}
         .ctrl-btn {
@@ -114,6 +98,18 @@
         .drop-menu li {list-style:none;padding:0;}
         .drop-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
         .drop-menu button:hover {background:#f0f4fc;}
+        .html-tip-popup {
+            position:absolute;
+            background:#1f2937;
+            color:#fff;
+            padding:6px 10px;
+            font-size:14px;
+            border-radius:6px;
+            z-index:99999;
+            pointer-events:none;
+            display:none;
+            box-shadow:0 2px 10px rgba(0,0,0,0.15);
+        }
     </style>
 </head>
 <body>
@@ -193,6 +189,7 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext('2d');
 const W=canvas.width,H=canvas.height;
+const domHtmlInput=document.getElementById("domHtmlInput");
 let lastTime=performance.now();
 let frameCount=0;
 let fps=0;
@@ -563,12 +560,107 @@ document.addEventListener("keydown",async(e)=>{
 document.addEventListener("keyup",(e)=>{
     key[e.key]=false;
 });
+const tipPopup=document.createElement('div');
+tipPopup.className='html-tip-popup';
+document.body.appendChild(tipPopup);
+function getTextareaCaretPagePos(ta) {
+    const selStart=ta.selectionStart;
+    const textBefore=ta.value.slice(0, selStart);
+    const rect=ta.getBoundingClientRect();
+    const style=getComputedStyle(ta);
+    const mirrorWrap=document.createElement('div');
+    mirrorWrap.style.cssText=`
+        position:absolute;
+        visibility:hidden;
+        white-space:pre-wrap;
+        font:${style.font};
+        line-height:${style.lineHeight};
+        width:${ta.clientWidth}px;
+        padding:${style.paddingTop} ${style.paddingRight} ${style.paddingBottom} ${style.paddingLeft};
+        top:${rect.top}px;
+        left:${rect.left}px;
+    `;
+    const textNode=document.createTextNode(textBefore);
+    const caretMark=document.createElement('span');
+    caretMark.textContent='\u200B';
+    mirrorWrap.appendChild(textNode);
+    mirrorWrap.appendChild(caretMark);
+    document.body.appendChild(mirrorWrap);
+    const caretRect=caretMark.getBoundingClientRect();
+    document.body.removeChild(mirrorWrap);
+    const innerScrollX=ta.scrollLeft;
+    const innerScrollY=ta.scrollTop;
+    const pageX=caretRect.left-innerScrollX+window.scrollX*2;
+    const pageY=caretRect.top-innerScrollY+window.scrollY*2;
+    return {pageX,pageY};
+}
+const domFiller=["div","span","input","button","option","img","table","a","iframe","value","type","checked","disabled","readOnly","maxLength",
+"disabled","form","type","rows","href","target","cols","style","alpha(opacity=___)","progid:DXImageTransform.Microsoft.Gradient(startColorstr=#333,endColorstr=#000)",
+"width","height","top","left","right","bottom","backgroundColor","color","fontSize","fontWeight","display","position","margin","padding","border","zIndex","opacity","cursor","textAlign","overflow",
+"width:0px","height:0px","top:0px","left:0px","right:0px","bottom:0px","backgroundColor:'red'","backgroundColor:#000000","backgroundColor:rgb(0,0,0)","color:'red'",
+"color:'white'","color:#000","color:rgb(0,0,0)","fontSize:14px","fontWeight:bold","display:block","display:none","position:absolute","position:relative","margin:0px",
+"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden"];
+let dofil=[],dofilPos=0;
+function updateHtmlInputTip(){
+    const ta=domHtmlInput;
+    if(document.activeElement!==ta){
+        tipPopup.style.display='none';
+        return;
+    }
+    const {pageX,pageY}=getTextareaCaretPagePos(ta);
+    const s=domHtmlInput.value;
+    let sta=domHtmlInput.selectionStart-1;
+    while((Chars+"_:").includes(s[sta]))sta--;
+    sta++;
+    const temp=s.slice(sta,domHtmlInput.selectionStart);
+    dofil=domFiller.filter(fil=>fil.startsWith(temp));
+    let temps="";
+    for(const fil of dofil){
+        temps+=fil+'\n';
+    }
+    dofilPos=(domHtmlInput.selectionStart-sta);
+    if(temp)tipPopup.innerText=temps;else tipPopup.innerText="";
+    tipPopup.style.left=pageX-7.75*dofilPos-7+'px';
+    tipPopup.style.top=(pageY+18)+'px';
+    tipPopup.style.display=(tipPopup.innerText)?'block':'none';
+}
+domHtmlInput.addEventListener('input',updateHtmlInputTip);
+domHtmlInput.addEventListener('click',updateHtmlInputTip);
+domHtmlInput.addEventListener('keyup',updateHtmlInputTip);
+domHtmlInput.addEventListener('select',updateHtmlInputTip);
+domHtmlInput.addEventListener('blur',()=>tipPopup.style.display='none');
+domHtmlInput.addEventListener('keydown',(e)=>{
+    if(e.key=="Tab"){
+        e.preventDefault();
+        const temp=domHtmlInput.selectionStart;
+        domHtmlInput.value=domHtmlInput.value.slice(0,temp)+dofil[0].slice(dofilPos)+domHtmlInput.value.slice(temp);
+        domHtmlInput.selectionStart=temp+dofil[0].length-dofilPos;
+        domHtmlInput.selectionEnd=temp+dofil[0].length-dofilPos;
+    }
+    if(`"'{[(<`.includes(e.key)){
+        const map={
+            "'":"'",
+            '"':'"',
+            '{':'}',
+            '[':']',
+            '(':')',
+            '<':'>',
+        };
+        requestAnimationFrame(()=>{
+            const temp=domHtmlInput.selectionStart;
+            domHtmlInput.value=domHtmlInput.value.slice(0,temp)+map[e.key]+domHtmlInput.value.slice(temp);
+            domHtmlInput.selectionStart=temp;
+            domHtmlInput.selectionEnd=temp;
+        });
+    }
+});
+window.addEventListener('scroll',updateHtmlInputTip);
 const lanw={
     main:"主函数",
     void:"行为",
     if:"如果",
     else:"否则",
-    case:"值为",
+    case:"暂不支持多分支",
     function:"函数",
 };
 let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;"}];
@@ -652,7 +744,6 @@ function loop(){
     addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc],globalFunc=[];
     if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
         SeCus=cursorWA;if(SeCus>dragUnit.val.length)SeCus=dragUnit.val.length;if(SeCus==cursorAt)SeCus=-1;}
-
     ctx.font="18px sans-serif";
     ctx.fillStyle="#000";
     ctx.textAlign="left";
@@ -685,7 +776,7 @@ function saveCurrentUnit(){
     }
     saves.push({
         time:new Date().toLocaleString(),
-        data:JSON.parse(JSON.stringify([unitCopy,document.getElementById("domHtmlInput").value,`存档#${saves.length+1}`]))
+        data:JSON.parse(JSON.stringify([unitCopy,domHtmlInput.value,`存档#${saves.length+1}`]))
     });
     localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
     renderSaveList();
@@ -702,7 +793,7 @@ function loadSave(index){
             u.to[i]=unit[u.to[i]];
         }}
     cam.x=0,cam.y=0;
-    document.getElementById("domHtmlInput").value=saveData[1];
+    domHtmlInput.value=saveData[1];
     _runner._log.innerText+=`\n⎘ 已加载 ${saveData[2]}`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
 }
@@ -815,16 +906,6 @@ function renderSaveList(){
     });
     listDom.innerHTML=html;
 }
-function safeEscape(str){
-    let Str="";
-    for(let i=0;i<str.length;++i){
-        if(str[i]=="\\"){
-            Str+="\\";
-        }
-        Str+=str[i];
-    }
-    return Str;
-}
 function UnitToHtml(){
     let str="",Str="",mainPOS=0;
     for(const u of unit){
@@ -887,7 +968,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
     </head>
     <body>
         <div id="runner_log"></div>
-        ${document.getElementById("domHtmlInput").value}
+        ${domHtmlInput.value}
     </${"body"}>
     <script>
 
