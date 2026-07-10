@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>a-code-editer</title>
     <style>
-       *{
+        *{
             box-sizing:border-box;
         }
         body{
@@ -43,6 +43,8 @@
             gap:12px;
             margin-bottom:14px;
         }
+        .log-btn {color:black;cursor:pointer;}
+        .log-btn:hover {color:gray;}
         .ctrl-btn {
             padding:8px 22px;
             border:none;
@@ -91,24 +93,24 @@
         #runner_log {
             margin-top:10px;
             padding:12px;
-            min-height:100px;
+            min-height:170px;
+            max-height:170px;
             border:dashed 2px #8fa0c7;
             border-radius:8px;
             background:#f8faff;
             font-family:Consolas,monospace;
             font-size:14px;
             line-height:1.6;
-            max-height:180px;
             overflow-y:auto;
         }
-        .color-panel{margin-top:12px;border:2px solid #b4c2e0;border-radius:10px;background:#222;padding:8px;display:block;gap:8px;}
-        .color-canvas{width:200px;height:200px;cursor:crosshair;padding-right:6px;}
-        .color-hue{width:20px;height:200px;cursor:pointer;background:linear-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
-        .color-preview{width:100%;height:24px;margin-top:6px;background:rgb(123,95,95);border-radius:4px;color:#fff;text-align:center;line-height:24px;font-size:13px;}
+        .color-panel{margin-top:22px;border:2px solid #8fa0c7;border-radius:10px;background:#f8faff;padding:8px;display:block;gap:8px;}
+        .color-canvas{width:200px;height:200px;cursor:default;padding-right:6px;}
+        .color-hue{width:20px;height:200px;cursor:vertical-text;background:linear-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
+        .color-preview{cursor:pointer;width:100%;height:24px;margin-top:6px;background:rgb(123,95,95);border-radius:4px;color:#fff;text-align:center;line-height:24px;font-size:13px;}
         .drop-wrap {position:relative;display:inline-block;}
         .drop-btn {padding:8px 22px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
-        .drop-menu {transition:0.15s;position:absolute;top:50%;left:0;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
-        .drop-wrap:hover .drop-menu {filter:opacity(1);top:100%;}
+        .drop-menu {pointer-events:none;transition:0.15s;position:absolute;top:50%;left:0;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
+        .drop-wrap:hover .drop-menu {pointer-events:all;filter:opacity(1);top:100%;}
         .drop-menu li {list-style:none;padding:0;}
         .drop-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
         .drop-menu button:hover {background:#f0f4fc;}
@@ -117,7 +119,7 @@
 <body>
     <div class="wrap-row">
         <div class="canvas-wrap">
-            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="if(window.scrollY<10){event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;}"></canvas>
+            <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="if(window.scrollY<10&&!key.Alt){event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;}"></canvas>
             <div class="ctrl-panel" style="margin-top:16px;">
                 <div class="btn-group">
                     <button class="ctrl-btn" onclick="_runner._log.innerText='日志：'">清空日志</button>
@@ -154,13 +156,16 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                         </ul>
                     </div>
                 </div>
-                <div id="runner_log">日志：</div>
+                <div id="runner_log">
+                    日志：<br>
+                    <u class="log-btn" onclick="Help()">💁︎ 帮助</u><br>
+                </div>
             </div>
         </div>
         <div style="width:1200px;">
             <div class="ctrl-panel" style="width:260px;height:700px;">
                 <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表</h3>
-                <div id="saveList"></div>
+                <div id="saveList" style="max-height:620px;overflow-y:auto;"></div>
             </div>
             <div class="color-panel">
                 <div class="color-preview" id="colorText" onclick="navigator.clipboard.writeText(cText.innerText);alert('已复制!');">rgb(123,95,95)</div>
@@ -230,7 +235,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
         if((Chars+"_").includes(codeStr[i])){
             word+=codeStr[i];
         }else{
-            if(!globalSet.has(word)&&!IsIns&&!IsInS&&word&&!spe){
+            if(!globalSet.has(word)&&!IsIns&&!IsInS&&word&&!spe&&codeStr[i]!=":"){
                 if(MathSet.has(word))code+="Math.";else code+="_runner.";
             }
             code+=word;
@@ -460,16 +465,18 @@ document.addEventListener("mouseup",(e)=>{
     if(!dragUnit)return ;
     let temp=find(mousex,mousey);
     if(key.Shift)return ;
-    if(temp&&key.Delete){
-        temp.to.splice(temp.to.findIndex(item=>item==dragUnit),1);
-        dragUnit.to.splice(dragUnit.to.findIndex(item=>item==temp),1);
-        return ;}
     if(temp==dragUnit){return ;}
+    if(temp&&key.Delete&&key.Control){
+        const tem1=temp.to.findIndex(item=>item==dragUnit);
+        const tem2=dragUnit.to.findIndex(item=>item==temp);
+        if(tem1>0)temp.to.splice(tem1,1);
+        if(tem2>0)dragUnit.to.splice(tem2,1);
+        return ;}
     if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length},unit.push(temp);
     dragUnit.to.push(temp);
     dragUnit=null;
 });
-const key={Shift:false,Delete:false,Ctrl:false};
+const key={Shift:false,Delete:false,Control:false};
 const alter=[{from:"sqrt",to:"√`",back:1},
     {from:"ln",to:"㏑()",back:2},
     {from:"ceil",to:"⌈⌉",back:1},
@@ -518,7 +525,7 @@ document.addEventListener("keydown",async(e)=>{
             if(temp=="√"||temp=="`");
             else if(dragUnit.val[cursorAt-1]!='`')dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
             cursorAt--;}else
-        if(e.key==="Delete"){
+        if(e.key==="Delete"&&!e.ctrlKey){
             if(dragUnit.val.length==0)unit.splice(unit.findIndex(u=>u===dragUnit),1);
             const temp=dragUnit.val[cursorAt];
             const temp2=dragUnit.val[cursorAt-1];
@@ -595,7 +602,7 @@ function loop(){
     for(const u of unit){
         const p=getPos(u);
         let i=0;
-        if(u.type=='main'&&u.to.length>1)u.to=[u.to[0]];
+        if((u.type=='main'||u.type=='function')&&u.to.length>1)u.to=[u.to[0]];
         if(u.to.length>1)u.type="if";
         for(const u2 of u.to){
             const p2=getPos(u2);
@@ -724,7 +731,7 @@ const cMain=document.getElementById('colorMain');
 const cCtx=cMain.getContext('2d');
 const cHue=document.getElementById('colorHue');
 const cText=document.getElementById('colorText');
-const cw=cMain.width,ch=cMain.height;
+const colorPanel={cw:cMain.width,ch:cMain.height,choosingPlace:{x:1,y:1}};
 function hwbToRgb(h,w,b) {
     h=((h%360)+360)%360/360;
     if (w+b>=1){
@@ -751,35 +758,41 @@ function hwbToRgb(h,w,b) {
     return [Math.round(r*255),Math.round(g*255),Math.round(bl*255)];
 }
 function drawColorBox(){
-    const img=cCtx.createImageData(cw,ch);
-    for(let y=0;y<ch;y++){
-        for(let x=0;x<cw;x++){
-            const i=(y*cw+x)*4;
-            const [r,g,b]=hwbToRgb(currentHue,(1-x/cw)*(1-y/ch),y/ch);
+    const img=cCtx.createImageData(colorPanel.cw,colorPanel.ch);
+    cUpdatePreview();
+    for(let y=0;y<colorPanel.ch;y++){
+        for(let x=0;x<colorPanel.cw;x++){
+            const i=(y*colorPanel.cw+x)*4;
+            let [r,g,b]=hwbToRgb(currentHue,(1-x/colorPanel.cw)*(1-y/colorPanel.ch),y/colorPanel.ch);
+            if(Math.abs(Math.pow(x/colorPanel.cw-colorPanel.choosingPlace.x,2)+
+                        Math.pow(y/colorPanel.ch-colorPanel.choosingPlace.y,2)-0.0008)<0.0004){[r,g,b]=[255-r,255-g,255-b];}
             img.data[i]=r;img.data[i+1]=g;img.data[i+2]=b;img.data[i+3]=255;
         }
     }
     cCtx.putImageData(img,0,0);
-    updatePreview();
 }
-function updatePreview(){
-    cText.textContent=`rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
-    cText.style.background=`rgb(${currentColor.r},${currentColor.g},${currentColor.b})`;
+function cUpdatePreview(){
+    const x=colorPanel.choosingPlace.x,y=colorPanel.choosingPlace.y;
+    const [r,g,b]=hwbToRgb(currentHue,(1-x)*(1-y),y);
+    currentColor={r:r,g:g,b:b};
+    cText.textContent=`rgb(${r},${g},${b})`;
+    cText.style.background=`rgb(${r},${g},${b})`;
+    if(r+g+b>377)cText.style.color=`#000`;
+    else cText.style.color=`#fff`;
 }
-cHue.onclick=e=>{
+cHue.onmousemove=function(e){if(!mousedown)return;cHue.onmousedown(e);};
+cHue.onmousedown=(e)=>{
     const rect=cHue.getBoundingClientRect();
     currentHue=360*(e.clientY-rect.top)/rect.height;
     drawColorBox();
 };
-cMain.onmousemove=e=>{
-    if(mousedown){
-        const rect=cMain.getBoundingClientRect();
-        const x=(e.clientX-rect.left)*1.57;
-        const y=(e.clientY-rect.top)/1.339;
-        const [r,g,b]=hwbToRgb(currentHue,(1-x/cw)*(1-y/ch),y/ch);
-        currentColor={r:r,g:g,b:b};
-        updatePreview();
-    }
+cMain.onmousemove=function(e){if(!mousedown)return;cMain.onmousedown(e);};
+cMain.onmousedown=(e)=>{
+    const rect=cMain.getBoundingClientRect();
+    const x=(e.clientX-rect.left)*1.57/colorPanel.cw;
+    const y=(e.clientY-rect.top)/1.339/colorPanel.ch;
+    colorPanel.choosingPlace={x:x,y:y};
+    drawColorBox();
 };
 drawColorBox();
 function renderSaveList(){
@@ -847,11 +860,11 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
                 str+=`${u2.POS},`;
             }
             str+=`]},\n`;
-        }else if(u.type=='void'){
+        }else if(u.type=='void'||u.type=='if'){
             if(u.val.includes("wait")){
-                str+=`{type:\"void\",fu:function(){setTimeout(RunFrom,${u.val.trim().slice(5,-1)},unit[${u.to[0].POS}]);return 0;},to:[]},`;
+                str+=`{type:\"void\",fu:function(){setTimeout(RunFrom,${u.val.trim().slice(5,-1)},unit[${u.to[0].POS}]);return 0;},to:[]},\n`;
             }else{
-                str+=`{type:\"void\",fu:function(){${safeEscape(u.Fu)}},to:[`;
+                str+=`{type:\"void\",fu:function(){${u.Fu}},to:[`;
                 for(const u2 of u.to){
                     str+=`${u2.POS},`;
                 }
@@ -932,6 +945,27 @@ function openDebugChildPage() {
     _runner._log.innerText+="\n➫ 已打开独立子页面";
     _runner._log.scrollTop=_runner._log.scrollHeight;
 }
+function Help(){
+    _runner._log.innerHTML+=`<br>
+<u class="log-btn" onclick="HelpKey()">- 快捷键帮助</u><br>
+<u class="log-btn" onclick="HelpFun()">- 功能帮助</u>
+`;}
+function HelpKey(){
+    _runner._log.innerText+=`
+滚轮                                  --> 滚动画布
+shift+滚轮                            --> 横向滚动画布
+Alt+滚轮                              --> 滚动页面
+未选择文本 Ctrl+c                     --> 复制当前单位的所有内容
+鼠标从一个单位拖到另一单位             --> 创建连线
+鼠标从一个单位拖到另一单位+Ctrl+Delete --> 删除已有连线
+`;}
+function HelpFun(){
+    _runner._log.innerText+=`
+所有变量、函数均挂载到_runner下，
+自定义DOM元素内调用需看好。
+所有错误信息均不会输出到日志内，需用原生F12查看。
+输出为HTA，所以进行向下兼容，部分新版功能无法使用。
+`;}
 document.addEventListener("keydown",e=>{
     if(e.ctrlKey&&e.key.toLowerCase()==="s"){
         e.preventDefault();
@@ -947,7 +981,7 @@ document.addEventListener("keydown",e=>{
 renderSaveList();
 Init();
 
-
+    
     </script>
 </body>
 </html>
