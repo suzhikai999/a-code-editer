@@ -179,7 +179,7 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
         <h3 style="margin:0 0 8px 0;font-size:16px;">自定义页面DOM</h3>
         <textarea 
             id="domHtmlInput"
-            style="width:100%;min-height:120px;padding:10px;font-family:Consolas;font-size:14px;white-space:pre;resize:vertical;"
+            style="width:100%;min-height:120px;padding:10px;font-family:Consolas;font-size:14px;white-space:pre;resize:vertical;tab-size:4;-moz-tab-size:4;"
             placeholder='在此编写页面元素，例如：
 <button onclick="_runner.test()">测试按钮</button>
 <div id="box" style="width:200px;height:200px;background:#eee;"></div>
@@ -635,6 +635,7 @@ function updateHtmlInputTip(){
     sta++;
     const temp=s.slice(sta,domHtmlInput.selectionStart);
     dofil=domFiller.filter(fil=>fil.startsWith(temp));
+    if(temp=="")dofil=[];
     let temps="";
     for(const fil of dofil){
         temps+=fil+'\n';
@@ -651,12 +652,25 @@ domHtmlInput.addEventListener('keyup',updateHtmlInputTip);
 domHtmlInput.addEventListener('select',updateHtmlInputTip);
 domHtmlInput.addEventListener('blur',()=>tipPopup.style.display='none');
 domHtmlInput.addEventListener('keydown',(e)=>{
+    if(e.key=="Enter"){
+        console.log("aa");
+        requestAnimationFrame(()=>{
+            console.log("aa");
+            const temp=domHtmlInput.selectionStart;
+            const linestart=domHtmlInput.value.lastIndexOf("\n",temp-2)+1;
+            const temp2=(domHtmlInput.value.slice(linestart)+"_").search(/[^\t ]/);
+            domHtmlInput.value=domHtmlInput.value.slice(0,temp)+domHtmlInput.value.slice(linestart).slice(0,temp2)+domHtmlInput.value.slice(temp);
+            domHtmlInput.selectionStart=domHtmlInput.selectionEnd=temp+temp2;
+        });
+    }
     if(e.key=="Tab"){
         e.preventDefault();
         const temp=domHtmlInput.selectionStart;
-        domHtmlInput.value=domHtmlInput.value.slice(0,temp)+dofil[0].slice(dofilPos)+domHtmlInput.value.slice(temp);
-        domHtmlInput.selectionStart=temp+dofil[0].length-dofilPos;
-        domHtmlInput.selectionEnd=temp+dofil[0].length-dofilPos;
+        const text=(dofil.length>0)?dofil[0].slice(dofilPos):"\t";
+        domHtmlInput.value=domHtmlInput.value.slice(0,temp)+text+domHtmlInput.value.slice(temp);
+        if(dofil.length>0){
+            domHtmlInput.selectionStart=domHtmlInput.selectionEnd=temp+dofil[0].length-dofilPos;
+        }else domHtmlInput.selectionStart=domHtmlInput.selectionEnd=temp+1;
     }
     if(`"'{[(<`.includes(e.key)){
         const map={
