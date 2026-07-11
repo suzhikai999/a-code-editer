@@ -485,7 +485,7 @@ canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
     key[e.key]=true;
     if(e.ctrlKey&&e.key=="f"){unit.unshift({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});return;}
-    if(e.ctrlKey&&e.key=="z"){unit=CZUB;for(const u of unit)u.to=u.to.map(U=>unit[U]);return;}
+    if(e.ctrlKey&&e.key=="z"&&e.target==canvas){unit=CZUB;for(const u of unit)u.to=u.to.map(U=>unit[U]);return;}
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
@@ -561,8 +561,20 @@ document.addEventListener("keydown",async(e)=>{
         if(!ChoosingFiller&&ChoosingFiller!==0)ChoosingFiller=0;
         ChoosingFiller=(ChoosingFiller%filler.length+filler.length)%filler.length;
         if(cursorAt<0)cursorAt=0;if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;
-        for(const alte of alter){
-            if(dragUnit.val.slice(cursorAt-alte.from.length,cursorAt)==alte.from)dragUnit.val=dragUnit.val.slice(0,cursorAt-alte.from.length)+alte.to+dragUnit.val.slice(cursorAt),cursorAt-=alte.from.length-alte.back;
+        for(const alte of alter){if(dragUnit.val.slice(cursorAt-alte.from.length,cursorAt)==alte.from)dragUnit.val=dragUnit.val.slice(0,cursorAt-alte.from.length)+alte.to+dragUnit.val.slice(cursorAt),cursorAt-=alte.from.length-alte.back;}
+        if(dragUnit.val=="for"&&dragUnit.type=="void"){
+            let temdo={type:"void",val:"i++",to:[],x:dragUnit.endx+70,y:dragUnit.y+110};
+            let temif={};
+            if(dragUnit.to.length>0)temif={type:"if",val:"i<",to:[temdo,dragUnit.to[0]],x:dragUnit.endx+50,y:dragUnit.y};
+            else{let temThenDo={type:"void",val:"",to:[],x:dragUnit.endx+120,y:dragUnit.y};
+                temif={type:"if",val:"i<",to:[temdo,temThenDo],x:dragUnit.endx+50,y:dragUnit.y};
+                unit.push(temThenDo);}
+            temdo.to=[temif];
+            dragUnit.val="i=0";
+            if(dragUnit.to.length>0)dragUnit.to[0].x+=100;
+            unit.push(temif,temdo);
+            dragUnit.to=[temif];
+            dragUnit=temif,cursorAt=2;
         }
     }
 });
