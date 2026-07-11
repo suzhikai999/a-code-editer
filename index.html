@@ -129,7 +129,7 @@ for(const u of unit){
     const s=prefixLocalVars(Expr(u.val.trim()));
     if(u.type=='main')u.Fu=`return 0;`;else
     if(u.type=='if'){
-        u.Fu=`if(${s}){return 0;}return 1;`;
+        u.Fu=(u.to.length==2)?`if(${s}){return 0;}return 1;`:`return ${s};`;
     }else{
         if(s.includes('print')){
             const temp=s.slice(6,-2);
@@ -263,7 +263,7 @@ function show(u,x,y){
     ctx.font=`20px Consolas`;
     ctx.fillStyle="#333";
     ctx.textBaseline="middle";
-    if(u===dragUnit&&mousex<x)cursorWA=0;
+    if(u===dragUnit&&mousex<x+10)cursorWA=0;
     for(let i=0;i<len;++i){
         const now=p[p.length-1];
         if(u===dragUnit){
@@ -465,15 +465,15 @@ document.addEventListener("mouseup",(e)=>{
     if(!dragUnit)return ;
     let temp=find(mousex,mousey);
     if(key.Shift)return ;
-    if(temp==dragUnit){return ;}
+    if(temp==dragUnit){if(key.Delete&&key.Control)unit.splice(unit.findIndex(u=>u===dragUnit),1);return ;}
     if(temp&&key.Delete&&key.Control){
-        const tem1=temp.to.findIndex(item=>item==dragUnit);
-        const tem2=dragUnit.to.findIndex(item=>item==temp);
-        if(tem1>0)temp.to.splice(tem1,1);
-        if(tem2>0)dragUnit.to.splice(tem2,1);
+        const tem1=temp.to.findIndex(item=>item===dragUnit);
+        const tem2=dragUnit.to.findIndex(item=>item===temp);
+        if(tem1>-1)temp.to.splice(tem1,1);
+        if(tem2>-1)dragUnit.to.splice(tem2,1);
         return ;}
     if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length},unit.push(temp);
-    dragUnit.to.push(temp);
+    if(!dragUnit.to.includes(temp))dragUnit.to.push(temp);
     dragUnit=null;
 });
 const key={Shift:false,Delete:false,Control:false};
@@ -488,6 +488,10 @@ document.addEventListener("keydown",async(e)=>{
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
+            if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
+            if(e.ctrlKey&&e.key=="v"){const text=await navigator.clipboard.readText();dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+text+
+                dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
+                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt=Math.min(SeCus,cursorAt)+text.length,SeCus=-1;}else
             if(e.key==="'"||e.key==='"'){
                 dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt))+e.key+
@@ -504,10 +508,10 @@ document.addEventListener("keydown",async(e)=>{
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
                 dragUnit.val.slice(Math.max(SeCus,cursorAt));
                 cursorAt=Math.min(SeCus,cursorAt);
-            }else if(e.key!=="Shift"&&e.key!=="Control")dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
+            }else if(!e.ctrlKey&&!e.shiftKey&&!e.metaKey&&!e.altKey)dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
-                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt++;
-            if(!e.ctrlKey&&!e.shiftKey)SeCus=-1;
+                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt=Math.min(SeCus,cursorAt);
+            if(!e.ctrlKey&&!e.shiftKey&&!e.metaKey&&!e.altKey)SeCus=-1;
             return ;}
         if(e.ctrlKey&&e.key=="v"){
             const text=await navigator.clipboard.readText();
@@ -517,8 +521,9 @@ document.addEventListener("keydown",async(e)=>{
         if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
         if(e.key==="ArrowLeft"){if(e.shiftKey)SeCus=cursorAt;const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(cursorAt==0&&temp!=-1)dragUnit=unit[temp],cursorAt=dragUnit.val.length+1;cursorAt--,CLFC=0,cursorLook=' ';}else
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
-        if(e.key==="Enter"){temp={type:"void",val:"",to:[],x:dragUnit.x+1,y:dragUnit.y},unit.push(temp),dragUnit.to.push(temp),dragUnit=temp;}else
+        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey)temp.y+=80,dragUnit.to.push(temp);else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
         if(e.key==="Backspace"){
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;}
             let temp=dragUnit.val[cursorAt-1];
             if(cursorAt==0)temp="none";
             if(["√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
@@ -526,7 +531,7 @@ document.addEventListener("keydown",async(e)=>{
             else if(dragUnit.val[cursorAt-1]!='`')dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
             cursorAt--;}else
         if(e.key==="Delete"&&!e.ctrlKey){
-            if(dragUnit.val.length==0)unit.splice(unit.findIndex(u=>u===dragUnit),1);
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=dragUnit.to[0];}
             const temp=dragUnit.val[cursorAt];
             const temp2=dragUnit.val[cursorAt-1];
             if((temp=="√")&&dragUnit.val[cursorAt+1]=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+2);else
@@ -535,8 +540,8 @@ document.addEventListener("keydown",async(e)=>{
             else dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+1);}else
         if(e.key==="Tab"&&filler.length>0){dragUnit.val=dragUnit.val.slice(0,cursorAt)+filler[ChoosingFiller].text.slice(fillerPos)+dragUnit.val.slice(cursorAt);
             cursorAt+=filler[ChoosingFiller].text.length-filler[ChoosingFiller].back-fillerPos,filler=filler[ChoosingFiller].has,fillerPos=0;
-        }else if(e.key==="ArrowDown"){ChoosingFiller++;}else
-        if(e.key==="ArrowUp"){ChoosingFiller--;}else
+        }else if(e.key==="ArrowDown"){if(filler.length>0)ChoosingFiller++;else{const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(temp>-1)dragUnit=unit[temp].to[(unit[temp].to.findIndex(U=>U===dragUnit)+1+unit[temp].to.length)%unit[temp].to.length],cursorAt=0,CLFC=0,cursorLook=' ';}}else
+        if(e.key==="ArrowUp"){if(filler.length>0)ChoosingFiller--;else{const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(temp>-1)dragUnit=unit[temp].to[(unit[temp].to.findIndex(U=>U===dragUnit)-1+unit[temp].to.length)%unit[temp].to.length],cursorAt=0,CLFC=0,cursorLook=' ';}}else
         if(e.key.length==1&&!"`".includes(e.key))dragUnit.val=dragUnit.val.slice(0,cursorAt)+e.key+dragUnit.val.slice(cursorAt),cursorAt++;
         if((Chars+"_.").includes(e.key)||e.key==="Backspace"){
             const s=dragUnit.val;let temp=-1,word="";
@@ -566,9 +571,9 @@ document.addEventListener("keyup",(e)=>{
 const tipPopup=document.createElement('div');
 tipPopup.className='html-tip-popup';
 document.body.appendChild(tipPopup);
-function getTextareaCaretPagePos(ta) {
+function getTextareaCaretPagePos(ta){
     const selStart=ta.selectionStart;
-    const textBefore=ta.value.slice(0, selStart);
+    const textBefore=ta.value.slice(0,selStart);
     const rect=ta.getBoundingClientRect();
     const style=getComputedStyle(ta);
     const mirrorWrap=document.createElement('div');
@@ -663,7 +668,7 @@ const lanw={
     void:"行为",
     if:"如果",
     else:"否则",
-    case:"暂不支持多分支",
+    case:"分支",
     function:"函数",
 };
 let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;"}];
@@ -679,6 +684,7 @@ function Init(){
     filler=[];
     requestAnimationFrame(loop);}
 let cursorLook="⎸",CLFC=20;
+let UnitBuff=[];
 function loop(){
     mousexf=mousex-mousexf;
     mouseyf=mousey-mouseyf;
@@ -715,7 +721,7 @@ function loop(){
             const temp={x:(o2.x-o.x)/temlen,y:(o2.y-o.y)/temlen};
             ctx.moveTo(o.x+temp.x*temlen2+temp.y*10,o.y+temp.y*temlen2-temp.x*10);
             ctx.lineTo(o.x+temp.x*temlen2-temp.y*10,o.y+temp.y*temlen2+temp.x*10);
-            ctx.lineTo(o.x+temp.x*(temlen2+10),     o.y+temp.y*(temlen2+10));
+            ctx.lineTo(o.x+temp.x*(temlen2+10),   o.y+temp.y*(temlen2+10));
             ctx.fill();
             if(i==0);else
             if(i===1)show(lanw.else,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
@@ -741,7 +747,8 @@ function loop(){
         let i=0;
         for(const u2 of u.to){
             if(!unit.includes(u2))u.to.splice(i,1);
-            if(u2.x>u.x&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
+            if(u2.x>u.x-50&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
+            if(u2.x>end+50&&u.y>u2.y-30&&u.y<u2.y+30)u2.x+=(end+50-u2.x)/10;
             ++i;}
     }
     addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc],globalFunc=[];
@@ -768,9 +775,9 @@ const cCtx=cMain.getContext('2d');
 const cHue=document.getElementById('colorHue');
 const cText=document.getElementById('colorText');
 const colorPanel={cw:cMain.width,ch:cMain.height,choosingPlace:{x:1,y:1}};
-function hwbToRgb(h,w,b) {
+function hwbToRgb(h,w,b){
     h=((h%360)+360)%360/360;
-    if (w+b>=1){
+    if(w+b>=1){
         const gray=w/(w+b);
         const val=Math.round(gray*255);
         return [val,val,val];
@@ -783,7 +790,7 @@ function hwbToRgb(h,w,b) {
     const p=v*(1-s);
     const q=v*(1-s*f);
     const t=v*(1-s*(1-f));
-    switch (i%6) {
+    switch(i%6){
         case 0:r=v;g=t;bl=p;break;
         case 1:r=q;g=v;bl=p;break;
         case 2:r=p;g=v;bl=t;break;
@@ -858,16 +865,16 @@ function TakeJSON(){
     a.click();
     URL.revokeObjectURL(url);
 }
-function LoadJSON() {
+function LoadJSON(){
     const fileInput=document.getElementById('jsonFileInput');
-    fileInput.onchange=function(e) {
+    fileInput.onchange=function(e){
         const file=e.target.files[0];
         if(!file)return;
         const reader=new FileReader();
         reader.onload=function(res){
             try{
                 const data=JSON.parse(res.target.result);
-                if(!Array.isArray(data)||data.length !== 2||!Array.isArray(data[0])) {
+                if(!Array.isArray(data)||data.length!==2||!Array.isArray(data[0])){
                     throw new Error("文件不是编辑器导出的JSON");
                 }
                 const nodeArr=data[0];
@@ -1063,7 +1070,7 @@ function Download(){
     a.click();
     URL.revokeObjectURL(url);
 }
-function openDebugChildPage() {
+function openDebugChildPage(){
     const pageHtml=UnitToHtml();
     const blob=new Blob([pageHtml],{type:"text/html"});
     const pageUrl=URL.createObjectURL(blob);
@@ -1084,10 +1091,13 @@ function Help(){
 function HelpKey(){
     _runner._log.innerHTML+=`<br><br>
 滚轮                                   --> 滚动画布<br>
+Enter                                  --> 在当前路径中新建单位<br>
+Shift+Enter                            --> 从当前单位新建单位<br>
 Alt+滚轮                               --> 滚动页面<br>
 shift+滚轮                             --> 横向滚动画布<br>
 未选择文本 Ctrl+c                      --> 复制当前单位的所有内容<br>
-当前单位为空 Delete                    --> 删除单位<br>
+当前单位为空 Delete或BackSpace         --> 从路径中删除单位<br>
+Ctrl+Delete+点击单位                   --> 删除单位<br>
 光标在单位最左端 LeftArrow             --> 移到上一个单位<br>
 光标在单位最右端 RightArrow            --> 移到下一个单位<br>
 鼠标从一个单位拖到另一单位             --> 创建连线<br>
@@ -1097,7 +1107,8 @@ function HelpFun(){
     _runner._log.innerHTML+=`<br><br>
 所有变量、函数均挂载到_runner下，自定义DOM元素调用需注意。<br>
 所有错误信息均不会输出到日志内，需用原生F12查看。<br>
-输出为HTA，向下兼容，所以部分新版功能无法使用。<br>
+输出为HTA，向下兼容，所以可能新版功能无法使用。<br>
+运行、下载前一定要编译！<br>
 `;}
 document.addEventListener("keydown",e=>{
     if(e.ctrlKey&&e.key.toLowerCase()==="s"){
