@@ -484,7 +484,8 @@ const alter=[{from:"sqrt",to:"√`",back:1},
 canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
     key[e.key]=true;
-    if(e.ctrlKey&&e.key=="f")unit.unshift({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});
+    if(e.ctrlKey&&e.key=="f"){unit.unshift({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});return;}
+    if(e.ctrlKey&&e.key=="z"){unit=CZUB;for(const u of unit)u.to=u.to.map(U=>unit[U]);return;}
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
@@ -684,7 +685,8 @@ function Init(){
     filler=[];
     requestAnimationFrame(loop);}
 let cursorLook="⎸",CLFC=20;
-let UnitBuff=[];
+let UnitBuff=unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};});
+let CZUB=UnitBuff;
 function loop(){
     mousexf=mousex-mousexf;
     mouseyf=mousey-mouseyf;
@@ -731,8 +733,11 @@ function loop(){
     }
     globalObj=[];
     let CountI=0;
+    let flag=false;
     for(const u of unit){
-        u.POS=CountI;CountI++;
+        u.POS=CountI;
+        const UBU=UnitBuff[CountI];
+        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true;CountI++;
         const p=getPos(u);
         ctx.fillStyle="#e0e0e0";
         ctx.strokeStyle="#999";
@@ -760,6 +765,10 @@ function loop(){
     ctx.textBaseline="alphabetic";
     ctx.fillText(`FPS:${fps}`,12,24);
     ctx.restore();
+    if(flag!=false){
+        CZUB=UnitBuff;
+        UnitBuff=unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};});
+    }
     if(find(mousex,mousey)){
         if(key.Shift)canvas.style.cursor="grabbing";
         else canvas.style.cursor="text";
