@@ -524,7 +524,7 @@ document.addEventListener("keydown",async(e)=>{
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
         if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey)temp.y+=80,dragUnit.to.push(temp);else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
         if(e.key==="Backspace"){
-            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;}
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;return;}
             let temp=dragUnit.val[cursorAt-1];
             if(cursorAt==0)temp="none";
             if(["√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
@@ -532,7 +532,7 @@ document.addEventListener("keydown",async(e)=>{
             else if(dragUnit.val[cursorAt-1]!='`')dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
             cursorAt--;}else
         if(e.key==="Delete"&&!e.ctrlKey){
-            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=dragUnit.to[0];}
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=dragUnit.to[0];return;}
             const temp=dragUnit.val[cursorAt];
             const temp2=dragUnit.val[cursorAt-1];
             if((temp=="√")&&dragUnit.val[cursorAt+1]=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+2);else
