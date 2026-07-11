@@ -413,10 +413,10 @@ const hasChil={
         {text:".pageX",back:0,has:"number",type:"AR"},{text:".pageY",back:0,has:"number",type:"AR"},{text:".button",back:0,has:"number",type:"AR"},
         {text:".key",back:0,has:"number",type:"AR"},{text:".target",back:0,has:"element",type:"AR"},{text:".wheelDelta",back:0,has:"number",type:"AR"},]
 };
-const staticFiller=[
+const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},
     {text:"typeof ",back:0,has:hasChil.number,type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
     {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:hasChil.number,type:"AR"},
-    {text:"print()",back:1,has:[],type:"AR"},{text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
+    {text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
     {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
@@ -485,7 +485,7 @@ canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
     key[e.key]=true;
     if(e.ctrlKey&&e.key=="f"){unit.unshift({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});return;}
-    if(e.ctrlKey&&e.key=="z"&&e.target==canvas){unit=CZUB;for(const u of unit)u.to=u.to.map(U=>unit[U]);return;}
+    if(e.ctrlKey&&e.key=="z"&&e.target==canvas){unit=CZUB.unit;cursorAt=CZUB.cursorAt;SeCus=CZUB.SeCus;CLFC=0,cursorLook=' ';dragUnit=unit[CZUB.DrUnId];for(const u of unit)u.to=u.to.map(U=>unit[U]);return;}
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
@@ -697,7 +697,7 @@ function Init(){
     filler=[];
     requestAnimationFrame(loop);}
 let cursorLook="⎸",CLFC=20;
-let UnitBuff=unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};});
+let UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
 let CZUB=UnitBuff;
 function loop(){
     mousexf=mousex-mousexf;
@@ -748,7 +748,7 @@ function loop(){
     let flag=false;
     for(const u of unit){
         u.POS=CountI;
-        const UBU=UnitBuff[CountI];
+        const UBU=UnitBuff.unit[CountI];
         if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true;CountI++;
         const p=getPos(u);
         ctx.fillStyle="#e0e0e0";
@@ -779,7 +779,7 @@ function loop(){
     ctx.restore();
     if(flag!=false){
         CZUB=UnitBuff;
-        UnitBuff=unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};});
+        UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
     }
     if(find(mousex,mousey)){
         if(key.Shift)canvas.style.cursor="grabbing";
