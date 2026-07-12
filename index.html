@@ -130,7 +130,7 @@ for(const u of unit){
     const s=prefixLocalVars(Expr(u.val.trim()));
     if(u.type=='main')u.Fu=`return 0;`;else
     if(u.type=='if'){
-        u.Fu=(u.to.length==2)?`if(${s}){return 0;}return 1;`:`return ${s};`;
+        u.Fu=(u.to.length==2)?`if(${s}){return 0;}return 1;`:`var temp=${s};if(temp%1==0&&temp>=2&&temp<=${u.to.length-1})return temp;else if(temp==1)return 0;return 1;`;
     }else{
         if(s.includes('print')){
             const temp=s.slice(6,-2);
@@ -752,7 +752,7 @@ function loop(){
             ctx.lineTo(o.x+temp.x*temlen2-temp.y*10,o.y+temp.y*temlen2+temp.x*10);
             ctx.lineTo(o.x+temp.x*(temlen2+10),   o.y+temp.y*(temlen2+10));
             ctx.fill();
-            if(i==0);else
+            if(i==0){if(u.to.length>=3)show(lanw.case+`1`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);}else
             if(i===1)show(lanw.else,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
             else show(lanw.case+`${i}`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
             i++;
