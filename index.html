@@ -249,14 +249,6 @@ function prefixLocalVars(codeStr,globalVars=[]){
     return code;
 }
 let cursorWA,SeCus=-1;
-function coverGlobals(...items){
-    for(const item of items){
-        const temp=globalObj.findIndex(tem=>tem.text==item.text&&tem.type==item.type);
-        if(temp!=-1){
-            globalObj[temp]=item;
-        }else globalObj.push(item);
-    }
-}
 function show(u,x,y){
     let s=u.val,word="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
