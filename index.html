@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="zh-CH">
 <head>
@@ -251,8 +249,16 @@ function prefixLocalVars(codeStr,globalVars=[]){
     return code;
 }
 let cursorWA,SeCus=-1;
+function coverGlobals(...items){
+    for(const item of items){
+        const temp=globalObj.findIndex(tem=>tem.text==item.text&&tem.type==item.type);
+        if(temp!=-1){
+            globalObj[temp]=item;
+        }else globalObj.push(item);
+    }
+}
 function show(u,x,y){
-    let s=u.val,word="",fir="",fty="",Funcs=[];
+    let s=u.val,word="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
     let temp=[],Temp=[],temp3;
     if(!s)s=lanw[u.type];
@@ -293,9 +299,7 @@ function show(u,x,y){
             if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
-                if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(dragUnit===u&&s[i]==="("&&i<cursorAt)Funcs.push([word,x]);if(s[i]=='(')word+='()';if(fir==""&&(u.type=="void"||u.type=="function"))fir=word;
-                    if(s[i]==':'&&NLK==1)temp.push({text:"."+word,back:0,has:hasChil.number,type:"BS"});if("),".includes(s[i])&&NLK==1)Temp.push({text:word,back:0,has:(word=='event')?(hasChil.event):(hasChil.number),type:"RC"});word="";
-                }if(s[i]=='.')word+=s[i];
+                if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);word="";}
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
                     if(now.else==1){
@@ -339,17 +343,6 @@ function show(u,x,y){
         if(")]}".includes(s[i]))NLK--;
     }
     const now=p[p.length-1];
-    const temp2=TELIS.findIndex(obj=>obj.text.replace(/ /g,"").replace(/[()]/g,"")==fir.replace(/[()]/g,""));
-    if(temp2==-1){
-        if(fir!=""){
-        if(temp3==`[`)temp=hasChil.array;else
-        if(temp3==`"`||temp3==`'`)temp=hasChil.string;
-        if(fir.includes("()")&&u.type=="function"){
-            globalObj.push(...(Temp.filter(Now=>TELIS.findIndex(obj=>obj.text==Now.text&&obj.type==Now.type)==-1)));
-            let TemStr="";if(Temp.length>0){TemStr=Temp[0].text;for(let i=1;i<Temp.length;++i){TemStr+=`,${Temp[i].text}`;}}
-            globalObj.push({text:fir,back:1,has:[],type:"BS"});globalFunc.push({name:fir.slice(0,-2),text:`${fir.slice(0,-2)}(${TemStr}):any`})}else
-        globalObj.push({text:fir.replace(/[()]/g,""),back:0,has:temp,type:"BS"});}
-    }else if(TELIS[temp2].type=="UD")staticFiller[temp2].type="BS";
     if(u===dragUnit&&cursorAt==len)ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
     if(SeCus==len)SeLeX=x;
     if(SeLeX!==-1&&SeRiX!==-1){
@@ -476,8 +469,7 @@ const funcTour = [
 ];
 const hasChil = {
     number:[{text:".toString()",back:0,has:[],type:"AR"},{text:".toFixed()",back:1,has:[],type:"AR"},{text:".toPrecision()",back:1,has:[],type:"AR"},
-        {text:".toExponential()",back:1,has:[],type:"AR"},{text:".round()",back:1,has:[],type:"AR"},{text:".abs()",back:1,has:[],type:"AR"},
-        {text:".ceil()",back:1,has:[],type:"AR"},{text:".floor()",back:1,has:[],type:"AR"},{text:".pow()",back:1,has:[],type:"AR"},],
+        {text:".toExponential()",back:1,has:[],type:"AR"},],
     string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:[],type:"AR"},{text:".codePointAt()",back:1,has:[],type:"AR"},
         {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:[],type:"AR"},{text:".lastIndexOf()",back:1,has:[],type:"AR"},
         {text:".replace()",back:1,has:[],type:"AR"},{text:".replaceAll()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},
@@ -631,12 +623,12 @@ document.addEventListener("keydown",async(e)=>{
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
         if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey)temp.y+=80,dragUnit.to.push(temp);else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
         if(e.key==="Backspace"){
-            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;return;}
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;cursorAt=dragUnit.val.length;return;}
             let temp=dragUnit.val[cursorAt-1];
             if(cursorAt==0)temp="none";
             if(["√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
             if(temp=="√"||temp=="`");
-            else if(dragUnit.val[cursorAt-1]!='`')dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
+            else if(dragUnit.val[cursorAt-1]!='`'&&cursorAt>0)dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
             cursorAt--;}else
         if(e.key==="Delete"&&!e.ctrlKey){
             if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=dragUnit.to[0];return;}
@@ -856,7 +848,7 @@ function loop(){
             const temp={x:(o2.x-o.x)/temlen,y:(o2.y-o.y)/temlen};
             ctx.moveTo(o.x+temp.x*temlen2+temp.y*10,o.y+temp.y*temlen2-temp.x*10);
             ctx.lineTo(o.x+temp.x*temlen2-temp.y*10,o.y+temp.y*temlen2+temp.x*10);
-            ctx.lineTo(o.x+temp.x*(temlen2+10),   o.y+temp.y*(temlen2+10));
+            ctx.lineTo(o.x+temp.x*(temlen2+10),     o.y+temp.y*(temlen2+10));
             ctx.fill();
             if(i==0){if(u.to.length>=3)show(lanw.case+`1`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);}else
             if(i===1)show(lanw.else,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
@@ -864,13 +856,12 @@ function loop(){
             i++;
         }
     }
-    globalObj=[];
     let CountI=0;
-    let flag=false;
+    let flag=false,changeUnit=[];
     for(const u of unit){
         u.POS=CountI;
         const UBU=UnitBuff.unit[CountI];
-        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true;CountI++;
+        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);CountI++;
         const p=getPos(u);
         ctx.fillStyle="#e0e0e0";
         ctx.strokeStyle="#999";
@@ -901,6 +892,17 @@ function loop(){
     if(flag!=false){
         CZUB=UnitBuff;
         UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
+        for(const u of changeUnit){
+            const s=u.val;
+            globalObj=globalObj.filter(obj=>(obj.belong!==u));
+            let word="",fir=[],beforeQe=0;
+            for(let i=0;i<s.length;++i){
+                if((Chars+"_").includes(s[i]))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;word="";}
+            }
+            const s2=s.slice(beforeQe);
+            const temp=to_filler(s2);
+            for(const fi of fir)globalObj.push({text:fi,back:0,has:temp,type:"BS",belong:u});
+        }
     }
     if(find(mousex,mousey)){
         if(key.Shift)canvas.style.cursor="grabbing";
@@ -909,6 +911,34 @@ function loop(){
     mousexf=mousex;
     mouseyf=mousey;
     requestAnimationFrame(loop);
+}
+function to_filler(s){
+    if(`"'\``.includes(s[0])){return hasChil.string;}else
+    if(s[0]=="["){return hasChil.array;}else
+    if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
+    if(s[0]=="{"&&s[s.length-1]=="}"){
+        let CLFC=0,isInS=false,isIns=false,left=1,res=[],wordPos=-1;
+        for(let i=1;i<s.length-1;i++){
+            if(s[i]=="'")isInS=!isInS;
+            if(s[i]=='"')isIns=!isIns;
+            if(!isInS&&!isIns){
+                if("([{".includes(s[i]))CLFC++;else
+                if(")]}".includes(s[i]))CLFC--;else
+                if(s[i]==','&&wordPos!=-1&&CLFC==0)res.push({text:"."+s.slice(left,wordPos),back:0,has:to_filler(s.slice(wordPos+1,i)),type:"BS"}),left=i+1;
+                else if(s[i]==":"&&CLFC==0)wordPos=i;
+            }
+        }
+        if(wordPos!=-1&&CLFC==0&&wordPos!=left)res.push({text:"."+s.slice(left,wordPos),back:0,has:to_filler(s.slice(wordPos+1,-1)),type:"BS"});
+        return res;
+    }else if("0123456789".includes(s[0]))return hasChil.number;else{
+        let i=0;
+        while((Chars+"_").includes(s[i]))i++;
+        const tem=s.slice(0,i);
+        const temp=globalObj.find(obj=>obj.text==tem);
+        if(temp)return temp.has;
+        return [];
+    }
+    return [];
 }
 let currentHue=0;
 let currentColor={r:123,g:95,b:95};
