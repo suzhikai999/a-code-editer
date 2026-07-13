@@ -266,6 +266,7 @@ function show(u,x,y){
     ctx.fillStyle="#333";
     ctx.textBaseline="middle";
     if(u===dragUnit&&mousex<x+10)cursorWA=0;
+    let hasBL=false;
     for(let i=0;i<len;++i){
         const now=p[p.length-1];
         if(u===dragUnit){
@@ -287,7 +288,7 @@ function show(u,x,y){
             }
             if(SeCus==i)SeLeX=x;}
         let flag=false;
-        if(s[i-1]!='\\'&&s[i]!='\\'){
+        if(!hasBL&&s[i]!='\\'){
             if("([{".includes(s[i]))NLK++;
             if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
@@ -328,11 +329,13 @@ function show(u,x,y){
             }
         }else{
             ctx.font=`${now.size}px Consolas`;
-            ctx.fillStyle="rgb(161,70,35)";
+            ctx.fillStyle="rgb(117,80,24)";
             ctx.textBaseline="middle";
             ctx.fillText(s[i],x,y+now.y,100);
             x+=now.size/2;
         }
+        if(hasBL)hasBL=false;else
+        if(s[i]=='\\')hasBL=true;
         if(")]}".includes(s[i]))NLK--;
     }
     const now=p[p.length-1];
