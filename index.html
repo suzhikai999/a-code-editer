@@ -889,7 +889,7 @@ function loop(){
             globalObj=globalObj.filter(obj=>(obj.belong!==u));
             let word="",fir=[],beforeQe=0;
             for(let i=0;i<s.length;++i){
-                if((Chars+"_").includes(s[i]))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;word="";}
+                if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;word="";}
             }
             const s2=s.slice(beforeQe);
             const temp=to_filler(s2);
