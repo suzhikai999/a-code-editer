@@ -613,7 +613,7 @@ document.addEventListener("keydown",async(e)=>{
         if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
         if(e.key==="ArrowLeft"){if(e.shiftKey)SeCus=cursorAt;const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(cursorAt==0&&temp!=-1)dragUnit=unit[temp],cursorAt=dragUnit.val.length+1;cursorAt--,CLFC=0,cursorLook=' ';}else
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
-        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey)temp.y+=80,dragUnit.to.push(temp);else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
+        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length==0||dragUnit.to[0].y<dragUnit.y+20)temp.y+=80;dragUnit.to.push(temp);}else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
         if(e.key==="Backspace"){
             if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;cursorAt=dragUnit.val.length;return;}
             let temp=dragUnit.val[cursorAt-1];
@@ -666,6 +666,13 @@ document.addEventListener("keydown",async(e)=>{
             unit.push(temif,temdo);
             dragUnit.to=[temif];
             dragUnit=temif,cursorAt=2;
+        }
+        if(dragUnit.val=="if"&&dragUnit.type=="void"){
+            let temdo={type:"void",val:"",to:[],x:dragUnit.x,y:dragUnit.y+110};
+            dragUnit.to.unshift(temdo);
+            dragUnit.type="if",dragUnit.val="";
+            unit.push(temdo);
+            cursorAt=0;
         }
     }
 });
@@ -860,7 +867,14 @@ function loop(){
         ctx.lineWidth=2;
         ctx.beginPath();
         const r=8;
-        ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
+        if(u.type=="if"){
+            ctx.moveTo(p.x+20,p.y);
+            ctx.lineTo(p.x,p.y+20);
+            ctx.lineTo(p.x+20,p.y+40);
+            ctx.lineTo(p.endx,p.y+40);
+            ctx.lineTo(p.endx+20,p.y+20);
+            ctx.lineTo(p.endx,p.y);
+        }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
         ctx.fill();
         const end=show(u,p.x+20,p.y+20)+cam.x;
         u.endx=end;
