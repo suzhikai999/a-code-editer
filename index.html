@@ -291,7 +291,7 @@ function show(u,x,y){
             if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
-                if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);word="";}
+                if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]==".")word=".";else word="";}
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
                     if(now.else==1){
@@ -886,7 +886,7 @@ function loop(){
             if(u2.x>end+50&&u.y>u2.y-30&&u.y<u2.y+30)u2.x+=(end+50-u2.x)/10;
             ++i;}
     }
-    addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc],globalFunc=[];
+    addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc];
     if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
         SeCus=cursorWA;if(SeCus>dragUnit.val.length)SeCus=dragUnit.val.length;if(SeCus==cursorAt)SeCus=-1;}
     ctx.font="18px sans-serif";
@@ -900,14 +900,21 @@ function loop(){
         UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
         for(const u of changeUnit){
             const s=u.val;
-            let word="",fir=[],beforeQe=0;
+            let word="",fir=[],func="|none|",beforeQe=0;
             for(let i=0;i<s.length;++i){
-                if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;word="";}
+                if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;if(s[i]=="(")func=word;word="";}
             }
-            const s2=s.slice(beforeQe);
-            globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)));
-            const temp=to_filler(s2);
-            for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.push({text:fi,back:0,has:temp,type:"BS"});}
+            if(func!="|none|"&&u.type=="function"){
+                globalObj=globalObj.filter(obj=>(obj.text!=func));
+                globalObj.push({text:func+"()",back:1,has:[],type:"BS"});
+                globalFunc=globalFunc.filter(obj=>(obj.name!=func));
+                globalFunc.push({name:func,text:s+": any"});
+            }else{
+                const s2=s.slice(beforeQe);
+                globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)));
+                const temp=to_filler(s2);
+                for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.push({text:fi,back:0,has:temp,type:"BS"});}
+            }
         }
     }
     if(find(mousex,mousey)){
@@ -1270,6 +1277,7 @@ function HelpKey(){
     _runner._log.innerHTML+=`<br><br>
 滚轮                                   --> 滚动画布<br>
 Enter                                  --> 在当前路径中新建单位<br>
+Ctrl+f                                 --> 新建函数<br>
 Shift+Enter                            --> 从当前单位新建单位<br>
 Alt+滚轮                               --> 滚动页面<br>
 shift+滚轮                             --> 横向滚动画布<br>
