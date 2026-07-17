@@ -900,14 +900,14 @@ function loop(){
         UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
         for(const u of changeUnit){
             const s=u.val;
-            globalObj=globalObj.filter(obj=>(obj.belong!==u));
             let word="",fir=[],beforeQe=0;
             for(let i=0;i<s.length;++i){
                 if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;word="";}
             }
             const s2=s.slice(beforeQe);
+            globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)));
             const temp=to_filler(s2);
-            for(const fi of fir)globalObj.push({text:fi,back:0,has:temp,type:"BS",belong:u});
+            for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.push({text:fi,back:0,has:temp,type:"BS"});}
         }
     }
     if(find(mousex,mousey)){
