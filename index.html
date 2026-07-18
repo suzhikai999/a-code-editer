@@ -98,6 +98,13 @@
         .drop-menu li {list-style:none;padding:0;}
         .drop-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
         .drop-menu button:hover {background:#f0f4fc;}
+        .dropIn-wrap {position:relative;display:inline-block;}
+        .dropIn-btn {margin:4px;margin-top:2px;margin-bottom:2px;padding:8px 10px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
+        .dropIn-menu {pointer-events:none;transition:0.15s;position:absolute;top:0%;left:90px;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
+        .dropIn-wrap:hover .dropIn-menu {pointer-events:all;filter:opacity(1);top:0%;left:120px;}
+        .dropIn-menu li {list-style:none;padding:0;}
+        .dropIn-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
+        .dropIn-menu button:hover {background:#f0f4fc;}
         .html-tip-popup {
             position:absolute;
             background:#1f2937;
@@ -144,6 +151,40 @@ for(const u of unit){
 _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                     ">编译</button>
                     <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
+                    <div class="drop-wrap">
+                        <button class="drop-btn">程序选项 ▾</button>
+                        <ul class="drop-menu">
+                            <li><div class="dropIn-wrap">
+                                <div class="dropIn-btn">
+                                    <input type="checkbox" id="forPolyfill" style="cursor:pointer;">
+                                    <label for="forPolyfill" style="cursor:pointer;">API补丁</label>
+                                </div>
+                                <ul class="dropIn-menu" style="font-size:10px;">
+                                    <li><h3>&emsp;补丁：</h3></li>
+                                    <li><p>&emsp;String.includes</p></li>
+                                    <li><p>&emsp;Array.includes</p></li>
+                                    <li><p>&emsp;Array.findIndex</p></li>
+                                    <li><p>&emsp;Array.find</p></li>
+                                    <li><p>&emsp;Array.some</p></li>
+                                    <li><p>&emsp;Array.every</p></li>
+                                    <li><p>&emsp;Array.map</p></li>
+                                    <li><p>&emsp;Array.filter</p></li>
+                                    <li><h4>&emsp;HTA API：</h4></li>
+                                    <li><p>&emsp;runCMD()</p></li>
+                                    <li><p>&emsp;fso、ADODB_Stream<br>及其子对象</p></li>
+                                </ul>
+                            </div></li>
+                            <li><div class="dropIn-wrap">
+                                <div class="dropIn-btn">
+                                    <input type="checkbox" id="forErrowLog" style="cursor:pointer;">
+                                    <label for="forErrowLog" style="cursor:pointer;">错误日志</label>
+                                </div>
+                                <ul class="dropIn-menu" style="font-size:13px;">
+                                    <li><p>&emsp;&emsp;出现的错误会打印到日志，省的打开F11。</p></li>
+                                </ul>
+                            </div></li>
+                        </ul>
+                    </div>
                     <div class="drop-wrap">
                         <button class="drop-btn">工程操作 ▾</button>
                         <ul class="drop-menu">
@@ -224,7 +265,7 @@ function Expr(str){
 function prefixLocalVars(codeStr,globalVars=[]){
     const builtInGlobals=[
         'window','document','console','Math','Date','Array','Object','String','Number','Boolean','setTimeout','setInterval',
-        'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const',
+        'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const','fso',
         'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert'];
     const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','pow'];
     codeStr+=" ";
@@ -368,7 +409,7 @@ function show(u,x,y){
     }
     return x;
 }
-const funcTour = [
+const funcTour=[
     {name:"wait",text:"wait(delay):void"},
     {name:"print",text:"print(...content):void"},
     {name:"alert",text:"alert(message?):void"},
@@ -448,8 +489,8 @@ const funcTour = [
     {name:".match",text:"String.match(regexp):RegExpMatchArray|null"},
     {name:".matchAll",text:"String.matchAll(regexp):RegExpStringIterator"},
     {name:".search",text:"String.search(regexp):number"},
-    {name:"JSON.parse",text:"JSON.parse(text, reviver?):any"},
-    {name:"JSON.stringify",text:"JSON.stringify(value, replacer?, space?):string"},
+    {name:".parse",text:"JSON.parse(text, reviver?):any"},
+    {name:".stringify",text:"JSON.stringify(value, replacer?, space?):string"},
     {name:".querySelector",text:"document.querySelector(selectors):Element|null"},
     {name:".querySelectorAll",text:"document.querySelectorAll(selectors):NodeList"},
     {name:".classList.add",text:"Element.classList.add(...tokens):void"},
@@ -458,25 +499,98 @@ const funcTour = [
     {name:".classList.contains",text:"Element.classList.contains(token):boolean"},
     {name:".closest",text:"Element.closest(selectors):Element|null"},
     {name:".matches",text:"Element.matches(selectors):boolean"},
+    {name:"fso.CreateTextFile",text:"fso.CreateTextFile(filePath, overwrite?, unicode?):TextStream"},
+    {name:"fso.OpenTextFile",text:"fso.OpenTextFile(filePath, mode?, create?, format?):TextStream"},
+    {name:"fso.FileExists",text:"fso.FileExists(path):boolean"},
+    {name:"fso.FolderExists",text:"fso.FolderExists(path):boolean"},
+    {name:"fso.CreateFolder",text:"fso.CreateFolder(path):Folder"},
+    {name:"fso.DeleteFile",text:"fso.DeleteFile(path, force?):void"},
+    {name:"fso.DeleteFolder",text:"fso.DeleteFolder(path, force?):void"},
+    {name:"fso.CopyFile",text:"fso.CopyFile(source, dest, overwrite?):void"},
+    {name:"fso.CopyFolder",text:"fso.CopyFolder(source, dest, overwrite?):void"},
+    {name:"fso.MoveFile",text:"fso.MoveFile(source, dest):void"},
+    {name:"fso.MoveFolder",text:"fso.MoveFolder(source, dest):void"},
+    {name:"fso.BuildPath",text:"fso.BuildPath(folder, file):string"},
+    {name:"fso.GetParentFolderName",text:"fso.GetParentFolderName(path):string"},
+    {name:"fso.GetAbsolutePathName",text:"fso.GetAbsolutePathName(path):string"},
+    {name:"fso.GetFileName",text:"fso.GetFileName(path):string"},
+    {name:"fso.GetBaseName",text:"fso.GetBaseName(path):string"},
+    {name:"fso.GetExtensionName",text:"fso.GetExtensionName(path):string"},
+    {name:"fso.GetSpecialFolder",text:"fso.GetSpecialFolder(folderType):Folder"},
+    {name:"fso.GetTempName",text:"fso.GetTempName():string"},
+    {name:"fso.GetFile",text:"fso.GetFile(path):File"},
+    {name:"fso.GetFolder",text:"fso.GetFolder(path):Folder"},
+    {name:"File.OpenAsTextStream",text:"File.OpenAsTextStream(mode?, format?):TextStream"},
+    {name:"File.Copy",text:"File.Copy(dest, overwrite?):void"},
+    {name:"File.Move",text:"File.Move(dest):void"},
+    {name:"File.Delete",text:"File.Delete(force?):void"},
+    {name:"Folder.CreateTextFile",text:"Folder.CreateTextFile(name, overwrite?, unicode?):TextStream"},
+    {name:"Folder.Copy",text:"Folder.Copy(dest, overwrite?):void"},
+    {name:"Folder.Move",text:"Folder.Move(dest):void"},
+    {name:"Folder.Delete",text:"Folder.Delete(force?):void"},
+    {name:"TextStream.Read",text:"TextStream.Read(charCount):string"},
+    {name:"TextStream.ReadLine",text:"TextStream.ReadLine():string"},
+    {name:"TextStream.ReadAll",text:"TextStream.ReadAll():string"},
+    {name:"TextStream.Write",text:"TextStream.Write(str):void"},
+    {name:"TextStream.WriteLine",text:"TextStream.WriteLine(str?):void"},
+    {name:"TextStream.WriteBlankLines",text:"TextStream.WriteBlankLines(lineCount):void"},
+    {name:"TextStream.Close",text:"TextStream.Close():void"},
+    {name:"stream.Open",text:"stream.Open():void"},
+    {name:"stream.LoadFromFile",text:"stream.LoadFromFile(path):void"},
+    {name:"stream.SaveToFile",text:"stream.SaveToFile(path, saveOpt):void"},
+    {name:"stream.WriteText",text:"stream.WriteText(str, options?):void"},
+    {name:"stream.Close",text:"stream.Close():void"},
+    {name:".getTime",text:"Date.getTime():number"},
+    {name:".getFullYear",text:"Date.getFullYear():number"},
+    {name:".getMonth",text:"Date.getMonth():number"},
+    {name:".getDate",text:"Date.getDate():number"},
+    {name:".getHours",text:"Date.getHours():number"},
+    {name:".getMinutes",text:"Date.getMinutes():number"},
+    {name:".getSeconds",text:"Date.getSeconds():number"},
+    {name:".now",text:"Date.now():number"},
+    {name:".pop",text:"Array.pop():any"},
+    {name:".shift",text:"Array.shift():any"},
+    {name:".reverse",text:"Array.reverse():Array"},
+    {name:".sort",text:"Array.sort(compareFn?):Array"},
+    {name:".filter",text:"Array.filter(callback):Array"},
+    {name:".map",text:"Array.map(callback):Array"},
+    {name:".reduce",text:"Array.reduce(callback, initVal?):any"},
+    {name:".every",text:"Array.every(callback):boolean"},
+    {name:".some",text:"Array.some(callback):boolean"},
+    {name:".trim",text:"String.trim():string"},
+    {name:".trimStart",text:"String.trimStart():string"},
+    {name:".trimEnd",text:"String.trimEnd():string"},
+    {name:".split",text:"String.split(separator, limit?):string[]"},
+    {name:".startsWith",text:"String.startsWith(str, pos?):boolean"},
+    {name:".endsWith",text:"String.endsWith(str, len?):boolean"},
+    {name:"Math.round",text:"Math.round(x):number"},
+    {name:"Math.random",text:"Math.random():number"},
+    {name:"Math.abs",text:"Math.abs(x):number"},
+    {name:".remove",text:"Element.remove():void"},
+    {name:".setAttribute",text:"Element.setAttribute(name, value):void"},
+    {name:".getAttribute",text:"Element.getAttribute(name):string|null"},
+    {name:".removeAttribute",text:"Element.removeAttribute(name):void"},
+    {name:".focus",text:"Element.focus():void"},
+    {name:".blur",text:"Element.blur():void"},
+    {name:"runCMD",text:"runCMD(cmdstr):void"},
 ];
 const hasChil = {
-    number:[{text:".toString()",back:0,has:[],type:"AR"},{text:".toFixed()",back:1,has:[],type:"AR"},{text:".toPrecision()",back:1,has:[],type:"AR"},
+    number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
         {text:".toExponential()",back:1,has:[],type:"AR"},],
     string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:[],type:"AR"},{text:".codePointAt()",back:1,has:[],type:"AR"},
-        {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:[],type:"AR"},{text:".lastIndexOf()",back:1,has:[],type:"AR"},
+        {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:"number",type:"AR"},{text:".lastIndexOf()",back:1,has:[],type:"AR"},
         {text:".replace()",back:1,has:[],type:"AR"},{text:".replaceAll()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},
-        {text:".substring()",back:1,has:[],type:"AR"},{text:".split()",back:1,has:["array"],type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
-        {text:".trimStart()",back:0,has:"this",type:"AR"},{text:".trimEnd()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},
-        {text:".toUpperCase()",back:0,has:"this",type:"AR"},{text:".startsWith()",back:1,has:[],type:"AR"},{text:".endsWith()",back:1,has:[],type:"AR"},
+        {text:".substring()",back:1,has:"this",type:"AR"},{text:".split()",back:1,has:["array"],type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
+        {text:".toUpperCase()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},
         {text:".padStart()",back:1,has:[],type:"AR"},{text:".padEnd()",back:1,has:[],type:"AR"},],
     array:[{text:".length",back:0,has:"number",type:"AR"},{text:".pop()",back:0,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},
         {text:".shift()",back:0,has:[],type:"AR"},{text:".unshift()",back:1,has:[],type:"AR"},{text:".includes()",back:1,has:[],type:"AR"},
         {text:".find()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:[],type:"AR"},{text:".some()",back:1,has:[],type:"AR"},
-        {text:".every()",back:1,has:[],type:"AR"},{text:".filter()",back:1,has:["array"],type:"AR"},{text:".map()",back:1,has:["array"],type:"AR"},
+        {text:".every()",back:1,has:[],type:"AR"},{text:".filter()",back:1,has:"array",type:"AR"},{text:".map()",back:1,has:"array",type:"AR"},
         {text:".forEach()",back:1,has:[],type:"AR"},{text:".reduce()",back:1,has:[],type:"AR"},{text:".splice()",back:1,has:[],type:"AR"},
-        {text:".slice()",back:1,has:["array"],type:"AR"},{text:".reverse()",back:0,has:"this",type:"AR"},{text:".sort()",back:0,has:"this",type:"AR"},
-        {text:".join()",back:1,has:["string"],type:"AR"},{text:".flat()",back:1,has:["array"],type:"AR"},],
-    object:[{text:".keys()",back:0,has:["array"],type:"AR"},{text:".values()",back:0,has:["array"],type:"AR"},{text:".entries()",back:0,has:["array"],type:"AR"},
+        {text:".slice()",back:1,has:"array",type:"AR"},{text:".reverse()",back:0,has:"this",type:"AR"},{text:".sort()",back:0,has:"this",type:"AR"},
+        {text:".join()",back:1,has:"string",type:"AR"},],
+    object:[{text:".keys()",back:0,has:"array",type:"AR"},{text:".values()",back:0,has:"array",type:"AR"},{text:".entries()",back:0,has:"array",type:"AR"},
         {text:".hasOwnProperty()",back:1,has:[],type:"AR"},{text:".toString()",back:0,has:[],type:"AR"},],
     element:[{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},{text:".textContent",back:0,has:"string",type:"AR"},
         {text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},{text:".classList",back:0,has:"array",type:"AR"},
@@ -502,10 +616,28 @@ const hasChil = {
         {text:".clear()",back:0,has:[],type:"AR"},{text:".forEach()",back:1,has:[],type:"AR"},],
     map:[{text:".size",back:0,has:"number",type:"AR"},{text:".set()",back:1,has:[],type:"AR"},{text:".get()",back:1,has:[],type:"AR"},
         {text:".has()",back:1,has:[],type:"AR"},{text:".delete()",back:1,has:[],type:"AR"},{text:".clear()",back:0,has:[],type:"AR"},
-        {text:".keys()",back:0,has:["array"],type:"AR"},{text:".values()",back:0,has:["array"],type:"AR"},]
+        {text:".keys()",back:0,has:["array"],type:"AR"},{text:".values()",back:0,has:["array"],type:"AR"},],
+    folder:[{name:".CreateTextFile",text:"Folder.CreateTextFile(filename, overwrite?, unicode?):TextStream",has:[],type:"AR"},
+        {name:".Copy",text:"Folder.Copy(destination, overwrite?):void",has:[],type:"AR"},
+        {name:".Move",text:"Folder.Move(destination):void",has:[],type:"AR"},
+        {name:".Delete",text:"Folder.Delete(force?):void",has:[],type:"AR"},
+        {name:".Name",text:"Folder.Name:string",has:"string",type:"AR"},
+        {name:".Path",text:"Folder.Path:string",has:"string",type:"AR"},
+        {name:".ShortPath",text:"Folder.ShortPath:string",has:"string",type:"AR"},
+        {name:".ParentFolder",text:"Folder.ParentFolder:Folder",has:"this",type:"AR"},
+        {name:".Files",text:"Folder.Files:File集合",has:[],type:"AR"},
+        {name:".SubFolders",text:"Folder.SubFolders:Folder集合",has:[],type:"AR"},
+        {name:".DateCreated",text:"Folder.DateCreated:Date",has:"date",type:"AR"},
+        {name:".DateLastAccessed",text:"Folder.DateLastAccessed:Date",has:"date",type:"AR"},
+        {name:".DateLastModified",text:"Folder.DateLastModified:Date",has:"date",type:"AR"}]
 };
-const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},
-    {text:"typeof ",back:0,has:hasChil.number,type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
+hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
+    {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
+    {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
+    {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
+    {text:".Line",back:0,has:hasChil.number,type:"AR"}];
+const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},
+    {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
     {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:hasChil.number,type:"AR"},
     {text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
@@ -516,10 +648,57 @@ const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},
     {text:"document",back:0,has:[{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
         {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
         {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
-        {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:[],type:"AR"},
-        {text:".getElementsByClassName()",back:1,has:[],type:"AR"},{text:".getElementsByName()",back:1,has:[],type:"AR"}],type:"AR"},
+        {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:hasChil.element,type:"AR"},
+        {text:".getElementsByClassName()",back:1,has:hasChil.array,type:"AR"},{text:".getElementsByName()",back:1,has:hasChil.array,type:"AR"}],type:"AR"},
     {text:"onclick(event)",back:0,has:[],type:"UD"},{text:"onmousedown(event)",back:0,has:[],type:"UD"},{text:"onmouseup(event)",back:0,has:[],type:"UD"},{text:"onmousemove(event)",back:0,has:[],type:"UD"},
     {text:"onmousewheel(event)",back:0,has:[],type:"UD"},{text:"oncontextmenu(event)",back:0,has:[],type:"UD"},
+    {text:"fso",back:0,
+        has:[
+            {text:".CreateTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
+        {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
+        {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
+        {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
+        {text:".Line",back:0,has:hasChil.number,type:"AR"}],type:"AR"},{text:".OpenTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
+        {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
+        {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
+        {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
+        {text:".Line",back:0,has:hasChil.number,type:"AR"}],type:"AR"},
+            {text:".FileExists()",back:1,has:[],type:"AR"},{text:".FolderExists()",back:1,has:[],type:"AR"},
+            {text:".CreateFolder()",back:1,has:[],type:"AR"},{text:".DeleteFile()",back:1,has:[],type:"AR"},
+            {text:".DeleteFolder()",back:1,has:[],type:"AR"},{text:".CopyFile()",back:1,has:[],type:"AR"},
+            {text:".CopyFolder()",back:1,has:[],type:"AR"},{text:".MoveFile()",back:1,has:[],type:"AR"},
+            {text:".MoveFolder()",back:1,has:[],type:"AR"},{text:".BuildPath()",back:1,has:[],type:"AR"},
+            {text:".GetParentFolderName()",back:1,has:[],type:"AR"},{text:".GetAbsolutePathName()",back:1,has:[],type:"AR"},
+            {text:".GetFileName()",back:1,has:[],type:"AR"},{text:".GetBaseName()",back:1,has:[],type:"AR"},
+            {text:".GetExtensionName()",back:1,has:[],type:"AR"},{text:".GetSpecialFolder()",back:1,has:[],type:"AR"},
+            {text:".GetTempName()",back:0,has:hasChil.string,type:"AR"},
+            {text:".GetFile()",back:1,
+            has:[{text:".Name",back:0,has:hasChil.string,type:"AR"},{text:".Delete()",back:1,has:[],type:"AR"},{text:".OpenAsTextStream()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
+        {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
+        {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
+        {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
+        {text:".Line",back:0,has:hasChil.number,type:"AR"}],type:"AR"},
+                {text:".Path",back:0,has:hasChil.string,type:"AR"},{text:".Size",back:0,has:hasChil.number,type:"AR"},
+                {text:".DateCreated",back:0,has:[],type:"AR"},{text:".DateLastModified",back:0,has:[],type:"AR"},
+                {text:".Copy()",back:1,has:[],type:"AR"},{text:".Move()",back:1,has:[],type:"AR"}
+            ],type:"AR"},
+            {text:".GetFolder()",back:1,
+            has:[{text:".Name",back:0,has:hasChil.string,type:"AR"},
+                {text:".Path",back:0,has:hasChil.string,type:"AR"},{text:".Files",back:0,has:hasChil.file,type:"AR"},
+                {text:".SubFolders",back:0,has:hasChil.folder,type:"AR"},{text:".Copy()",back:1,has:[],type:"AR"},
+                {text:".Move()",back:1,has:[],type:"AR"},{text:".Delete()",back:1,has:[],type:"AR"},
+                {text:".CreateTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
+        {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
+        {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
+        {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
+        {text:".Line",back:0,has:hasChil.number,type:"AR"}],type:"AR"}
+            ],type:"AR"}
+        ],type:"AR"},{text:"ADODB_Stream",back:0,
+        has:[{text:".Mode",back:0,has:hasChil.number,type:"AR"},{text:".Type",back:0,has:hasChil.number,type:"AR"},
+            {text:".Charset",back:0,has:hasChil.string,type:"AR"},{text:".Open()",back:1,has:[],type:"AR"},
+            {text:".LoadFromFile()",back:1,has:[],type:"AR"},{text:".SaveToFile()",back:1,has:[],type:"AR"},
+            {text:".Read()",back:0,has:[],type:"AR"},{text:".WriteText()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"}
+        ],type:"AR"}
 ];
 let globalFunc=[],globalObj=[],globalFuncBuff=[],addFiller=[];
 let filler=[{text:"print()",has:[],back:6}];
@@ -636,14 +815,20 @@ document.addEventListener("keydown",async(e)=>{
         if(e.key==="ArrowUp"){if(filler.length>0)ChoosingFiller--;else{const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(temp>-1)dragUnit=unit[temp].to[(unit[temp].to.findIndex(U=>U===dragUnit)-1+unit[temp].to.length)%unit[temp].to.length],cursorAt=0,CLFC=0,cursorLook=' ';}}else
         if(e.key.length==1&&!"`".includes(e.key))dragUnit.val=dragUnit.val.slice(0,cursorAt)+e.key+dragUnit.val.slice(cursorAt),cursorAt++;
         if((Chars+"_.").includes(e.key)||e.key==="Backspace"){
-            const s=dragUnit.val;let temp=-1,word="";
+            const s=dragUnit.val;let temp=cursorAt,temp2=cursorAt;
             filler=[...globalObj,...staticFiller];
-            for(let i=cursorAt-1;i>=0&&(Chars+"_.").includes(s[i]);i--)temp=i;
-            for(let i=temp;i<cursorAt;++i){
-                if((Chars+"_").includes(s[i]))word+=s[i];
-                else{temp=filler.findIndex(fil=>fil.text==word);if(temp!=-1)filler=filler[temp].has;else{filler=[];break;}if(s[i]=='.')word='.';else word="";}
-            }
-            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
+            for(let i=cursorAt-1;i>=0&&(Chars+"_.)").includes(s[i]);i--){
+                if(s[i]==")"){
+                    let CLFC=1;i--;
+                    while(i>0&&CLFC!=0){
+                        if(s[i]=="(")CLFC--;
+                        if(s[i]==")")CLFC++;i--;
+                    }if(CLFC>0){filler=[];return ;}}
+                if(!(Chars+"_0123456789").includes(s[i]))if(temp2==cursorAt)temp2=i;
+                temp=i;}
+            if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);
+            if(temp2>temp)filler=to_filler(s.slice(temp,temp2));else filler=[...globalObj,...staticFiller];
+            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));else filler=[];fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
         if(e.key==="[")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"]"+dragUnit.val.slice(cursorAt);else
         if(e.key==="{")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"}"+dragUnit.val.slice(cursorAt);else
@@ -751,9 +936,7 @@ domHtmlInput.addEventListener('select',updateHtmlInputTip);
 domHtmlInput.addEventListener('blur',()=>tipPopup.style.display='none');
 domHtmlInput.addEventListener('keydown',(e)=>{
     if(e.key=="Enter"){
-        console.log("aa");
         requestAnimationFrame(()=>{
-            console.log("aa");
             const temp=domHtmlInput.selectionStart;
             const linestart=domHtmlInput.value.lastIndexOf("\n",temp-2)+1;
             const temp2=(domHtmlInput.value.slice(linestart)+"_").search(/[^\t ]/);
@@ -858,6 +1041,7 @@ function loop(){
     let CountI=0;
     let flag=false,changeUnit=[];
     for(const u of unit){
+        u.val=u.val.trimStart();
         u.POS=CountI;
         const UBU=UnitBuff.unit[CountI];
         if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);CountI++;
@@ -911,9 +1095,9 @@ function loop(){
                 globalFunc.push({name:func,text:s+": any"});
             }else{
                 const s2=s.slice(beforeQe);
-                globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)));
+                globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)&&obj.belong!==u));
                 const temp=to_filler(s2);
-                for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.push({text:fi,back:0,has:temp,type:"BS"});}
+                for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.push({text:fi,back:0,has:temp,type:"BS",belong:u});}
             }
         }
     }
@@ -944,12 +1128,29 @@ function to_filler(s){
         if(wordPos!=-1&&CLFC==0&&wordPos!=left)res.push({text:"."+s.slice(left,wordPos),back:0,has:to_filler(s.slice(wordPos+1,-1)),type:"BS"});
         return res;
     }else if("0123456789".includes(s[0]))return hasChil.number;else{
-        let i=0;
-        while((Chars+"_").includes(s[i]))i++;
-        const tem=s.slice(0,i);
-        const temp=globalObj.find(obj=>obj.text==tem);
-        if(temp)return temp.has;
-        return [];
+        let CLFC=0,word="";
+        let i=s.length-1;
+        if(s[i]==")")CLFC=1,i--,word="()";
+        while(CLFC>0&&i>0){
+            if(s[i]=="(")CLFC--;
+            if(s[i]==")")CLFC++;
+            i--;
+        }
+        if(CLFC>0)return [];
+        while((Chars+"_0123456789").includes(s[i])){
+            word=s[i]+word;
+            i--;
+        }
+        if(!(Chars+"_").includes(word[0]))return [];
+        if(s[i]=="."){
+            const temp=to_filler(s.slice(0,i)).find(obj=>obj.text==("."+word));
+            if(temp)return temp.has;
+            else return [];
+        }else{
+            const temp=[...globalObj,...staticFiller].find(obj=>obj.text==word);
+            if(temp)return temp.has;
+            else return [];
+        }
     }
     return [];
 }
@@ -1147,6 +1348,64 @@ function renderSaveList(){
     });
     listDom.innerHTML=html;
 }
+String.prototype.indexOf;
+const Polyfill=`
+//补丁
+if(!String.prototype.includes)String.prototype.includes=function(searchString,position){
+    position=typeof position==='number'?position:0;
+    return this.indexOf(searchString,position)!==-1;
+};
+if(!Array.prototype.includes)Array.prototype.includes=function(item,fromIndex){
+    var len=this.length;
+    var start=Math.max(fromIndex|0,0);
+    for(var i=start;i<len;i++){
+        if(this[i]===item||(Number.isNaN(this[i])&&Number.isNaN(item))){
+            return true;
+        }
+    }
+    return false;
+};
+if(!Array.prototype.findIndex){
+    Array.prototype.findIndex=function(item,fromIndex){
+        var len=this.length;
+        var start=Math.max(fromIndex|0,0);
+        for(var i=start;i<len;i++){
+            if(this[i]===item||(Number.isNaN(this[i])&&Number.isNaN(item))){
+                return i;
+            }
+        }
+        return -1;
+    };
+    Array.prototype.find=function(item,fromIndex){return this[this.findIndex(item,fromIndex)];};
+}
+if(!Array.prototype.some)Array.prototype.some=function(cb){
+    for(var i=0;i<this.length;i++)if(cb(this[i],i,this))return true;
+    return false;
+}
+if(!Array.prototype.every)Array.prototype.every=function(cb){
+    for(var i=0;i<this.length;i++)if(!cb(this[i],i,this))return false;
+    return true;
+}
+if(!Array.prototype.map)Array.prototype.map=function(cb){
+    for(var i=0;i<this.length;i++)this[i]=cb(this[i],i,this);
+    return ;
+}
+if(!Array.prototype.filter)Array.prototype.filter=function(cb){
+    var res=[];
+    for(var i=0;i<this.length;i++)res.push(cb(this[i],i,this));
+    return res;
+}
+function runCMD(cmdStr){
+    var shell=new ActiveXObject("WScript.Shell");
+    return shell.Run("cmd /c "+cmdStr,0,true);
+}
+try{
+    var fso=new ActiveXObject("Scripting.FileSystemObject");
+    var ADODB_Stream=new ActiveXObject("ADODB.Stream");
+}catch(err){
+    _runner._log.innerHTML+=\`<p style="color:red;">创建FSO失败：\${err.description}</p><br>\`;
+}
+`;
 function UnitToHtml(){
     let str="",Str="",mainPOS=0;
     for(const u of unit){
@@ -1225,6 +1484,13 @@ var _runner={
     onbeforeunload:function(event){return ;},
     oncontextmenu:function(event){return ;}
 };
+
+${document.getElementById("forPolyfill").checked?Polyfill:""}
+${document.getElementById("forErrowLog").checked?`window.onerror=function(msg,url,line,col,errObj){
+    _runner._log.innerHTML+=\`<p style="color:red;">错误：\${msg}<br>第\${line}行，第\${col}列</p>\`;
+    return true;
+};`:""}
+
 ${Str}
 var unit=[
     ${str}
