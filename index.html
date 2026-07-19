@@ -595,7 +595,7 @@ const hasChil = {
         {text:".getDate()",back:0,has:"number",type:"AR"}, {text:".getDay()",back:0,has:"number",type:"AR"},{text:".getHours()",back:0,has:"number",type:"AR"},
         {text:".getMinutes()",back:0,has:"number",type:"AR"},{text:".getSeconds()",back:0,has:"number",type:"AR"},{text:".toLocaleString()",back:0,has:["string"],type:"AR"},
         {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},],
-    element:[{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},{text:".textContent",back:0,has:"string",type:"AR"},
+    element:[{text:".value",back:0,has:"string",type:"AR"},{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},{text:".textContent",back:0,has:"string",type:"AR"},
         {text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},{text:".classList",back:0,has:"array",type:"AR"},
         {text:".style",back:0,has:[{text:".top",back:0,has:"string",type:"AR"},{text:".left",back:0,has:"string",type:"AR"},{text:".button",back:0,has:"string",type:"AR"},{text:".right",back:0,has:"string",type:"AR"},
             {text:".color",back:0,has:"string",type:"AR"},{text:".backgroundcolor",back:0,has:"string",type:"AR"},{text:".filter",back:0,has:"string",type:"AR"},{text:".cursor",back:0,has:"string",type:"AR"},
@@ -606,7 +606,7 @@ const hasChil = {
         {text:".nextElementSibling",back:0,has:"element",type:"AR"},{text:".previousElementSibling",back:0,has:"element",type:"AR"},{text:".append()",back:1,has:[],type:"AR"},
         {text:".appendChild()",back:1,has:[],type:"AR"},{text:".prepend()",back:1,has:[],type:"AR"},{text:".remove()",back:0,has:[],type:"AR"},
         {text:".removeChild()",back:1,has:[],type:"AR"},{text:".setAttribute()",back:1,has:[],type:"AR"},{text:".getAttribute()",back:1,has:[],type:"AR"},
-        {text:".addEventListener()",back:1,has:[],type:"AR"},{text:".removeEventListener()",back:1,has:[],type:"AR"},],
+        {text:".addEventListener()",back:1,has:[],type:"AR"},{text:".removeEventListener()",back:1,has:[],type:"AR"},{text:".checked",back:0,has:"string",type:"AR"},],
     folder:[{name:".CreateTextFile",text:"Folder.CreateTextFile(filename, overwrite?, unicode?):TextStream",has:[],type:"AR"},
         {name:".Copy",text:"Folder.Copy(destination, overwrite?):void",has:[],type:"AR"},
         {name:".Move",text:"Folder.Move(destination):void",has:[],type:"AR"},
@@ -781,7 +781,7 @@ document.addEventListener("keydown",async(e)=>{
         if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
         if(e.key==="ArrowLeft"){if(e.shiftKey)SeCus=cursorAt;const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(cursorAt==0&&temp!=-1)dragUnit=unit[temp],cursorAt=dragUnit.val.length+1;cursorAt--,CLFC=0,cursorLook=' ';}else
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
-        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length==0||dragUnit.to[0].y<dragUnit.y+20)temp.y+=80;dragUnit.to.push(temp);}else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
+        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length==0||dragUnit.to[0].y<dragUnit.y+20)temp.y+=80;dragUnit.to.unshift(temp);}else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
         if(e.key==="Backspace"){
             if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;cursorAt=dragUnit.val.length;return;}
             let temp=dragUnit.val[cursorAt-1];
@@ -892,7 +892,7 @@ const domFiller=["div","span","input","button","option","img","table","a","ifram
 "width","height","top","left","right","bottom","backgroundColor","color","font-size","font-weight","display","position","margin","padding","border","zIndex","opacity","cursor","textAlign","overflow",
 "width:0px","height:0px","top:0px","left:0px","right:0px","bottom:0px","backgroundColor:'red'","backgroundColor:#000000","backgroundColor:rgb(0,0,0)","color:'red'",
 "color:'white'","color:#000","color:rgb(0,0,0)","font-size:14px","font-weight:bold","display:block","display:none","position:absolute","position:relative","margin:0px",
-"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden","transition","filter","id"];
+"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden","transition","filter","id","textarea"];
 let dofil=[],dofilPos=0;
 function updateHtmlInputTip(){
     const ta=domHtmlInput;
@@ -1050,14 +1050,14 @@ function loop(){
         }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
         ctx.fill();
         const end=show(u,p.x+20,p.y+20)+cam.x;
-        u.endx=end;
         if(u.type=="if"&&u.to.length==0)u.type="void";
         let i=0;
         for(const u2 of u.to){
             if(!unit.includes(u2))u.to.splice(i,1);
             if(u2.x>u.x-50&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
-            if(u2.x>end+50&&u.y>u2.y-30&&u.y<u2.y+30)u2.x+=(end+50-u2.x)/10;
+            if(u2.x>u.endx+50&&u.y>u2.y-30&&u.y<u2.y+30)u2.x+=(end+50-u2.x)/10;
             ++i;}
+        u.endx=end;
     }
     addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc];
     if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
@@ -1392,7 +1392,7 @@ try{
     var fso=new ActiveXObject("Scripting.FileSystemObject");
     var ADODB_Stream=new ActiveXObject("ADODB.Stream");
 }catch(err){
-    _runner._log.innerHTML+=\`<p style="color:red;">创建FSO失败：\${err.description}</p><br>\`;
+    _runner._log.innerHTML+="<p style=\\"color:red;\\">创建FSO失败："+err.description+"</p><br>";
 }
 `;
 function UnitToHtml(){
@@ -1476,7 +1476,7 @@ var _runner={
 
 ${document.getElementById("forPolyfill").checked?Polyfill:""}
 ${document.getElementById("forErrowLog").checked?`window.onerror=function(msg,url,line,col,errObj){
-    _runner._log.innerHTML+=\`<p style="color:red;">错误：\${msg}<br>第\${line}行，第\${col}列</p>\`;
+    _runner._log.innerHTML+="<p style=\\"color:red;\\">错误："+msg+"<br>第"+line+"行，第"+col+"列</p><br>";
     return true;
 };`:""}
 
