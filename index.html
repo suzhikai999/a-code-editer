@@ -322,8 +322,9 @@ function show(u,x,y){
                     ctx.lineTo(temx+700,y-30);
                     ctx.strokeStyle="rgba(0,0,0,0.7)";
                     ctx.stroke();
+                    ctx.font=`${now.size*0.906}px Consolas`;
                     ctx.fillStyle="#fff";
-                    ctx.fillText(temp2.text,temx,y-30);}}
+                    ctx.fillText(temp2.text,temx+10,y-30);}}
             }
             if(SeCus==i)SeLeX=x;}
         let flag=false;
@@ -392,7 +393,7 @@ function show(u,x,y){
             ctx.beginPath();
             ctx.lineWidth=30;
             ctx.moveTo(SeRiX-30,y+30);
-            ctx.lineTo(SeRiX+200,y+30);
+            ctx.lineTo(SeRiX+300,y+30);
             ctx.strokeStyle="rgba(0,0,0,0.7)";
             if(ChoosingFiller==i)ctx.strokeStyle="rgba(0,0,100,0.7)";
             ctx.stroke();
@@ -577,21 +578,19 @@ const funcTour=[
 const hasChil = {
     number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
         {text:".toExponential()",back:1,has:[],type:"AR"},],
-    string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:[],type:"AR"},{text:".codePointAt()",back:1,has:[],type:"AR"},
-        {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:"number",type:"AR"},{text:".lastIndexOf()",back:1,has:[],type:"AR"},
+    string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:"this",type:"AR"},{text:".codePointAt()",back:1,has:"number",type:"AR"},
+        {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:"number",type:"AR"},{text:".lastIndexOf()",back:1,has:"number",type:"AR"},
         {text:".replace()",back:1,has:[],type:"AR"},{text:".replaceAll()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},
-        {text:".substring()",back:1,has:"this",type:"AR"},{text:".split()",back:1,has:["array"],type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
+        {text:".substring()",back:1,has:"this",type:"AR"},{text:".split()",back:1,has:"array",type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
         {text:".toUpperCase()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},
         {text:".padStart()",back:1,has:[],type:"AR"},{text:".padEnd()",back:1,has:[],type:"AR"},],
     array:[{text:".length",back:0,has:"number",type:"AR"},{text:".pop()",back:0,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},
         {text:".shift()",back:0,has:[],type:"AR"},{text:".unshift()",back:1,has:[],type:"AR"},{text:".includes()",back:1,has:[],type:"AR"},
-        {text:".find()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:[],type:"AR"},{text:".some()",back:1,has:[],type:"AR"},
-        {text:".every()",back:1,has:[],type:"AR"},{text:".filter()",back:1,has:"array",type:"AR"},{text:".map()",back:1,has:"array",type:"AR"},
-        {text:".forEach()",back:1,has:[],type:"AR"},{text:".reduce()",back:1,has:[],type:"AR"},{text:".splice()",back:1,has:[],type:"AR"},
-        {text:".slice()",back:1,has:"array",type:"AR"},{text:".reverse()",back:0,has:"this",type:"AR"},{text:".sort()",back:0,has:"this",type:"AR"},
-        {text:".join()",back:1,has:"string",type:"AR"},],
-    object:[{text:".keys()",back:0,has:"array",type:"AR"},{text:".values()",back:0,has:"array",type:"AR"},{text:".entries()",back:0,has:"array",type:"AR"},
-        {text:".hasOwnProperty()",back:1,has:[],type:"AR"},{text:".toString()",back:0,has:[],type:"AR"},],
+        {text:".find()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:"number",type:"AR"},{text:".some()",back:1,has:[],type:"AR"},
+        {text:".every()",back:1,has:[],type:"AR"},{text:".filter()",back:1,has:"this",type:"AR"},{text:".map()",back:1,has:"this",type:"AR"},
+        {text:".reduce()",back:1,has:[],type:"AR"},{text:".splice()",back:1,has:[],type:"AR"},{text:".join()",back:1,has:"string",type:"AR"},
+        {text:".slice()",back:1,has:"this",type:"AR"},{text:".reverse()",back:0,has:"this",type:"AR"},{text:".sort()",back:0,has:"this",type:"AR"},],
+    object:[{text:".hasOwnProperty()",back:1,has:[],type:"AR"},{text:".toString()",back:0,has:"string",type:"AR"},],
     element:[{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},{text:".textContent",back:0,has:"string",type:"AR"},
         {text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},{text:".classList",back:0,has:"array",type:"AR"},
         {text:".style",back:0,has:"object",type:"AR"},{text:".parentElement",back:0,has:"element",type:"AR"},{text:".children",back:0,has:"array",type:"AR"},
@@ -610,13 +609,7 @@ const hasChil = {
     date:[{text:".getTime()",back:0,has:"number",type:"AR"},{text:".getFullYear()",back:0,has:"number",type:"AR"},{text:".getMonth()",back:0,has:"number",type:"AR"},
         {text:".getDate()",back:0,has:"number",type:"AR"}, {text:".getDay()",back:0,has:"number",type:"AR"},{text:".getHours()",back:0,has:"number",type:"AR"},
         {text:".getMinutes()",back:0,has:"number",type:"AR"},{text:".getSeconds()",back:0,has:"number",type:"AR"},{text:".toLocaleString()",back:0,has:["string"],type:"AR"},
-        {text:".toLocaleDateString()",back:0,has:["string"],type:"AR"},],
-    set:[{text:".size",back:0,has:"number",type:"AR"},{text:".add()",back:1,has:[],type:"AR"},
-        {text:".delete()",back:1,has:[],type:"AR"},{text:".has()",back:1,has:[],type:"AR"},
-        {text:".clear()",back:0,has:[],type:"AR"},{text:".forEach()",back:1,has:[],type:"AR"},],
-    map:[{text:".size",back:0,has:"number",type:"AR"},{text:".set()",back:1,has:[],type:"AR"},{text:".get()",back:1,has:[],type:"AR"},
-        {text:".has()",back:1,has:[],type:"AR"},{text:".delete()",back:1,has:[],type:"AR"},{text:".clear()",back:0,has:[],type:"AR"},
-        {text:".keys()",back:0,has:["array"],type:"AR"},{text:".values()",back:0,has:["array"],type:"AR"},],
+        {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},],
     folder:[{name:".CreateTextFile",text:"Folder.CreateTextFile(filename, overwrite?, unicode?):TextStream",has:[],type:"AR"},
         {name:".Copy",text:"Folder.Copy(destination, overwrite?):void",has:[],type:"AR"},
         {name:".Move",text:"Folder.Move(destination):void",has:[],type:"AR"},
