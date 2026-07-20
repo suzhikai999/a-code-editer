@@ -567,7 +567,7 @@ const funcTour=[
     {name:".blur",text:"Element.blur():void"},
     {name:"runCMD",text:"runCMD(cmdstr):void"},
 ];
-const hasChil = {
+const hasChil={
     number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
         {text:".toExponential()",back:1,has:[],type:"AR"},],
     string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:"this",type:"AR"},{text:".codePointAt()",back:1,has:"number",type:"AR"},
@@ -806,17 +806,25 @@ document.addEventListener("keydown",async(e)=>{
         if((Chars+"_.").includes(e.key)||e.key==="Backspace"){
             const s=dragUnit.val;let temp=cursorAt,temp2=cursorAt;
             filler=[...globalObj,...staticFiller];
-            for(let i=cursorAt-1;i>=0&&(Chars+"_.)").includes(s[i]);i--){
-                if(s[i]==")"){
+            for(let i=cursorAt-1;i>=0&&(Chars+"_.)'\"}]").includes(s[i]);i--){
+                if(")]}".includes(s[i])){
                     let CLFC=1;i--;
-                    while(i>0&&CLFC!=0){
-                        if(s[i]=="(")CLFC--;
-                        if(s[i]==")")CLFC++;i--;
+                    while(i>=0&&CLFC!=0){
+                        if("([{".includes(s[i]))CLFC--;
+                        if(")]}".includes(s[i]))CLFC++;i--;
                     }if(CLFC>0){filler=[];return ;}}
+                if(s[i]=="'"||s[i]=='"'){
+                    let isInS=false,isIns=false;
+                    if(s[i]=="'")isInS=!isInS;
+                    if(s[i]=='"')isIns=!isIns;i--;
+                    while(i>=0&&(isInS||isIns)){
+                        if(s[i]=="'")isInS=!isInS;
+                        if(s[i]=='"')isIns=!isIns;i--;
+                    }if(isInS||isIns){filler=[];return ;}}
                 if(!(Chars+"_0123456789").includes(s[i]))if(temp2==cursorAt)temp2=i;
                 temp=i;}
             if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);
-            if(temp2>temp)filler=to_filler(s.slice(temp,temp2));else filler=[...globalObj,...staticFiller];
+            if(temp2>temp)attenOut=0,filler=to_filler(s.slice(temp,temp2));else filler=[...globalObj,...staticFiller];
             if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));else filler=[];fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
         if(e.key==="[")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"]"+dragUnit.val.slice(cursorAt);else
@@ -892,7 +900,7 @@ const domFiller=["div","span","input","button","option","img","table","a","ifram
 "width","height","top","left","right","bottom","backgroundColor","color","font-size","font-weight","display","position","margin","padding","border","zIndex","opacity","cursor","textAlign","overflow",
 "width:0px","height:0px","top:0px","left:0px","right:0px","bottom:0px","backgroundColor:'red'","backgroundColor:#000000","backgroundColor:rgb(0,0,0)","color:'red'",
 "color:'white'","color:#000","color:rgb(0,0,0)","font-size:14px","font-weight:bold","display:block","display:none","position:absolute","position:relative","margin:0px",
-"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden","transition","filter","id","textarea","font-family"];
+"padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden","transition","filter","id","textarea","font-family","transform: rotate(___deg);","transform-origin"];
 let dofil=[],dofilPos=0;
 function updateHtmlInputTip(){
     const ta=domHtmlInput;
@@ -1084,9 +1092,12 @@ function loop(){
                 globalFunc.push({name:func,text:s+": any"});
             }else{
                 const s2=s.slice(beforeQe);
-                globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)&&obj.belong!==u));
+                attenOut=0;
                 const temp=to_filler(s2);
-                for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.unshift({text:fi,back:0,has:temp,type:"BS",belong:u});}
+                if(!attenOut){
+                    globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)&&obj.belong!==u));
+                    for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.unshift({text:fi,back:0,has:temp,type:"BS",belong:u});}
+                }
             }
         }
     }
@@ -1098,9 +1109,10 @@ function loop(){
     mouseyf=mousey;
     requestAnimationFrame(loop);
 }
+let attenOut=0;
 function to_filler(s){
-    if(`"'\``.includes(s[0])){return hasChil.string;}else
-    if(s[0]=="["){return hasChil.array;}else
+    if(`"'\``.includes(s[0])&&s[s.length-1]==s[0]){return hasChil.string;}else
+    if(s[0]=="["&&s[s.length-1]=="]"){return hasChil.array;}else
     if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
     if(s[0]=="{"&&s[s.length-1]=="}"){
         let CLFC=0,isInS=false,isIns=false,left=1,res=[],wordPos=-1;
@@ -1117,30 +1129,39 @@ function to_filler(s){
         if(wordPos!=-1&&CLFC==0&&wordPos!=left)res.push({text:"."+s.slice(left,wordPos),back:0,has:to_filler(s.slice(wordPos+1,-1)),type:"BS"});
         return res;
     }else if("0123456789".includes(s[0]))return hasChil.number;else{
-        let CLFC=0,word="";
+        let CLFC=0,word="",isInS=false,isIns=false;
         let i=s.length-1;
-        if(s[i]==")")CLFC=1,i--,word="()";
+        if(s[i]==")")word="()";
+        if(")]}".includes(s[i]))CLFC=1,i--;
         while(CLFC>0&&i>0){
-            if(s[i]=="(")CLFC--;
-            if(s[i]==")")CLFC++;
+            if(s[i]=="'")isInS=!isInS;
+            if(s[i]=='"')isIns=!isIns;
+            if(!isInS&&!isIns){
+                if("([{".includes(s[i]))CLFC--;
+                if(")]}".includes(s[i]))CLFC++;
+            }
             i--;
         }
-        if(CLFC>0)return [];
+        if(CLFC>0){attenOut=1;return [];}
         while((Chars+"_0123456789").includes(s[i])){
             word=s[i]+word;
             i--;
         }
-        if(!(Chars+"_").includes(word[0]))return [];
+        if("+-*/|&^%$#@!~`\\,".includes(s[i])){
+            return to_filler(s.slice(i+1));
+        }
+        if(!(Chars+"_").includes(word[0])){attenOut=1;return [];}
         if(s[i]=="."){
             const temp=to_filler(s.slice(0,i)).find(obj=>obj.text==("."+word));
             if(temp)return temp.has;
-            else return [];
-        }else{
+            else{attenOut=1;return [];}
+        }else {
             const temp=[...globalObj,...staticFiller].find(obj=>obj.text==word);
             if(temp)return temp.has;
-            else return [];
+            else{attenOut=1;return [];}
         }
     }
+    attenOut=1;
     return [];
 }
 let currentHue=0;
