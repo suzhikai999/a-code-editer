@@ -1057,6 +1057,11 @@ function loop(){
             ctx.lineTo(p.endx,p.y);
         }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
         ctx.fill();
+        if(u.errow){
+            ctx.font="20px Comsolas";
+            ctx.fillStyle="red";
+            ctx.fillText("⚠",p.x-10,p.y);
+        }
         const end=show(u,p.x+20,p.y+20)+cam.x;
         if(u.type=="if"&&u.to.length==0)u.type="void";
         let i=0;
@@ -1091,13 +1096,14 @@ function loop(){
                 globalFunc=globalFunc.filter(obj=>(obj.name!=func));
                 globalFunc.push({name:func,text:s+": any"});
             }else{
+                u.errow=false;
                 const s2=s.slice(beforeQe);
                 attenOut=0;
-                const temp=to_filler(s2);
+                const temp=to_filler(s2,true);
                 if(!attenOut){
                     globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)&&obj.belong!==u));
                     for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.unshift({text:fi,back:0,has:temp,type:"BS",belong:u});}
-                }
+                }else u.errow=true;
             }
         }
     }
@@ -1110,9 +1116,10 @@ function loop(){
     requestAnimationFrame(loop);
 }
 let attenOut=0;
-function to_filler(s){
+function to_filler(s,canBeEmpty=false){
+    if(!s&&canBeEmpty)return [];
     if(`"'\``.includes(s[0])&&s[s.length-1]==s[0]){return hasChil.string;}else
-    if(s[0]=="["&&s[s.length-1]=="]"){return hasChil.array;}else
+    if(s[0]=="["&&s[s.length-1]=="]"){return [{text:"child",back:0,has:to_filler(s.slice(1,-1),true),type:"BS"},...hasChil.array];}else
     if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
     if(s[0]=="{"&&s[s.length-1]=="}"){
         let CLFC=0,isInS=false,isIns=false,left=1,res=[],wordPos=-1;
@@ -1141,6 +1148,11 @@ function to_filler(s){
                 if(")]}".includes(s[i]))CLFC++;
             }
             i--;
+        }
+        if(s[i+1]=="["){
+            const temp=to_filler(s.slice(0,i+1));
+            if(temp)return temp[0].has;
+            else return [];
         }
         if(CLFC>0){attenOut=1;return [];}
         while((Chars+"_0123456789").includes(s[i])){
