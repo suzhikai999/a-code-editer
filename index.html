@@ -812,7 +812,7 @@ document.addEventListener("keydown",async(e)=>{
                     while(i>=0&&CLFC!=0){
                         if("([{".includes(s[i]))CLFC--;
                         if(")]}".includes(s[i]))CLFC++;i--;
-                    }if(CLFC>0){filler=[];return ;}}
+                    }if(CLFC>0){filler=[];return ;}i++;}else
                 if(s[i]=="'"||s[i]=='"'){
                     let isInS=false,isIns=false;
                     if(s[i]=="'")isInS=!isInS;
@@ -820,10 +820,10 @@ document.addEventListener("keydown",async(e)=>{
                     while(i>=0&&(isInS||isIns)){
                         if(s[i]=="'")isInS=!isInS;
                         if(s[i]=='"')isIns=!isIns;i--;
-                    }if(isInS||isIns){filler=[];return ;}}
-                if(!(Chars+"_0123456789").includes(s[i]))if(temp2==cursorAt)temp2=i;
+                    }if(isInS||isIns){filler=[];return ;}i++;}else
+                if(".".includes(s[i]))if(temp2==cursorAt)temp2=i;
                 temp=i;}
-            if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);
+            if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);console.log(s.slice(temp,temp2),temp);
             if(temp2>temp)attenOut=0,filler=to_filler(s.slice(temp,temp2));else filler=[...globalObj,...staticFiller];
             if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));else filler=[];fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
@@ -982,7 +982,7 @@ function Init(){
     for(const obj in hasChil){
         if(hasChil.hasOwnProperty(obj))
         for(const obj2 of hasChil[obj]){
-            if(obj2.has=="this")obj2.has=obj;
+            if(obj2.has=="this")obj2.has=hasChil[obj];
             else if(typeof obj2.has=="string")obj2.has=hasChil[obj2.has];
         }
     }
