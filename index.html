@@ -360,7 +360,7 @@ function show(u,x,y){
                     if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
                     if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
                     if(("0123456789.".includes(s[i])||"0123456789".includes(s[i-1]))&&!word)ctx.fillStyle="rgb(138,18,137)";
-                    if("{[()]}+-*/&*^%$#@!?|~√".includes(s[i]))ctx.fillStyle="rgb(3,23,112)";
+                    if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle="rgb(19,3,146)";
                 }else ctx.fillStyle="rgb(151,60,25)";
                 ctx.fillText(ws,x,y+now.y,100);
                 if(s.codePointAt(i)<=256)x+=now.size/2;else
@@ -369,7 +369,7 @@ function show(u,x,y){
             }
         }else{
             ctx.font=`${now.size}px Consolas`;
-            ctx.fillStyle="rgb(117,80,24)";
+            ctx.fillStyle="rgb(146,132,111)";
             ctx.textBaseline="middle";
             ctx.fillText(s[i],x,y+now.y,100);
             x+=now.size/2;
@@ -630,7 +630,7 @@ hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine
     {text:".Line",back:0,has:hasChil.number,type:"AR"}];
 const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},
     {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
-    {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:hasChil.number,type:"AR"},
+    {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:[],type:"AR"},
     {text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
@@ -734,7 +734,7 @@ document.addEventListener("mouseup",(e)=>{
         if(tem1>-1)temp.to.splice(tem1,1);
         if(tem2>-1)dragUnit.to.splice(tem2,1);
         return ;}
-    if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length},unit.push(temp);
+    if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length,endx:mousex+cam.x},unit.push(temp);
     if(!dragUnit.to.includes(temp))dragUnit.to.push(temp);
     dragUnit=null;
 });
@@ -784,7 +784,7 @@ document.addEventListener("keydown",async(e)=>{
         if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
         if(e.key==="ArrowLeft"){if(e.shiftKey)SeCus=cursorAt;const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(cursorAt==0&&temp!=-1)dragUnit=unit[temp],cursorAt=dragUnit.val.length+1;cursorAt--,CLFC=0,cursorLook=' ';}else
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
-        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length==0||dragUnit.to[0].y<dragUnit.y+20)temp.y+=80;dragUnit.to.unshift(temp);}else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
+        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y,endx:dragUnit.endx+50};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length==0||dragUnit.to[0].y<dragUnit.y+20)temp.y+=80;dragUnit.to.unshift(temp);}else temp.to=dragUnit.to,dragUnit.to=[temp];dragUnit=temp;}else
         if(e.key==="Backspace"){
             if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;cursorAt=dragUnit.val.length;return;}
             let temp=dragUnit.val[cursorAt-1];
@@ -841,9 +841,9 @@ document.addEventListener("keydown",async(e)=>{
         if(dragUnit.val=="for"&&dragUnit.type=="void"){
             let temdo={type:"void",val:"i++",to:[],x:dragUnit.endx+70,y:dragUnit.y+110};
             let temif={};
-            if(dragUnit.to.length>0)temif={type:"if",val:"i<",to:[temdo,dragUnit.to[0]],x:dragUnit.endx+50,y:dragUnit.y};
-            else{let temThenDo={type:"void",val:"",to:[],x:dragUnit.endx+120,y:dragUnit.y};
-                temif={type:"if",val:"i<",to:[temdo,temThenDo],x:dragUnit.endx+50,y:dragUnit.y};
+            if(dragUnit.to.length>0)temif={type:"if",val:"i<",to:[temdo,dragUnit.to[0]],x:dragUnit.endx+50,y:dragUnit.y,endx:dragUnit.endx+50};
+            else{let temThenDo={type:"void",val:"",to:[],x:dragUnit.endx+120,y:dragUnit.y,endx:dragUnit.endx+120};
+                temif={type:"if",val:"i<",to:[temdo,temThenDo],x:dragUnit.endx+50,y:dragUnit.y,endx:dragUnit.endx+50};
                 unit.push(temThenDo);}
             temdo.to=[temif];
             dragUnit.val="i=0";
@@ -853,7 +853,7 @@ document.addEventListener("keydown",async(e)=>{
             dragUnit=temif,cursorAt=2;
         }
         if(dragUnit.val=="if"&&dragUnit.type=="void"){
-            let temdo={type:"void",val:"",to:[],x:dragUnit.x,y:dragUnit.y+110};
+            let temdo={type:"void",val:"",to:[],x:dragUnit.x,y:dragUnit.y+110,endx:dragUnit.endx+110};
             dragUnit.to.unshift(temdo);
             dragUnit.type="if",dragUnit.val="";
             unit.push(temdo);
@@ -1048,7 +1048,7 @@ function loop(){
         const p=getPos(u);
         const r=8;
         let end=p.endx+cam.x;
-        if(p.endx>cam.x-500&&p.x<cam.x+W*1.6+500&&p.y>cam.y-500&&p.y<cam.y+H*1.6+500){
+        if((p.endx>cam.x-500&&p.x<cam.x+W*1.6+500&&p.y>cam.y-500&&p.y<cam.y+H*1.6+500)||(p.endx!==undefined)){
             ctx.fillStyle="#e0e0e0";
             ctx.strokeStyle="#999";
             ctx.lineWidth=2;
@@ -1125,6 +1125,7 @@ let attenOut=0;
 function to_filler(s,canBeEmpty=false){
     s=Expr(s);
     if(!s&&canBeEmpty)return [];
+    if(s.endsWith("++"))return to_filler(s.slice(0,-2));
     if(`"'\``.includes(s[0])&&s[s.length-1]==s[0]){return hasChil.string;}else
     if(s[0]=="["&&s[s.length-1]=="]"){return [{text:"child",back:0,has:to_filler(s.slice(1,-1),true),type:"BS"},...hasChil.array];}else
     if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
@@ -1166,7 +1167,7 @@ function to_filler(s,canBeEmpty=false){
             word=s[i]+word;
             i--;
         }
-        if("+-*/|&^%$#@!~`\\,".includes(s[i])){
+        if("+-*/|&^%$#@!~`\\,<>=".includes(s[i])){
             return to_filler(s.slice(i+1));
         }
         if(!(Chars+"_").includes(word[0])){attenOut=1;return [];}
