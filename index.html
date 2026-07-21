@@ -333,7 +333,7 @@ function show(u,x,y){
             if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
-                if((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i])))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]==".")word=".";else word="";}
+                if(!"0123456789".includes(s[i-1])&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
                     if(now.else==1){
@@ -342,7 +342,7 @@ function show(u,x,y){
                         ctx.lineWidth=1;
                         ctx.moveTo(temp+now.size/2-2,now.y-now.size*0.6+y);
                         ctx.lineTo(x                ,now.y-now.size*0.6+y);
-                        ctx.strokeStyle="#000";
+                        ctx.strokeStyle="rgb(3,23,112)";
                         ctx.stroke();
                         SQs.pop();
                     }
@@ -359,6 +359,8 @@ function show(u,x,y){
                 if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
                     if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
                     if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
+                    if(("0123456789.".includes(s[i])||"0123456789".includes(s[i-1]))&&!word)ctx.fillStyle="rgb(138,18,137)";
+                    if("{[()]}+-*/&*^%$#@!?|~√".includes(s[i]))ctx.fillStyle="rgb(3,23,112)";
                 }else ctx.fillStyle="rgb(151,60,25)";
                 ctx.fillText(ws,x,y+now.y,100);
                 if(s.codePointAt(i)<=256)x+=now.size/2;else
@@ -634,7 +636,8 @@ const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",ba
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
     {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
     {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},{text:"pow()",back:1,has:[],type:"AR"},
-    {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},],type:"AR"},
+    {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},{text:".ln()",back:1,has:hasChil.number,type:"AR"},
+        {text:".sqrt()",back:1,has:hasChil.number,type:"AR"},{text:".floor()",back:1,has:hasChil.number,type:"AR"},{text:".ceil()",back:1,has:hasChil.number,type:"AR"},],type:"AR"},
     {text:"document",back:0,has:[{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
         {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
         {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
@@ -1043,26 +1046,29 @@ function loop(){
         const UBU=UnitBuff.unit[CountI];
         if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);CountI++;
         const p=getPos(u);
-        ctx.fillStyle="#e0e0e0";
-        ctx.strokeStyle="#999";
-        ctx.lineWidth=2;
-        ctx.beginPath();
         const r=8;
-        if(u.type=="if"){
-            ctx.moveTo(p.x+20,p.y);
-            ctx.lineTo(p.x,p.y+20);
-            ctx.lineTo(p.x+20,p.y+40);
-            ctx.lineTo(p.endx,p.y+40);
-            ctx.lineTo(p.endx+20,p.y+20);
-            ctx.lineTo(p.endx,p.y);
-        }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
-        ctx.fill();
-        if(u.errow){
-            ctx.font="20px Comsolas";
-            ctx.fillStyle="red";
-            ctx.fillText("⚠",p.x-10,p.y);
+        let end=p.endx+cam.x;
+        if(p.endx>cam.x-500&&p.x<cam.x+W*1.6+500&&p.y>cam.y-500&&p.y<cam.y+H*1.6+500){
+            ctx.fillStyle="#e0e0e0";
+            ctx.strokeStyle="#999";
+            ctx.lineWidth=2;
+            ctx.beginPath();
+            if(u.type=="if"){
+                ctx.moveTo(p.x+20,p.y);
+                ctx.lineTo(p.x,p.y+20);
+                ctx.lineTo(p.x+20,p.y+40);
+                ctx.lineTo(p.endx,p.y+40);
+                ctx.lineTo(p.endx+20,p.y+20);
+                ctx.lineTo(p.endx,p.y);
+            }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
+            ctx.fill();
+            if(u.errow){
+                ctx.font="20px Comsolas";
+                ctx.fillStyle="red";
+                ctx.fillText("⚠",p.x-10,p.y);
+            }
+            end=show(u,p.x+20,p.y+20)+cam.x;
         }
-        const end=show(u,p.x+20,p.y+20)+cam.x;
         if(u.type=="if"&&u.to.length==0)u.type="void";
         let i=0;
         for(const u2 of u.to){
@@ -1117,6 +1123,7 @@ function loop(){
 }
 let attenOut=0;
 function to_filler(s,canBeEmpty=false){
+    s=Expr(s);
     if(!s&&canBeEmpty)return [];
     if(`"'\``.includes(s[0])&&s[s.length-1]==s[0]){return hasChil.string;}else
     if(s[0]=="["&&s[s.length-1]=="]"){return [{text:"child",back:0,has:to_filler(s.slice(1,-1),true),type:"BS"},...hasChil.array];}else
