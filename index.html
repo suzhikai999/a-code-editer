@@ -1125,7 +1125,8 @@ let attenOut=0;
 function to_filler(s,canBeEmpty=false){
     s=Expr(s);
     if(!s&&canBeEmpty)return [];
-    if(s.endsWith("++"))return to_filler(s.slice(0,-2));
+    if(s.endsWith("++")||s.endsWith("--"))return to_filler(s.slice(0,-2));
+    if(s.startsWith("typeof "))return hasChil.string;
     if(`"'\``.includes(s[0])&&s[s.length-1]==s[0]){return hasChil.string;}else
     if(s[0]=="["&&s[s.length-1]=="]"){return [{text:"child",back:0,has:to_filler(s.slice(1,-1),true),type:"BS"},...hasChil.array];}else
     if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
