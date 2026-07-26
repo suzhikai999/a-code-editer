@@ -999,7 +999,7 @@ function loop(){
         frameCount=0,lastTime=currentTime;}
     if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
-    if(dragUnit&&key.Shift)dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
+    if(dragUnit&&key.Control)dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,W,H);
     ctx.save();
@@ -1110,7 +1110,7 @@ function loop(){
         }
     }
     if(find(mousex,mousey)){
-        if(key.Shift)canvas.style.cursor="grabbing";
+        if(key.Control)canvas.style.cursor="grabbing";
         else canvas.style.cursor="text";
     }else{canvas.style.cursor=mousedown?"grabbing":"grab";}
     mousexf=mousex;
@@ -1602,6 +1602,7 @@ Ctrl+f                                 --> 新建函数<br>
 Shift+Enter                            --> 从当前单位新建单位<br>
 Alt+滚轮                               --> 滚动页面<br>
 shift+滚轮                             --> 横向滚动画布<br>
+Ctrl+鼠标移动                          --> 移动活动单位<br>
 未选择文本 Ctrl+c                      --> 复制当前单位的所有内容<br>
 当前单位为空 Delete或BackSpace         --> 从路径中删除单位<br>
 Ctrl+Delete+点击单位                   --> 删除单位<br>
