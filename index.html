@@ -1433,12 +1433,13 @@ if(!Array.prototype.every)Array.prototype.every=function(cb){
     return true;
 }
 if(!Array.prototype.map)Array.prototype.map=function(cb){
-    for(var i=0;i<this.length;i++)this[i]=cb(this[i],i,this);
-    return ;
+    var res=[];
+    for(var i=0;i<this.length;i++)res.push(cb(this[i],i,this));
+    return res;
 }
 if(!Array.prototype.filter)Array.prototype.filter=function(cb){
     var res=[];
-    for(var i=0;i<this.length;i++)res.push(cb(this[i],i,this));
+    for(var i=0;i<this.length;i++)if(cb(this[i],i,this))res.push(this[i]);
     return res;
 }
 function runCMD(cmdStr){
