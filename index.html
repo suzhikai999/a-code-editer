@@ -278,7 +278,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
     const MathSet=new Set([...MathGlobals]);
     let code="",IsIns=false,IsInS=false,word="",spe=false;
     for(let i=0;i<codeStr.length;++i){
-        if((Chars+"_").includes(codeStr[i])){
+        if((Chars+"_").includes(codeStr[i])||(word.length>0&&"0123456789".includes(codeStr[i]))){
             word+=codeStr[i];
         }else{
             if(!globalSet.has(word)&&!IsIns&&!IsInS&&word&&!spe&&codeStr[i]!=":"){
