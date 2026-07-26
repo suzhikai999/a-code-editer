@@ -338,7 +338,7 @@ function show(u,x,y){
             if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
-                if(!"0123456789".includes(s[i-1])&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
+                if(!("0123456789".includes(s[i-1])&&word.length==0)&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
                     if(now.else==1){
