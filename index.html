@@ -1094,9 +1094,9 @@ function loop(){
             }
             if(func!="|none|"&&u.type=="function"){
                 globalObj=globalObj.filter(obj=>(obj.text!=func&&obj.belong!==u));
-                globalObj.push({text:func+"()",back:1,has:[],type:"BS"});
-                globalFunc=globalFunc.filter(obj=>(obj.name!=func));
-                globalFunc.push({name:func,text:s+": any"});
+                globalObj.push({text:func+"()",back:1,has:[],type:"BS",belong:u});
+                globalFunc=globalFunc.filter(obj=>(obj.name!=func&&obj.belong!==u));
+                globalFunc.push({name:func,text:s+": any",belong:u});
             }else{
                 u.errow=false;
                 const s2=s.slice(beforeQe);
