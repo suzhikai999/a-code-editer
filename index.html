@@ -364,7 +364,7 @@ function show(u,x,y){
                 if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
                     if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
                     if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
-                    if(("0123456789.".includes(s[i])||"0123456789".includes(s[i-1]))&&!word)ctx.fillStyle="rgb(138,18,137)";
+                    if(("0123456789.".includes(s[i])||("0123456789".includes(s[i-1])&&s[i]=='e'))&&!word)ctx.fillStyle="rgb(138,18,137)";
                     if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle="rgb(19,3,146)";
                 }else ctx.fillStyle="rgb(151,60,25)";
                 ctx.fillText(ws,x,y+now.y,100);
@@ -1093,7 +1093,7 @@ function loop(){
                 if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;if(s[i]=="(")func=word;word="";}
             }
             if(func!="|none|"&&u.type=="function"){
-                globalObj=globalObj.filter(obj=>(obj.text!=func));
+                globalObj=globalObj.filter(obj=>(obj.text!=func&&obj.belong!==u));
                 globalObj.push({text:func+"()",back:1,has:[],type:"BS"});
                 globalFunc=globalFunc.filter(obj=>(obj.name!=func));
                 globalFunc.push({name:func,text:s+": any"});
