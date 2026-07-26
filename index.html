@@ -266,7 +266,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
     const builtInGlobals=[
         'window','document','console','Math','Date','Array','Object','String','Number','Boolean','setTimeout','setInterval',
         'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const','fso',
-        'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert'];
+        'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert','_id_'];
     const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','pow'];
     codeStr+=" ";
     const globalSet=new Set([...builtInGlobals,...globalVars]);
@@ -418,6 +418,7 @@ const funcTour=[
     {name:"alert",text:"alert(message?):void"},
     {name:"confirm",text:"confirm(message?):void"},
     {name:"prompt",text:"prompt(message?, default?):string | null"},
+    {name:"getValue",text:"getValue(name):any"},
     {name:".toFixed",text:"Number.toFixed(fractionDigits?):string"},
     {name:".toPrecision",text:"Number.toPrecision(precision?):string"},
     {name:".codePointAt",text:"String.codePointAt(index):number"},
@@ -470,19 +471,6 @@ const funcTour=[
     {name:"clearInterval",text:"clearInterval(intervalId):void"},
     {name:"requestAnimationFrame",text:"requestAnimationFrame(callback):number"},
     {name:"cancelAnimationFrame",text:"cancelAnimationFrame(requestId):void"},
-    {name:"new Date",text:"new Date(value?):Date"},
-    {name:".toLocaleString",text:"Date.toLocaleString(locales?, options?):string"},
-    {name:".toLocaleDateString",text:"Date.toLocaleDateString(locales?, options?):string"},
-    {name:".add",text:"Set.add(value):Set"},
-    {name:".delete",text:"Set.delete(value):boolean"},
-    {name:".has",text:"Set.has(value):boolean"},
-    {name:".forEach",text:"Set.forEach(callback, thisArg?):void"},
-    {name:".set",text:"Map.set(key, value):Map"},
-    {name:".get",text:"Map.get(key):any"},
-    {name:".has",text:"Map.has(key):boolean"},
-    {name:".delete",text:"Map.delete(key):boolean"},
-    {name:".test",text:"RegExp.test(str):boolean"},
-    {name:".exec",text:"RegExp.exec(str):RegExpExecArray|null"},
     {name:".match",text:"String.match(regexp):RegExpMatchArray|null"},
     {name:".matchAll",text:"String.matchAll(regexp):RegExpStringIterator"},
     {name:".search",text:"String.search(regexp):number"},
@@ -628,10 +616,10 @@ hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine
     {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
     {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
     {text:".Line",back:0,has:hasChil.number,type:"AR"}];
-const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},
+const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
     {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
     {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:[],type:"AR"},
-    {text:"return ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
+    {text:"return ",back:0,has:[],type:"AR"},{text:"delete ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
     {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
@@ -644,7 +632,7 @@ const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",ba
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:hasChil.element,type:"AR"},
         {text:".getElementsByClassName()",back:1,has:hasChil.array,type:"AR"},{text:".getElementsByName()",back:1,has:hasChil.array,type:"AR"}],type:"AR"},
     {text:"onclick(event)",back:0,has:[],type:"UD"},{text:"onmousedown(event)",back:0,has:[],type:"UD"},{text:"onmouseup(event)",back:0,has:[],type:"UD"},{text:"onmousemove(event)",back:0,has:[],type:"UD"},
-    {text:"onmousewheel(event)",back:0,has:[],type:"UD"},{text:"oncontextmenu(event)",back:0,has:[],type:"UD"},
+    {text:"onmousewheel(event)",back:0,has:[],type:"UD"},{text:"oncontextmenu(event)",back:0,has:[],type:"UD"},{text:"JSON",back:0,has:[{text:".parse()",back:0,has:[],type:"AR"},{text:".stringify()",back:0,has:[],type:"AR"},],type:"AR"},
     {text:"fso",back:0,
         has:[{text:".CreateTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
         {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
@@ -826,7 +814,7 @@ document.addEventListener("keydown",async(e)=>{
                     }if(isInS||isIns){filler=[];return ;}i++;}else
                 if(".".includes(s[i]))if(temp2==cursorAt)temp2=i;
                 temp=i;}
-            if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);console.log(s.slice(temp,temp2),temp);
+            if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);
             if(temp2>temp)attenOut=0,filler=to_filler(s.slice(temp,temp2));else filler=[...globalObj,...staticFiller];
             if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));else filler=[];fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
@@ -1123,10 +1111,24 @@ function loop(){
 }
 let attenOut=0;
 function to_filler(s,canBeEmpty=false){
-    s=Expr(s);
+    s=Expr(s.trim());
     if(!s&&canBeEmpty)return [];
     if(s.endsWith("++")||s.endsWith("--"))return to_filler(s.slice(0,-2));
     if(s.startsWith("typeof "))return hasChil.string;
+    if(s.startsWith("delete "))return [];
+    if(s.startsWith("new ")){
+        let i=4;
+        while((Chars+"_").includes(s[i]))i++;
+        return hasChil[s.slice(4,i)];
+    }
+    if(s.startsWith("getValue")){
+        let str=s.slice(9,-1);
+        if(!(`"'`.includes(str[0])&&`"'`.includes(str[str.length-1]))){return [];}
+        else str=str.slice(1,-1);
+        const temp=globalObj.find(obj=>obj.text==str);
+        if(temp)return temp.has;
+        else{attenOut=1;return [];}
+    }
     if(`"'\``.includes(s[0])&&s[s.length-1]==s[0]){return hasChil.string;}else
     if(s[0]=="["&&s[s.length-1]=="]"){return [{text:"child",back:0,has:to_filler(s.slice(1,-1),true),type:"BS"},...hasChil.array];}else
     if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
@@ -1434,7 +1436,7 @@ try{
     var fso=new ActiveXObject("Scripting.FileSystemObject");
     var ADODB_Stream=new ActiveXObject("ADODB.Stream");
 }catch(err){
-    _runner._log.innerHTML+="<p style=\\"color:red;\\">创建FSO失败："+err.description+"</p><br>";
+    _runner._log.innerHTML+="<p style=\\"color:red;\\">创建FSO失败："+err.description+"<br>如果正在线上预览可不必理会</p><br>";
 }
 `;
 function UnitToHtml(){
@@ -1467,16 +1469,16 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 };
 
 `;
-            str+=`{type:\"void\",fu:function(){return 0;},to:[`;
+            str+=`{type:\"void\",fu:function(_id_){return 0;},to:[`;
             for(const u2 of u.to){
                 str+=`${u2.POS},`;
             }
             str+=`]},\n`;
         }else if(u.type=='void'||u.type=='if'){
             if(u.val.includes("wait")){
-                str+=`{type:\"void\",fu:function(){setTimeout(function(){RunFrom(unit[${u.to[0].POS}]);return;},${u.val.trim().slice(5,-1)});return 0;},to:[]},\n`;
+                str+=`{type:\"void\",fu:function(_id_){setTimeout(function(){RunFrom(unit[${u.to[0].POS}]);return;},${u.val.trim().slice(5,-1)});return 0;},to:[]},\n`;
             }else{
-                str+=`{type:\"void\",fu:function(){${u.Fu}},to:[`;
+                str+=`{type:\"void\",fu:function(_id_){${u.Fu}},to:[`;
                 for(const u2 of u.to){
                     str+=`${u2.POS},`;
                 }
@@ -1484,7 +1486,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
             }
         }else if(u.type=='main'){
             mainPOS=u.POS;
-            str+=`{type:\"void\",fu:function(){return 0;},to:[`;
+            str+=`{type:\"void\",fu:function(_id_){return 0;},to:[`;
             for(const u2 of u.to){
                 str+=`${u2.POS},`;
             }
@@ -1506,7 +1508,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 
 var _runner={
     _log:document.getElementById("runner_log"),
-    _res:null,
+    _res:null,getValue:null
     onclick:function(event){return ;},
     onmousemove:function(event){return ;},
     onmousedown:function(event){return ;},
@@ -1515,6 +1517,7 @@ var _runner={
     onbeforeunload:function(event){return ;},
     oncontextmenu:function(event){return ;}
 };
+_runner.getValue=function(str){return _runner[str];}
 
 ${document.getElementById("forPolyfill").checked?Polyfill:""}
 ${document.getElementById("forErrowLog").checked?`window.onerror=function(msg,url,line,col,errObj){
@@ -1528,7 +1531,7 @@ var unit=[
 ];
 function RunFrom(now){
     while(true){
-        var temp=now.fu();
+        var temp=now.fu(now);
         if(now.to.length==0){
             break;
         }else{
