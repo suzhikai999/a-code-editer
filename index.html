@@ -94,14 +94,14 @@
         .drop-wrap {position:relative;display:inline-block;}
         .drop-btn {padding:8px 22px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
         .drop-menu {pointer-events:none;transition:0.15s;position:absolute;top:50%;left:0;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
-        .drop-wrap:hover .drop-menu {pointer-events:all;filter:opacity(1);top:100%;}
+        .drop-wrap:hover > .drop-menu {pointer-events:all;filter:opacity(1);top:100%;}
         .drop-menu li {list-style:none;padding:0;}
         .drop-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
         .drop-menu button:hover {background:#f0f4fc;}
         .dropIn-wrap {position:relative;display:inline-block;}
         .dropIn-btn {margin:4px;margin-top:2px;margin-bottom:2px;padding:8px 10px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
         .dropIn-menu {pointer-events:none;transition:0.15s;position:absolute;top:0%;left:90px;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
-        .dropIn-wrap:hover .dropIn-menu {pointer-events:all;filter:opacity(1);top:0%;left:120px;}
+        .dropIn-wrap:hover > .dropIn-menu {pointer-events:all;filter:opacity(1);top:0%;left:120px;}
         .dropIn-menu li {list-style:none;padding:0;}
         .dropIn-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
         .dropIn-menu button:hover {background:#f0f4fc;}
@@ -145,7 +145,7 @@ for(const u of unit){
             const temp=s.slice(7,-1);
             u.Fu=`_runner._res=(${temp});`;
         }else
-        u.Fu=s+s?';':'';
+        u.Fu=s+`;`;
     }
     if(u.type=='branch'){
         for(let i=u.to.length-1;i>0;--i){
@@ -269,9 +269,9 @@ function Expr(str){
 }
 function prefixLocalVars(codeStr,globalVars=[]){
     const builtInGlobals=[
-        'window','document','console','Math','Date','Array','Object','String','Number','Boolean','setTimeout','setInterval',
-        'null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var','const','fso',
-        'try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert','_id_'];
+        'window','document','console','Math','Date','Array','Object','String','Number','Boolean','Option','XMLHttpRequest','ActiveXObject','Image','Canvas',
+        'setTimeout','setInterval','null','undefined','true','false','this','arguments','Promise','RegExp','return','function','let','var',
+        'const','fso','try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert','_id_'];
     const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','pow'];
     codeStr+=" ";
     const globalSet=new Set([...builtInGlobals,...globalVars]);
@@ -410,7 +410,7 @@ function show(u,x,y){
             ctx.fillStyle="rgb(150,150,150)";
             ctx.fillText(fil.text.slice(0,fillerPos),SeRiX,y+30);
             ctx.fillStyle="rgb(250,250,250)";
-            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UN:"⚪︎",OP:"🔣︎"};
+            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UN:"⚪︎",OP:"🔣︎",CL:"❒"};
             ctx.fillText(temp[fil.type],SeRiX-23,y+30);
             y+=30;
         }
@@ -418,149 +418,124 @@ function show(u,x,y){
     return x;
 }
 const funcTour=[
-    {name:"wait",text:"wait(delay):void"},
-    {name:"print",text:"print(...content):void"},
-    {name:"alert",text:"alert(message?):void"},
-    {name:"confirm",text:"confirm(message?):void"},
-    {name:"prompt",text:"prompt(message?, default?):string | null"},
-    {name:"getValue",text:"getValue(name):any"},
-    {name:".toFixed",text:"Number.toFixed(fractionDigits?):string"},
-    {name:".toPrecision",text:"Number.toPrecision(precision?):string"},
-    {name:".codePointAt",text:"String.codePointAt(index):number"},
-    {name:".indexOf",text:"String.indexOf(searchStr, fromIndex?):number"},
-    {name:".findIndex",text:"String.findIndex(callback):number"},
-    {name:".replace",text:"String.replace(pattern, replacement):string"},
-    {name:".slice",text:"String.slice(start, end?):string"},
-    {name:".includes",text:"(String | Array).includes(item, fromIndex?):boolean"},
-    {name:".push",text:"Array.push(...items):number"},
-    {name:".unshift",text:"Array.unshift(...items):number"},
-    {name:".fill",text:"Array.fill(value, start?, end?):Array"},
-    {name:".splice",text:"Array.splice(start, deleteCount?, ...items):Array"},
-    {name:".slice",text:"Array.slice(start?, end?):Array"},
-    {name:".findIndex",text:"Array.findIndex(callback):number"},
-    {name:".append",text:"Element.append(...nodes/text)"},
-    {name:".appendChild",text:"Element.appendChild(childNode):Node"},
-    {name:"max",text:"Math.max(...values):number"},
-    {name:"min",text:"Math.min(...values):number"},
-    {name:"sin",text:"Math.sin(radians):number"},
-    {name:"cos",text:"Math.cos(radians):number"},
-    {name:"tan",text:"Math.tan(radians):number"},
-    {name:"asin",text:"Math.asin(x):number"},
-    {name:"acos",text:"Math.acos(x):number"},
-    {name:"atan",text:"Math.atan(x):number"},
-    {name:"atan2",text:"Math.atan2(y, x):number"},
-    {name:"pow",text:"Math.pow(base, power):number"},
-    {name:"setTimeout",text:"setTimeout(callback, delay?, ...args):number"},
-    {name:"setInterval",text:"setInterval(callback, delay?, ...args):number"},
-    {name:".getElementById",text:"document.getElementById(id):Element|null"},
-    {name:".getElementsByClassName",text:"document.getElementsByClassName(className):HTMLCollection"},
-    {name:".getElementsByName",text:"document.getElementsByName(name):NodeList"},
-    {name:".createElement",text:"document.createElement(tagName):HTMLElement"},
-    {name:".exitPointerLock",text:"document.exitPointerLock()"},
-    {name:".exitFullscreen",text:"document.exitFullscreen()"},
-    {name:"onclick",text:"onclick=function(event){}"},
-    {name:"oncontextmenu",text:"oncontextmenu=function(event){}"},
-    {name:"onmousedown",text:"onmousedown=function(event){}"},
-    {name:"onmouseup",text:"onmouseup=function(event){}"},
-    {name:"onmousemove",text:"onmousemove=function(event){}"},
-    {name:"onmousewheel",text:"onmousewheel=function(event){}"},
-    {name:"parseInt",text:"parseInt(string, radix?):number"},
-    {name:"parseFloat",text:"parseFloat(string):number"},
-    {name:"isNaN",text:"isNaN(value):boolean"},
-    {name:"isFinite",text:"isFinite(value):boolean"},
-    {name:"encodeURI",text:"encodeURI(uri):string"},
-    {name:"decodeURI",text:"decodeURI(encodedURI):string"},
-    {name:"encodeURIComponent",text:"encodeURIComponent(uriComponent):string"},
-    {name:"decodeURIComponent",text:"decodeURIComponent(encodedURI):string"},
-    {name:"clearTimeout",text:"clearTimeout(timeoutId):void"},
-    {name:"clearInterval",text:"clearInterval(intervalId):void"},
-    {name:"requestAnimationFrame",text:"requestAnimationFrame(callback):number"},
-    {name:"cancelAnimationFrame",text:"cancelAnimationFrame(requestId):void"},
-    {name:".match",text:"String.match(regexp):RegExpMatchArray|null"},
-    {name:".matchAll",text:"String.matchAll(regexp):RegExpStringIterator"},
-    {name:".search",text:"String.search(regexp):number"},
-    {name:".parse",text:"JSON.parse(text, reviver?):any"},
-    {name:".stringify",text:"JSON.stringify(value, replacer?, space?):string"},
-    {name:".querySelector",text:"document.querySelector(selectors):Element|null"},
-    {name:".querySelectorAll",text:"document.querySelectorAll(selectors):NodeList"},
-    {name:".classList.add",text:"Element.classList.add(...tokens):void"},
-    {name:".classList.remove",text:"Element.classList.remove(...tokens):void"},
-    {name:".classList.toggle",text:"Element.classList.toggle(token, force?):boolean"},
-    {name:".classList.contains",text:"Element.classList.contains(token):boolean"},
-    {name:".closest",text:"Element.closest(selectors):Element|null"},
-    {name:".matches",text:"Element.matches(selectors):boolean"},
-    {name:".CreateTextFile",text:"fso.CreateTextFile(filePath, overwrite?, unicode?):TextStream"},
-    {name:".OpenTextFile",text:"fso.OpenTextFile(filePath, mode?, create?, format?):TextStream"},
-    {name:".FileExists",text:"fso.FileExists(path):boolean"},
-    {name:".FolderExists",text:"fso.FolderExists(path):boolean"},
-    {name:".CreateFolder",text:"fso.CreateFolder(path):Folder"},
-    {name:".DeleteFile",text:"fso.DeleteFile(path, force?):void"},
-    {name:".DeleteFolder",text:"fso.DeleteFolder(path, force?):void"},
-    {name:".CopyFile",text:"fso.CopyFile(source, dest, overwrite?):void"},
-    {name:".CopyFolder",text:"fso.CopyFolder(source, dest, overwrite?):void"},
-    {name:".MoveFile",text:"fso.MoveFile(source, dest):void"},
-    {name:".MoveFolder",text:"fso.MoveFolder(source, dest):void"},
-    {name:".BuildPath",text:"fso.BuildPath(folder, file):string"},
-    {name:".GetParentFolderName",text:"fso.GetParentFolderName(path):string"},
-    {name:".GetAbsolutePathName",text:"fso.GetAbsolutePathName(path):string"},
-    {name:".GetFileName",text:"fso.GetFileName(path):string"},
-    {name:".GetBaseName",text:"fso.GetBaseName(path):string"},
-    {name:".GetExtensionName",text:"fso.GetExtensionName(path):string"},
-    {name:".GetSpecialFolder",text:"fso.GetSpecialFolder(folderType):Folder"},
-    {name:".GetTempName",text:"fso.GetTempName():string"},
-    {name:".GetFile",text:"fso.GetFile(path):File"},
-    {name:".GetFolder",text:"fso.GetFolder(path):Folder"},
-    {name:".OpenAsTextStream",text:"File.OpenAsTextStream(mode?, format?):TextStream"},
-    {name:".Copy",text:"File.Copy(dest, overwrite?):void"},
-    {name:".Move",text:"File.Move(dest):void"},
-    {name:".Delete",text:"File.Delete(force?):void"},
-    {name:".CreateTextFile",text:"Folder.CreateTextFile(name, overwrite?, unicode?):TextStream"},
-    {name:".Copy",text:"Folder.Copy(dest, overwrite?):void"},
-    {name:".Move",text:"Folder.Move(dest):void"},
-    {name:".Delete",text:"Folder.Delete(force?):void"},
-    {name:".Read",text:"TextStream.Read(charCount):string"},
-    {name:".ReadLine",text:"TextStream.ReadLine():string"},
-    {name:".ReadAll",text:"TextStream.ReadAll():string"},
-    {name:".Write",text:"TextStream.Write(str):void"},
-    {name:".WriteLine",text:"TextStream.WriteLine(str?):void"},
-    {name:".WriteBlankLines",text:"TextStream.WriteBlankLines(lineCount):void"},
-    {name:".Close",text:"TextStream.Close():void"},
-    {name:".Open",text:"stream.Open():void"},
-    {name:".LoadFromFile",text:"stream.LoadFromFile(path):void"},
-    {name:".SaveToFile",text:"stream.SaveToFile(path, saveOpt):void"},
-    {name:".WriteText",text:"stream.WriteText(str, options?):void"},
-    {name:".Close",text:"stream.Close():void"},
-    {name:".getTime",text:"Date.getTime():number"},
-    {name:".getFullYear",text:"Date.getFullYear():number"},
-    {name:".getMonth",text:"Date.getMonth():number"},
-    {name:".getDate",text:"Date.getDate():number"},
-    {name:".getHours",text:"Date.getHours():number"},
-    {name:".getMinutes",text:"Date.getMinutes():number"},
-    {name:".getSeconds",text:"Date.getSeconds():number"},
-    {name:".now",text:"Date.now():number"},
-    {name:".pop",text:"Array.pop():any"},
-    {name:".shift",text:"Array.shift():any"},
-    {name:".sort",text:"Array.sort(compareFn?):Array"},
-    {name:".filter",text:"Array.filter(callback):Array"},
-    {name:".map",text:"Array.map(callback):Array"},
-    {name:".every",text:"Array.every(callback):boolean"},
-    {name:".some",text:"Array.some(callback):boolean"},
-    {name:".trim",text:"String.trim():string"},
-    {name:".trimStart",text:"String.trimStart():string"},
-    {name:".trimEnd",text:"String.trimEnd():string"},
-    {name:".split",text:"String.split(separator, limit?):string[]"},
-    {name:".startsWith",text:"String.startsWith(str, pos?):boolean"},
-    {name:".endsWith",text:"String.endsWith(str, len?):boolean"},
-    {name:"Math.round",text:"Math.round(x):number"},
-    {name:"Math.random",text:"Math.random():number"},
-    {name:"Math.abs",text:"Math.abs(x):number"},
-    {name:".remove",text:"Element.remove():void"},
-    {name:".setAttribute",text:"Element.setAttribute(name, value):void"},
-    {name:".getAttribute",text:"Element.getAttribute(name):string|null"},
-    {name:".removeAttribute",text:"Element.removeAttribute(name):void"},
-    {name:".focus",text:"Element.focus():void"},
-    {name:".blur",text:"Element.blur():void"},
-    {name:"runCMD",text:"runCMD(cmdstr):void"},
+    {name:"wait",text:"wait(delay):void"},{name:"print",text:"print(...content):void"},
+    {name:"alert",text:"alert(message?):void"},{name:"confirm",text:"confirm(message?):void"},
+    {name:"prompt",text:"prompt(message?, default?):string | null"},{name:"getValue",text:"getValue(name):any"},
+    {name:".toFixed",text:"Number.toFixed(fractionDigits?):string"},{name:".toPrecision",text:"Number.toPrecision(precision?):string"},
+    {name:".codePointAt",text:"String.codePointAt(index):number"},{name:".indexOf",text:"String.indexOf(searchStr, fromIndex?):number"},
+    {name:".findIndex",text:"String.findIndex(callback):number"},{name:".replace",text:"String.replace(pattern, replacement):string"},
+    {name:".slice",text:"String.slice(start, end?):string"},{name:".includes",text:"(String | Array).includes(item, fromIndex?):boolean"},
+    {name:".push",text:"Array.push(...items):number"},{name:".unshift",text:"Array.unshift(...items):number"},
+    {name:".fill",text:"Array.fill(value, start?, end?):Array"},{name:".splice",text:"Array.splice(start, deleteCount?, ...items):Array"},
+    {name:".slice",text:"Array.slice(start?, end?):Array"},{name:".findIndex",text:"Array.findIndex(callback):number"},
+    {name:".append",text:"Element.append(...nodes/text)"},{name:".appendChild",text:"Element.appendChild(childNode):Node"},
+    {name:"max",text:"Math.max(...values):number"},{name:"min",text:"Math.min(...values):number"},
+    {name:"sin",text:"Math.sin(radians):number"},{name:"cos",text:"Math.cos(radians):number"},
+    {name:"tan",text:"Math.tan(radians):number"},{name:"asin",text:"Math.asin(x):number"},
+    {name:"acos",text:"Math.acos(x):number"},{name:"atan",text:"Math.atan(x):number"},
+    {name:"atan2",text:"Math.atan2(y, x):number"},{name:"pow",text:"Math.pow(base, power):number"},
+    {name:"setTimeout",text:"setTimeout(callback, delay?):number"},{name:"setInterval",text:"setInterval(callback, delay?):number"},
+    {name:".getElementById",text:"document.getElementById(id):Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className):HTMLCollection"},
+    {name:".getElementsByName",text:"document.getElementsByName(name):NodeList"},{name:".createElement",text:"document.createElement(tagName):HTMLElement"},
+    {name:".exitPointerLock",text:"document.exitPointerLock()"},{name:".exitFullscreen",text:"document.exitFullscreen()"},
+    {name:"onclick",text:"onclick=function(event){}"},{name:"oncontextmenu",text:"oncontextmenu=function(event){}"},
+    {name:"onmousedown",text:"onmousedown=function(event){}"},{name:"onmouseup",text:"onmouseup=function(event){}"},
+    {name:"onmousemove",text:"onmousemove=function(event){}"},{name:"onmousewheel",text:"onmousewheel=function(event){}"},
+    {name:"parseInt",text:"parseInt(string, radix?):number"},{name:"parseFloat",text:"parseFloat(string):number"},
+    {name:"isNaN",text:"isNaN(value):boolean"},{name:"isFinite",text:"isFinite(value):boolean"},
+    {name:"encodeURI",text:"encodeURI(uri):string"},{name:"decodeURI",text:"decodeURI(encodedURI):string"},
+    {name:"encodeURIComponent",text:"encodeURIComponent(uriComponent):string"},{name:"decodeURIComponent",text:"decodeURIComponent(encodedURI):string"},
+    {name:"clearTimeout",text:"clearTimeout(timeoutId):void"},{name:"clearInterval",text:"clearInterval(intervalId):void"},
+    {name:"requestAnimationFrame",text:"requestAnimationFrame(callback):number"},{name:"cancelAnimationFrame",text:"cancelAnimationFrame(requestId):void"},
+    {name:".match",text:"String.match(regexp):RegExpMatchArray|null"},{name:".matchAll",text:"String.matchAll(regexp):RegExpStringIterator"},
+    {name:".search",text:"String.search(regexp):number"},{name:".parse",text:"JSON.parse(text, reviver?):any"},
+    {name:".stringify",text:"JSON.stringify(value, replacer?, space?):string"},{name:".querySelector",text:"document.querySelector(selectors):Element|null"},
+    {name:".querySelectorAll",text:"document.querySelectorAll(selectors):NodeList"},{name:".classList.add",text:"Element.classList.add(...tokens):void"},
+    {name:".classList.remove",text:"Element.classList.remove(...tokens):void"},{name:".classList.toggle",text:"Element.classList.toggle(token, force?):boolean"},
+    {name:".classList.contains",text:"Element.classList.contains(token):boolean"},{name:".closest",text:"Element.closest(selectors):Element|null"},
+    {name:".matches",text:"Element.matches(selectors):boolean"},{name:".CreateTextFile",text:"fso.CreateTextFile(filePath, overwrite?, unicode?):TextStream"},
+    {name:".OpenTextFile",text:"fso.OpenTextFile(filePath, mode?, create?, format?):TextStream"},{name:".FileExists",text:"fso.FileExists(path):boolean"},
+    {name:".FolderExists",text:"fso.FolderExists(path):boolean"},{name:".CreateFolder",text:"fso.CreateFolder(path):Folder"},
+    {name:".DeleteFile",text:"fso.DeleteFile(path, force?):void"},{name:".DeleteFolder",text:"fso.DeleteFolder(path, force?):void"},
+    {name:".CopyFile",text:"fso.CopyFile(source, dest, overwrite?):void"},{name:".CopyFolder",text:"fso.CopyFolder(source, dest, overwrite?):void"},
+    {name:".MoveFile",text:"fso.MoveFile(source, dest):void"},{name:".MoveFolder",text:"fso.MoveFolder(source, dest):void"},
+    {name:".BuildPath",text:"fso.BuildPath(folder, file):string"},{name:".GetParentFolderName",text:"fso.GetParentFolderName(path):string"},
+    {name:".GetAbsolutePathName",text:"fso.GetAbsolutePathName(path):string"},{name:".GetFileName",text:"fso.GetFileName(path):string"},
+    {name:".GetBaseName",text:"fso.GetBaseName(path):string"},{name:".GetExtensionName",text:"fso.GetExtensionName(path):string"},
+    {name:".GetSpecialFolder",text:"fso.GetSpecialFolder(folderType):Folder"},{name:".GetTempName",text:"fso.GetTempName():string"},
+    {name:".GetFile",text:"fso.GetFile(path):File"},{name:".GetFolder",text:"fso.GetFolder(path):Folder"},
+    {name:".OpenAsTextStream",text:"File.OpenAsTextStream(mode?, format?):TextStream"},{name:".Copy",text:"File.Copy(dest, overwrite?):void"},
+    {name:".Move",text:"File.Move(dest):void"},{name:".Delete",text:"File.Delete(force?):void"},
+    {name:".CreateTextFile",text:"Folder.CreateTextFile(name, overwrite?, unicode?):TextStream"},{name:".Copy",text:"Folder.Copy(dest, overwrite?):void"},
+    {name:".Move",text:"Folder.Move(dest):void"},{name:".Delete",text:"Folder.Delete(force?):void"},
+    {name:".Read",text:"TextStream.Read(charCount):string"},{name:".ReadLine",text:"TextStream.ReadLine():string"},
+    {name:".ReadAll",text:"TextStream.ReadAll():string"},{name:".Write",text:"TextStream.Write(str):void"},
+    {name:".WriteLine",text:"TextStream.WriteLine(str?):void"},{name:".WriteBlankLines",text:"TextStream.WriteBlankLines(lineCount):void"},{name:".Close",text:"TextStream.Close():void"},
+    {name:".Open",text:"stream.Open():void"},{name:".LoadFromFile",text:"stream.LoadFromFile(path):void"},
+    {name:".SaveToFile",text:"stream.SaveToFile(path, saveOpt):void"},{name:".WriteText",text:"stream.WriteText(str, options?):void"},
+    {name:".Close",text:"stream.Close():void"},{name:".getTime",text:"Date.getTime():number"},
+    {name:".getFullYear",text:"Date.getFullYear():number"},{name:".getMonth",text:"Date.getMonth():number"},
+    {name:".getDate",text:"Date.getDate():number"},{name:".getHours",text:"Date.getHours():number"},
+    {name:".getMinutes",text:"Date.getMinutes():number"},{name:".getSeconds",text:"Date.getSeconds():number"},
+    {name:".now",text:"Date.now():number"},{name:".pop",text:"Array.pop():any"},
+    {name:".shift",text:"Array.shift():any"},{name:".sort",text:"Array.sort(compareFn?):Array"},
+    {name:".filter",text:"Array.filter(callback):Array"},{name:".map",text:"Array.map(callback):Array"},
+    {name:".every",text:"Array.every(callback):boolean"},{name:".some",text:"Array.some(callback):boolean"},
+    {name:".trim",text:"String.trim():string"},{name:".trimStart",text:"String.trimStart():string"},
+    {name:".trimEnd",text:"String.trimEnd():string"},{name:".split",text:"String.split(separator, limit?):string[]"},
+    {name:".startsWith",text:"String.startsWith(str, pos?):boolean"},{name:".endsWith",text:"String.endsWith(str, len?):boolean"},
+    {name:"Math.round",text:"Math.round(x):number"},{name:"Math.random",text:"Math.random():number"},
+    {name:"Math.abs",text:"Math.abs(x):number"},{name:".remove",text:"Element.remove():void"},
+    {name:".setAttribute",text:"Element.setAttribute(name, value):void"},{name:".getAttribute",text:"Element.getAttribute(name):string|null"},
+    {name:".removeAttribute",text:"Element.removeAttribute(name):void"},{name:".focus",text:"Element.focus():void"},
+    {name:".blur",text:"Element.blur():void"},{name:"runCMD",text:"runCMD(cmdstr):void"},
+    {name:"String",text:"new String(value):String"},{name:"Number",text:"new Number(value):Number"},
+    {name:"Boolean",text:"new Boolean(value):Boolean"},{name:"Object",text:"new Object():Object"},
+    {name:"Array",text:"new Array(length/items):Array"},{name:"Date",text:"new Date(timestamp/dateStr):Date"},
+    {name:"RegExp",text:"new RegExp(pattern,flags):RegExp"},{name:"XMLHttpRequest",text:"new XMLHttpRequest():XMLHttpRequest"},
+    {name:"Image",text:"new Image(width?,height?):HTMLImageElement"},{name:"Option",text:"new Option(text,value,defaultSelected?,selected?):HTMLOptionElement"},
+    {name:"CanvasRenderingContext2D",text:"new CanvasRenderingContext2D():CanvasRenderingContext2D"},
+    {name:"OffscreenCanvas",text:"new OffscreenCanvas(width, height):OffscreenCanvas"},
+    {name:"createLinearGradient",text:"ctx.createLinearGradient(x0,y0,x1,y1):CanvasGradient"},
+    {name:"createRadialGradient",text:"ctx.createRadialGradient(x0,y0,r0,x1,y1,r1):CanvasGradient"},
+    {name:"createPattern",text:"ctx.createPattern(image,repetition):CanvasPattern"},
+    {name:"save",text:"ctx.save():void"},
+    {name:"restore",text:"ctx.restore():void"},
+    {name:"scale",text:"ctx.scale(x,y):void"},
+    {name:"rotate",text:"ctx.rotate(angle):void"},
+    {name:"translate",text:"ctx.translate(x,y):void"},
+    {name:"transform",text:"ctx.transform(a,b,c,d,e,f):void"},
+    {name:"setTransform",text:"ctx.setTransform(a,b,c,d,e,f):void"},
+    {name:"clearRect",text:"ctx.clearRect(x,y,w,h):void"},
+    {name:"fillRect",text:"ctx.fillRect(x,y,w,h):void"},
+    {name:"strokeRect",text:"ctx.strokeRect(x,y,w,h):void"},
+    {name:"beginPath",text:"ctx.beginPath():void"},
+    {name:"closePath",text:"ctx.closePath():void"},
+    {name:"moveTo",text:"ctx.moveTo(x,y):void"},
+    {name:"lineTo",text:"ctx.lineTo(x,y):void"},
+    {name:"arc",text:"ctx.arc(x,y,r,startAngle,endAngle,anticlockwise?):void"},
+    {name:"arcTo",text:"ctx.arcTo(x1,y1,x2,y2,r):void"},
+    {name:"ellipse",text:"ctx.ellipse(x,y,rx,ry,rot,sAngle,eAngle,anticlockwise?):void"},
+    {name:"rect",text:"ctx.rect(x,y,w,h):void"},
+    {name:"bezierCurveTo",text:"ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,x,y):void"},
+    {name:"quadraticCurveTo",text:"ctx.quadraticCurveTo(cpx,cpy,x,y):void"},
+    {name:"fill",text:"ctx.fill(fillRule?):void"},
+    {name:"stroke",text:"ctx.stroke():void"},
+    {name:"clip",text:"ctx.clip(fillRule?):void"},
+    {name:"isPointInPath",text:"ctx.isPointInPath(x,y,fillRule?):boolean"},
+    {name:"isPointInStroke",text:"ctx.isPointInStroke(x,y):boolean"},
+    {name:"fillText",text:"ctx.fillText(text,x,y,maxWidth?):void"},
+    {name:"strokeText",text:"ctx.strokeText(text,x,y,maxWidth?):void"},
+    {name:"measureText",text:"ctx.measureText(text):TextMetrics"},
+    {name:"drawImage",text:"ctx.drawImage(img,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight):void"},
+    {name:"getImageData",text:"ctx.getImageData(x,y,w,h):ImageData"},
+    {name:"putImageData",text:"ctx.putImageData(imageData,dx,dy,dirtyX?,dirtyY?,dirtyW?,dirtyH?):void"},
+    {name:"createImageData",text:"ctx.createImageData(width,height):ImageData"},
+    {name:"getContext",text:"canvas.getContext(contextType, contextAttributes?):CanvasRenderingContext2D|null"},
+    {name:"toDataURL",text:"canvas.toDataURL(type?, quality?):string"},
+    {name:"toBlob",text:"canvas.toBlob(callback, type?, quality?):void"},
+    {name:"transferToImageBitmap",text:"offscreenCanvas.transferToImageBitmap():ImageBitmap"},
+    {name:"addColorStop",text:"gradient.addColorStop(offset, color):void"},
 ];
 const hasChil={
     number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
@@ -583,25 +558,46 @@ const hasChil={
         {text:".offsetX",back:0,has:"number",type:"AR"},{text:".offsetY",back:0,has:"number",type:"AR"},{text:".button",back:0,has:"number",type:"AR"},
         {text:".key",back:0,has:"string",type:"AR"},{text:".keyCode",back:0,has:"number",type:"AR"},{text:".target",back:0,has:"element",type:"AR"},
         {text:".currentTarget",back:0,has:"element",type:"AR"},{text:".wheelDelta",back:0,has:"number",type:"AR"},{text:".preventDefault()",back:0,has:[],type:"AR"},
-        {text:".stopPropagation()",back:0,has:[],type:"AR"},],
+        {text:".stopPropagation()",back:0,has:[],type:"AR"},],boolean:[],
     function:[{text:".name",back:0,has:"string",type:"AR"},{text:".length",back:0,has:"number",type:"AR"},
         {text:".apply()",back:1,has:[],type:"AR"},{text:".bind()",back:1,has:[],type:"AR"},],
     date:[{text:".getTime()",back:0,has:"number",type:"AR"},{text:".getFullYear()",back:0,has:"number",type:"AR"},{text:".getMonth()",back:0,has:"number",type:"AR"},
         {text:".getDate()",back:0,has:"number",type:"AR"}, {text:".getDay()",back:0,has:"number",type:"AR"},{text:".getHours()",back:0,has:"number",type:"AR"},
         {text:".getMinutes()",back:0,has:"number",type:"AR"},{text:".getSeconds()",back:0,has:"number",type:"AR"},{text:".toLocaleString()",back:0,has:["string"],type:"AR"},
         {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},],
-    element:[{text:".value",back:0,has:"string",type:"AR"},{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},{text:".textContent",back:0,has:"string",type:"AR"},
-        {text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},{text:".classList",back:0,has:"array",type:"AR"},
-        {text:".style",back:0,has:[{text:".top",back:0,has:"string",type:"AR"},{text:".left",back:0,has:"string",type:"AR"},{text:".button",back:0,has:"string",type:"AR"},{text:".right",back:0,has:"string",type:"AR"},
-            {text:".color",back:0,has:"string",type:"AR"},{text:".backgroundcolor",back:0,has:"string",type:"AR"},{text:".filter",back:0,has:"string",type:"AR"},{text:".cursor",back:0,has:"string",type:"AR"},
-            {text:".fontsize",back:0,has:"string",type:"AR"},{text:".fontfamily",back:0,has:"string",type:"AR"},{text:".display",back:0,has:"string",type:"AR"},{text:".position",back:0,has:"string",type:"AR"},
-            {text:".padding",back:0,has:"string",type:"AR"},{text:".magin",back:0,has:"string",type:"AR"},{text:".width",back:0,has:"string",type:"AR"},{text:".height",back:0,has:"string",type:"AR"},
-            {text:".transition",back:0,has:"string",type:"AR"},{text:".overflow",back:0,has:"string",type:"AR"}],type:"AR"},
-        {text:".parentElement",back:0,has:"element",type:"AR"},{text:".children",back:0,has:"array",type:"AR"},
+    element:[{text:".value",back:0,has:"string",type:"AR"},{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},
+        {text:".textContent",back:0,has:"string",type:"AR"},{text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},
+        {text:".classList",back:0,has:"array",type:"AR"},{text:".style",back:0,has:[{text:".top",back:0,has:"string",type:"AR"},{text:".left",back:0,has:"string",type:"AR"},
+            {text:".button",back:0,has:"string",type:"AR"},{text:".right",back:0,has:"string",type:"AR"},{text:".color",back:0,has:"string",type:"AR"},
+            {text:".backgroundcolor",back:0,has:"string",type:"AR"},{text:".filter",back:0,has:"string",type:"AR"},{text:".cursor",back:0,has:"string",type:"AR"},
+            {text:".fontsize",back:0,has:"string",type:"AR"},{text:".fontfamily",back:0,has:"string",type:"AR"},{text:".display",back:0,has:"string",type:"AR"},
+            {text:".position",back:0,has:"string",type:"AR"},{text:".padding",back:0,has:"string",type:"AR"},{text:".magin",back:0,has:"string",type:"AR"},
+            {text:".width",back:0,has:"string",type:"AR"},{text:".height",back:0,has:"string",type:"AR"},{text:".transition",back:0,has:"string",type:"AR"},
+            {text:".overflow",back:0,has:"string",type:"AR"}],type:"AR"},{text:".parentElement",back:0,has:"element",type:"AR"},{text:".children",back:0,has:"array",type:"AR"},
         {text:".nextElementSibling",back:0,has:"element",type:"AR"},{text:".previousElementSibling",back:0,has:"element",type:"AR"},{text:".append()",back:1,has:[],type:"AR"},
         {text:".appendChild()",back:1,has:[],type:"AR"},{text:".prepend()",back:1,has:[],type:"AR"},{text:".remove()",back:0,has:[],type:"AR"},
         {text:".removeChild()",back:1,has:[],type:"AR"},{text:".setAttribute()",back:1,has:[],type:"AR"},{text:".getAttribute()",back:1,has:[],type:"AR"},
-        {text:".addEventListener()",back:1,has:[],type:"AR"},{text:".removeEventListener()",back:1,has:[],type:"AR"},{text:".checked",back:0,has:"string",type:"AR"},],
+        {text:".addEventListener()",back:1,has:[],type:"AR"},{text:".removeEventListener()",back:1,has:[],type:"AR"},{text:".checked",back:0,has:"string",type:"AR"},
+        {text:".width",back:0,has:"number",type:"AR"},{text:".height",back:0,has:"number",type:"AR"},{text:".getContext()",back:1,has:[{text:".save()",back:0,has:[],type:"AR"},{text:".restore()",back:0,has:[],type:"AR"},
+            {text:".translate()",back:1,has:[],type:"AR"},{text:".scale()",back:1,has:[],type:"AR"},{text:".rotate()",back:1,has:[],type:"AR"},
+            {text:".transform()",back:1,has:[],type:"AR"},{text:".setTransform()",back:1,has:[],type:"AR"},
+            {text:".beginPath()",back:0,has:[],type:"AR"},{text:".closePath()",back:0,has:[],type:"AR"},{text:".moveTo()",back:1,has:[],type:"AR"},
+            {text:".lineTo()",back:1,has:[],type:"AR"},{text:".arc()",back:1,has:[],type:"AR"},{text:".arcTo()",back:1,has:[],type:"AR"},
+            {text:".rect()",back:1,has:[],type:"AR"},{text:".quadraticCurveTo()",back:1,has:[],type:"AR"},{text:".bezierCurveTo()",back:1,has:[],type:"AR"},
+            {text:".fill()",back:0,has:[],type:"AR"},{text:".stroke()",back:0,has:[],type:"AR"},{text:".clip()",back:0,has:[],type:"AR"},
+            {text:".clearRect()",back:1,has:[],type:"AR"},{text:".fillRect()",back:1,has:[],type:"AR"},{text:".strokeRect()",back:1,has:[],type:"AR"},
+            {text:".fillText()",back:1,has:[],type:"AR"},{text:".strokeText()",back:1,has:[],type:"AR"},{text:".measureText()",back:1,has:[{text:".width",back:0,has:"number",type:"AR"},],type:"AR"},
+            {text:".drawImage()",back:1,has:[],type:"AR"},{text:".getImageData()",back:1,has:[{text:".width",back:0,has:"number",type:"AR"},
+                {text:".height",back:0,has:"number",type:"AR"},{text:".data",back:0,has:"array",type:"AR"}
+            ],type:"AR"},{text:".putImageData()",back:1,has:[],type:"AR"},{text:".createImageData()",back:1,has:[],type:"AR"},{text:".createLinearGradient()",back:1,has:[
+                {text:".addColorStop()",back:1,has:[],type:"AR"}],type:"AR"},
+            {text:".createRadialGradient()",back:1,has:[{text:".addColorStop()",back:1,has:[],type:"AR"}],type:"AR"},
+            {text:".globalAlpha",back:0,has:"number",type:"AR"},{text:".globalCompositeOperation",back:0,has:"string",type:"AR"},{text:".fillStyle",back:0,has:[],type:"AR"},
+            {text:".strokeStyle",back:0,has:[],type:"AR"},{text:".lineWidth",back:0,has:"number",type:"AR"},{text:".lineCap",back:0,has:"string",type:"AR"},
+            {text:".lineJoin",back:0,has:"string",type:"AR"},{text:".miterLimit",back:0,has:"number",type:"AR"},{text:".shadowBlur",back:0,has:"number",type:"AR"},
+            {text:".shadowColor",back:0,has:"string",type:"AR"},{text:".shadowOffsetX",back:0,has:"number",type:"AR"},{text:".shadowOffsetY",back:0,has:"number",type:"AR"},{text:".font",back:0,has:"string",type:"AR"},
+            {text:".textAlign",back:0,has:"string",type:"AR"},{text:".textBaseline",back:0,has:"string",type:"AR"},{text:".isPointInPath()",back:1,has:"boolean",type:"AR"},
+        ],type:"AR"},{text:".toDataURL()",back:1,has:"string",type:"AR"},],
     folder:[{name:".CreateTextFile",text:"Folder.CreateTextFile(filename, overwrite?, unicode?):TextStream",has:[],type:"AR"},
         {name:".Copy",text:"Folder.Copy(destination, overwrite?):void",has:[],type:"AR"},
         {name:".Move",text:"Folder.Move(destination):void",has:[],type:"AR"},
@@ -614,17 +610,19 @@ const hasChil={
         {name:".SubFolders",text:"Folder.SubFolders:Folder集合",has:[],type:"AR"},
         {name:".DateCreated",text:"Folder.DateCreated:Date",has:"date",type:"AR"},
         {name:".DateLastAccessed",text:"Folder.DateLastAccessed:Date",has:"date",type:"AR"},
-        {name:".DateLastModified",text:"Folder.DateLastModified:Date",has:"date",type:"AR"}]
+        {name:".DateLastModified",text:"Folder.DateLastModified:Date",has:"date",type:"AR"}],
 };
-hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
+hasChil.folder[0].has=hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
     {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
     {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
     {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
     {text:".Line",back:0,has:hasChil.number,type:"AR"}];
-const staticFiller=[{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
+const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",back:1,has:[],type:"CL"},{text:"Date()",back:1,has:[],type:"CL"},
+    {text:"XMLHttpRequest()",back:1,has:[],type:"CL"},{text:"ActiveXObject()",back:1,has:[],type:"CL"},{text:"Image()",back:1,has:[],type:"CL"},{text:"Option()",back:1,has:[],type:"CL"},
+    {text:"Number()",back:1,has:[],type:"CL"},{text:"Array()",back:1,has:[],type:"CL"},{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
     {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
-    {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:[],type:"AR"},
+    {text:"new ",back:0,has:[],type:"AR"},{text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:[],type:"AR"},
     {text:"return ",back:0,has:[],type:"AR"},{text:"delete ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
@@ -1129,7 +1127,7 @@ function to_filler(s,canBeEmpty=false){
     if(s.startsWith("new ")){
         let i=4;
         while((Chars+"_").includes(s[i]))i++;
-        return hasChil[s.slice(4,i)];
+        return hasChil[s.slice(4,i).toLowerCase()];
     }
     if(s.startsWith("getValue")){
         let str=s.slice(9,-1);
@@ -1394,7 +1392,7 @@ function renderSaveList(){
 }
 String.prototype.indexOf;
 const Polyfill=`
-//补丁
+//===============补丁===============
 if(!String.prototype.includes)String.prototype.includes=function(searchString,position){
     position=typeof position==='number'?position:0;
     return this.indexOf(searchString,position)!==-1;
@@ -1410,17 +1408,18 @@ if(!Array.prototype.includes)Array.prototype.includes=function(item,fromIndex){
     return false;
 };
 if(!Array.prototype.findIndex){
-    Array.prototype.findIndex=function(item,fromIndex){
+    Array.prototype.findIndex=function(callback,thisArg){
+        if(typeof callback!=="function")throw new TypeError("callback not function");
         var len=this.length;
-        var start=Math.max(fromIndex|0,0);
-        for(var i=start;i<len;i++){
-            if(this[i]===item||(Number.isNaN(this[i])&&Number.isNaN(item))){
-                return i;
-            }
+        for(var i=0;i<len;i++){
+            if(callback.call(thisArg,this[i],i,this)) return i;
         }
         return -1;
     };
-    Array.prototype.find=function(item,fromIndex){return this[this.findIndex(item,fromIndex)];};
+    Array.prototype.find=function(callback,thisArg){
+        var idx=this.findIndex(callback,thisArg);
+        return idx===-1?undefined:this[idx];
+    };
 }
 if(!Array.prototype.some)Array.prototype.some=function(cb){
     for(var i=0;i<this.length;i++)if(cb(this[i],i,this))return true;
@@ -1441,8 +1440,13 @@ if(!Array.prototype.filter)Array.prototype.filter=function(cb){
     return res;
 }
 function runCMD(cmdStr){
-    var shell=new ActiveXObject("WScript.Shell");
-    return shell.Run("cmd /c "+cmdStr,0,true);
+    try{
+        var shell=new ActiveXObject("WScript.Shell");
+        return shell.Run("cmd /c "+cmdStr,0,true);
+    }catch(err){
+        _runner._log.innerHTML+="<p style=\\"color:red;\\">CMD执行失败："+err.description+"</p><br>";
+        return -1;
+    }
 }
 try{
     var fso=new ActiveXObject("Scripting.FileSystemObject");
@@ -1451,7 +1455,7 @@ try{
     _runner._log.innerHTML+="<p style=\\"color:red;\\">创建FSO失败："+err.description+"<br>如果正在线上预览可不必理会</p><br>";
 }
 `;
-function UnitToHtml(){
+function UnitToHtml(IsHta=false){
     let str="",Str="",mainPOS=0;
     for(const u of unit){
         if(u.type=='function'){
@@ -1506,11 +1510,16 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
         }
     }
     const htmlContent=`
-<html onclick="_runner.onclick(event)" onmousemove="_runner.onmousemove(event)" onmousedown="_runner.onmousedown(event)" onmouseup="_runner.onmouseup(event)" onmousewheel="_runner.onmousewheel(event)" oncontextmenu="_runner.oncontextmenu(event)">
+<!DOCTYPE html>
+<html ${IsHta?`xmlns:v="urn:schemas-microsoft-com:vml"`:``}
+onclick="_runner.onclick(event)" onmousemove="_runner.onmousemove(event)" 
+onmousedown="_runner.onmousedown(event)" onmouseup="_runner.onmouseup(event)" 
+onmousewheel="_runner.onmousewheel(event)" oncontextmenu="_runner.oncontextmenu(event)">
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="UTF-8">
         <title>TEST</title>
+        ${IsHta?`<style>v\:*{behavior:url(#default#VML);}</style>`:``}
     </head>
     <body>
         <div id="runner_log"></div>
@@ -1520,23 +1529,22 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 
 var _runner={
     _log:document.getElementById("runner_log"),
-    _res:null,getValue:null,
+    _res:null,
+    getValue:function(str){return _runner[str];},
     onclick:function(event){return ;},
     onmousemove:function(event){return ;},
     onmousedown:function(event){return ;},
     onmouseup:function(event){return ;},
     onmousewheel:function(event){return ;},
     onbeforeunload:function(event){return ;},
-    oncontextmenu:function(event){return ;}
+    oncontextmenu:function(event){return ;},
 };
-_runner.getValue=function(str){return _runner[str];}
 
 ${document.getElementById("forPolyfill").checked?Polyfill:""}
 ${document.getElementById("forErrowLog").checked?`window.onerror=function(msg,url,line,col,errObj){
     _runner._log.innerHTML+="<p style=\\"color:red;\\">错误："+msg+"<br>第"+line+"行，第"+col+"列</p><br>";
     return true;
 };`:""}
-
 ${Str}
 var unit=[
     ${str}
@@ -1558,7 +1566,7 @@ RunFrom(unit[${mainPOS}]);
     return htmlContent;
 }
 function Download(){
-    const htmlContent=UnitToHtml();
+    const htmlContent=UnitToHtml(true);
     const blob=new Blob([htmlContent],{type:'text/hta'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
