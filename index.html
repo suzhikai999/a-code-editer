@@ -1097,6 +1097,18 @@ function loop(){
                 globalObj.push({text:func+"()",back:1,has:[],type:"BS",belong:u});
                 globalFunc=globalFunc.filter(obj=>(obj.name!=func&&obj.belong!==u));
                 globalFunc.push({name:func,text:s+": any",belong:u});
+                let CLFC=0,isInS=false,isIns=false,left=func.length+1,res=[];
+                console.log(s.slice(func.length+1,s.length-1));
+                for(let i=func.length+1;i<s.length-1;i++){
+                    if(s[i]=="'")isInS=!isInS;
+                    if(s[i]=='"')isIns=!isIns;
+                    if(!isInS&&!isIns){
+                        if("([{".includes(s[i]))CLFC++;else
+                        if(")]}".includes(s[i]))CLFC--;else
+                        if(s[i]==','&&CLFC==0)globalObj.push({text:s.slice(left,i),back:0,has:[],type:"RC",belong:u}),left=i+1;
+                    }
+                }
+                if(CLFC==0)globalObj.push({text:s.slice(left,s.length-1),back:0,has:[],type:"RC",belong:u});
             }else{
                 u.errow=false;
                 const s2=s.slice(beforeQe);
@@ -1186,11 +1198,11 @@ function to_filler(s,canBeEmpty=false){
         if(s[i]=="."){
             const temp=to_filler(s.slice(0,i)).find(obj=>obj.text==("."+word));
             if(temp)return temp.has;
-            else{attenOut=1;return [];}
-        }else {
+            else{return [];}
+        }else{
             const temp=[...globalObj,...staticFiller].find(obj=>obj.text==word);
             if(temp)return temp.has;
-            else{attenOut=1;return [];}
+            else{return [];}
         }
     }
     attenOut=1;
