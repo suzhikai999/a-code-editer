@@ -1044,7 +1044,7 @@ function loop(){
         const p=getPos(u);
         const r=8;
         let end=p.endx+cam.x;
-        if((p.endx>cam.x-500&&p.x<cam.x+W*1.6+500&&p.y>cam.y-500&&p.y<cam.y+H*1.6+500)||(p.endx!==undefined)){
+        if((p.endx>cam.x-500&&p.x<cam.x+W*1.6+500&&p.y>cam.y-500&&p.y<cam.y+H*1.6+500)||(p.endx===undefined)){
             ctx.fillStyle="#e0e0e0";
             ctx.strokeStyle="#999";
             ctx.lineWidth=2;
