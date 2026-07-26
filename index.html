@@ -134,19 +134,26 @@ _runner={
 };
 for(const u of unit){
     const s=prefixLocalVars(Expr(u.val.trim()));
-    if(u.type=='main')u.Fu=`return 0;`;else
+    if(u.type=='main')u.Fu=``;else
     if(u.type=='if'){
         u.Fu=(u.to.length==2)?`if(${s}){return 0;}return 1;`:`var temp=${s};if(temp%1==0&&temp>=2&&temp<=${u.to.length-1})return temp;else if(temp==1)return 0;return 1;`;
     }else{
         if(s.includes('print')){
             const temp=s.slice(6,-2);
-            u.Fu=`_runner._log.innerText+=(${temp});return 0;`;
+            u.Fu=`_runner._log.innerText+=(${temp});`;
         }else if(s.includes('return')){
             const temp=s.slice(7,-1);
-            u.Fu=`_runner._res=(${temp});return 0;`;
+            u.Fu=`_runner._res=(${temp});`;
         }else
-        u.Fu=`${s};return 0;`;
+        u.Fu=`${s};`;
     }
+    if(u.type=='branch'){
+        for(let i=u.to.length-1;i>0;--i){
+            u.Fu+=`setTimeout(function(){RunFrom(${u.to[i].POS})});`;
+        }
+    }
+    u.Fu+=`return 0;`;
+    _runner._log.innerText+=u.Fu+'\n';
 }
 _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                     ">编译</button>
@@ -405,8 +412,8 @@ function show(u,x,y){
             ctx.fillStyle="rgb(150,150,150)";
             ctx.fillText(fil.text.slice(0,fillerPos),SeRiX,y+30);
             ctx.fillStyle="rgb(250,250,250)";
-            if(fil.type=="AR")ctx.fillText("⿻",SeRiX-23,y+30);else if(fil.type=="BS")ctx.fillText("🔤︎",SeRiX-23,y+30);else 
-            if(fil.type=="RC")ctx.fillText("♺",SeRiX-23,y+30);else ctx.fillText("⚪︎",SeRiX-23,y+30);
+            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UN:"⚪︎",OP:"🔣︎"};
+            ctx.fillText(temp[fil.type],SeRiX-23,y+30);
             y+=30;
         }
     }
@@ -616,7 +623,8 @@ hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine
     {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
     {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
     {text:".Line",back:0,has:hasChil.number,type:"AR"}];
-const staticFiller=[{text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
+const staticFiller=[{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
+    {text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
     {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
     {text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:[],type:"AR"},
     {text:"return ",back:0,has:[],type:"AR"},{text:"delete ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
@@ -840,10 +848,11 @@ document.addEventListener("keydown",async(e)=>{
             dragUnit.to=[temif];
             dragUnit=temif,cursorAt=2;
         }
-        if(dragUnit.val=="if"&&dragUnit.type=="void"){
+        if(dragUnit.val=="if"&&dragUnit.type=="void")dragUnit.type="if";
+        if(dragUnit.val=="branch"&&dragUnit.type=="void"){
             let temdo={type:"void",val:"",to:[],x:dragUnit.x,y:dragUnit.y+110,endx:dragUnit.endx+110};
             dragUnit.to.unshift(temdo);
-            dragUnit.type="if",dragUnit.val="";
+            dragUnit.type="branch",dragUnit.val="";
             unit.push(temdo);
             cursorAt=0;
         }
@@ -966,6 +975,7 @@ const lanw={
     else:"否则",
     case:"分支",
     function:"函数",
+    branch:"并行分支",
 };
 let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;"}];
 let dragUnit=null,cursorAt=0;
@@ -1001,7 +1011,7 @@ function loop(){
         const p=getPos(u);
         let i=0;
         if((u.type=='main'||u.type=='function')&&u.to.length>1)u.to=[u.to[0]];
-        if(u.to.length>1)u.type="if";
+        if(u.to.length>1&&u.type=="void")u.type="if";
         for(const u2 of u.to){
             const p2=getPos(u2);
             ctx.beginPath();
@@ -1020,9 +1030,11 @@ function loop(){
             ctx.lineTo(o.x+temp.x*temlen2-temp.y*10,o.y+temp.y*temlen2+temp.x*10);
             ctx.lineTo(o.x+temp.x*(temlen2+10),     o.y+temp.y*(temlen2+10));
             ctx.fill();
-            if(i==0){if(u.to.length>=3)show(lanw.case+`1`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);}else
-            if(i===1)show(lanw.else,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
-            else show(lanw.case+`${i}`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
+            if(u.type=="if"){
+                if(i==0){if(u.to.length>=3)show(lanw.case+`1`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);}else
+                if(i===1)show(lanw.else,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
+                else show(lanw.case+`${i}`,o.x+temp.x*temlen2,o.y+temp.y*temlen2+20);
+            }
             i++;
         }
     }
@@ -1170,7 +1182,8 @@ function to_filler(s,canBeEmpty=false){
             word=s[i]+word;
             i--;
         }
-        if("+-*/|&^%$#@!~`\\,<>=".includes(s[i])){
+        if((s[i]==='='&&s[i-1]==='=')||"<>".includes(s[i]))return [];else
+        if("+-*/|&^%$#@!~`\\,=".includes(s[i])){
             return to_filler(s.slice(i+1));
         }
         if(!(Chars+"_").includes(word[0])){attenOut=1;return [];}
@@ -1474,7 +1487,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
                 str+=`${u2.POS},`;
             }
             str+=`]},\n`;
-        }else if(u.type=='void'||u.type=='if'){
+        }else if(u.type=='void'||u.type=='if'||u.type=='branch'){
             if(u.val.includes("wait")){
                 str+=`{type:\"void\",fu:function(_id_){setTimeout(function(){RunFrom(unit[${u.to[0].POS}]);return;},${u.val.trim().slice(5,-1)});return 0;},to:[]},\n`;
             }else{
@@ -1508,7 +1521,7 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 
 var _runner={
     _log:document.getElementById("runner_log"),
-    _res:null,getValue:null
+    _res:null,getValue:null,
     onclick:function(event){return ;},
     onmousemove:function(event){return ;},
     onmousedown:function(event){return ;},
