@@ -296,7 +296,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
 }
 let cursorWA,SeCus=-1;
 function show(u,x,y){
-    const boldtext=["new","function","null","NaN","undefined","false","true","_id_"];
+    const boldtext=["new","function","null","NaN","undefined","false","true","_id_","return","delete"];
     let s=u.val,word="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
     let temp=[],Temp=[],temp3;
@@ -626,7 +626,8 @@ const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",
     {text:"Number()",back:1,has:[],type:"CL"},{text:"Array()",back:1,has:[],type:"CL"},{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
     {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
-    {text:"new ",back:0,has:[],type:"AR"},{text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},{text:"null",back:0,has:[],type:"AR"},
+    {text:"new ",back:0,has:[],type:"AR"},{text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},
+    {text:"null",back:0,has:[],type:"AR"},{text:"false",back:0,has:[],type:"AR"},{text:"true",back:0,has:[],type:"AR"},
     {text:"return ",back:0,has:[],type:"AR"},{text:"delete ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
     {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
@@ -640,7 +641,8 @@ const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:hasChil.element,type:"AR"},
         {text:".getElementsByClassName()",back:1,has:hasChil.array,type:"AR"},{text:".getElementsByName()",back:1,has:hasChil.array,type:"AR"}],type:"AR"},
     {text:"onclick(event)",back:0,has:[],type:"UD"},{text:"onmousedown(event)",back:0,has:[],type:"UD"},{text:"onmouseup(event)",back:0,has:[],type:"UD"},{text:"onmousemove(event)",back:0,has:[],type:"UD"},
-    {text:"onmousewheel(event)",back:0,has:[],type:"UD"},{text:"oncontextmenu(event)",back:0,has:[],type:"UD"},{text:"JSON",back:0,has:[{text:".parse()",back:0,has:[],type:"AR"},{text:".stringify()",back:0,has:[],type:"AR"},],type:"AR"},
+    {text:"onkeydown(event)",back:0,has:[],type:"UD"},{text:"onkeyup(event)",back:0,has:[],type:"UD"},{text:"onmousewheel(event)",back:0,has:[],type:"UD"},
+    {text:"oncontextmenu(event)",back:0,has:[],type:"UD"},{text:"JSON",back:0,has:[{text:".parse()",back:0,has:[],type:"AR"},{text:".stringify()",back:0,has:[],type:"AR"},],type:"AR"},
     {text:"fso",back:0,
         has:[{text:".CreateTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
         {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
@@ -1113,7 +1115,7 @@ function loop(){
                     }
                 }
                 if(CLFC==0)globalObj.push({text:s.slice(left,s.length-1),back:0,has:
-                    ["onclick","onmousedown","onmouseup","onmousemove","onmousewheel","oncontextmenu"].includes(func)?hasChil.event:[],type:"RC",belong:u});
+                    ["onclick","onmousedown","onmouseup","onmousemove","onmousewheel","oncontextmenu","onkeydown","onkeyup"].includes(func)?hasChil.event:[],type:"RC",belong:u});
             }else{
                 u.errow=false;
                 const s2=s.slice(beforeQe);
