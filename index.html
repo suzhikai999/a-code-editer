@@ -296,7 +296,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
 }
 let cursorWA,SeCus=-1;
 function show(u,x,y){
-    const boldtext=["new","function"];
+    const boldtext=["new","function","null","NaN","undefined","false","true","_id_"];
     let s=u.val,word="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
     let temp=[],Temp=[],temp3;
@@ -1112,7 +1112,8 @@ function loop(){
                         if(s[i]==','&&CLFC==0)globalObj.push({text:s.slice(left,i),back:0,has:[],type:"RC",belong:u}),left=i+1;
                     }
                 }
-                if(CLFC==0)globalObj.push({text:s.slice(left,s.length-1),back:0,has:[],type:"RC",belong:u});
+                if(CLFC==0)globalObj.push({text:s.slice(left,s.length-1),back:0,has:
+                    ["onclick","onmousedown","onmouseup","onmousemove","onmousewheel","oncontextmenu"].includes(func)?hasChil.event:[],type:"RC",belong:u});
             }else{
                 u.errow=false;
                 const s2=s.slice(beforeQe);
@@ -1534,9 +1535,9 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
     const htmlContent=`
 <!DOCTYPE html>
 <html ${IsHta?`xmlns:v="urn:schemas-microsoft-com:vml"`:``}
-onclick="_runner.onclick(event)" onmousemove="_runner.onmousemove(event)" 
-onmousedown="_runner.onmousedown(event)" onmouseup="_runner.onmouseup(event)" 
-onmousewheel="_runner.onmousewheel(event)" oncontextmenu="_runner.oncontextmenu(event)">
+onclick="return _runner.onclick(event);" onmousemove="return _runner.onmousemove(event);" 
+onmousedown="return _runner.onmousedown(event);" onmouseup="return _runner.onmouseup(event);" 
+onmousewheel="return _runner.onmousewheel(event);" oncontextmenu="return _runner.oncontextmenu(event);">
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="UTF-8">
