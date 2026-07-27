@@ -12,11 +12,11 @@
             flex-direction:column;
             align-items:center;
             gap:16px;
-            padding:20px;
+            padding:0px;
             background:#f5f7fa;
             font-family:system-ui,Consolas,"Microsoft YaHei",sans-serif;
         }
-        .wrap-row{display:flex;gap:16px;width:100%;max-width:1460px;color:rgb(123,95,95);}
+        .wrap-row{display:flex;gap:10px;width:100%;max-width:1460px;color:rgb(123,95,95);}
         #canvas {border:2px solid #c5cde0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
         .ctrl-panel {
             width:1200px;
@@ -26,11 +26,11 @@
             background:#ffffff;
             box-shadow:0 2px 8px rgba(0,0,0,0.05);
         }
-        .btn-group {display:flex;gap:12px;margin-bottom:14px;}
+        .btn-group {display:flex;gap:7px;margin-bottom:5px;}
         .log-btn {color:black;cursor:pointer;}
         .log-btn:hover {color:gray;}
         .ctrl-btn {
-            padding:8px 22px;
+            padding:5px 14px;
             border:none;
             border-radius:6px;
             background:#366ed8;
@@ -75,10 +75,10 @@
         .del-alter-btn:hover {background:rgb(202,176,145);color:white;}
         .del-alter-btn:active {transform:scale(0.9);}
         #runner_log {
-            margin-top:10px;
+            margin-top:5px;
             padding:12px;
-            min-height:170px;
-            max-height:170px;
+            min-height:180px;
+            max-height:180px;
             border:dashed 2px #8fa0c7;
             border-radius:8px;
             background:#f8faff;
@@ -87,12 +87,12 @@
             line-height:1.6;
             overflow-y:auto;
         }
-        .color-panel{margin-top:22px;border:2px solid #8fa0c7;border-radius:10px;background:#f8faff;padding:8px;display:block;gap:8px;}
+        .color-panel{margin-top:5px;border:2px solid #8fa0c7;border-radius:10px;background:#f8faff;padding:8px;display:block;gap:8px;max-width:260px;overflow:hidden}
         .color-canvas{width:200px;height:200px;cursor:default;padding-right:6px;}
-        .color-hue{width:20px;height:200px;cursor:vertical-text;background:linear-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
+        .color-hue{min-width:20px;height:200px;cursor:vertical-text;background:linear-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}
         .color-preview{cursor:pointer;width:100%;height:24px;margin-top:6px;background:rgb(123,95,95);border-radius:4px;color:#fff;text-align:center;line-height:24px;font-size:13px;}
         .drop-wrap {position:relative;display:inline-block;}
-        .drop-btn {padding:8px 22px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
+        .drop-btn {padding:5px 13px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
         .drop-menu {pointer-events:none;transition:0.15s;position:absolute;top:50%;left:0;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
         .drop-wrap:hover > .drop-menu {pointer-events:all;filter:opacity(1);top:100%;}
         .drop-menu li {list-style:none;padding:0;}
@@ -123,7 +123,7 @@
     <div class="wrap-row">
         <div class="canvas-wrap">
             <canvas height="700" width="1200" id="canvas" tabindex="0" style="outline:none" onmousewheel="if(window.scrollY<10&&!key.Alt){event.preventDefault();if(!key.Shift)cam.y-=event.wheelDelta*0.5;else cam.x-=event.wheelDelta*0.5;}"></canvas>
-            <div class="ctrl-panel" style="margin-top:16px;">
+            <div class="ctrl-panel" style="margin-top:5px;">
                 <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
                 <div class="btn-group">
                     <button class="ctrl-btn" onclick="_runner._log.innerText='日志：'">清空日志</button>
@@ -154,8 +154,7 @@ for(const u of unit){
     }
     u.Fu+=`return 0;`;
 }
-_runner._log.innerText+=`\n⭮ 已将全部编译完成`;
-                    ">编译</button>
+_runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</button>
                     <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
                     <div class="drop-wrap">
                         <button class="drop-btn">程序选项 ▾</button>
@@ -194,7 +193,7 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                     <div class="drop-wrap">
                         <button class="drop-btn">工程操作 ▾</button>
                         <ul class="drop-menu">
-                            <li><button onclick="saveCurrentUnit()" style="display:flex;">保存副本<p style="font-size:8px;">(Ctrl+S)</p></button></li>
+                            <li><button onclick="localStorage.setItem(SAVE_KEY2,[]);saveCurrentUnit(SAVE_KEY)" style="display:flex;">保存副本<p style="font-size:8px;">(Ctrl+S)</p></button></li>
                             <li><button onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button></li>
                             <li><button onclick="Download()">下载HTA</button></li>
                             <li><button onclick="TakeJSON()">下载JSON</button></li>
@@ -205,10 +204,11 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
                 <div id="runner_log">
                     日志：<br>
                     <u class="log-btn" onclick="Help()">💁︎ 帮助</u><br>
+                    <u class="log-btn" onclick="if(getSaves(SAVE_KEY2).length>0)loadSave(0,SAVE_KEY2);else _runner.log.innerHTML+=`<br>您并没有上次的工作。`;">📽 上次关闭前的工作</u><br>
                 </div>
             </div>
         </div>
-        <div style="width:1200px;">
+        <div>
             <div class="ctrl-panel" style="width:260px;height:700px;">
                 <h3 style="margin-top:0;font-size:16px;color:#222;">存档列表</h3>
                 <div id="saveList" style="max-height:620px;overflow-y:auto;"></div>
@@ -222,8 +222,8 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;
             </div>
         </div>
     </div>
-    <div class="ctrl-panel" style="width:1476px;margin-top:10px;">
-        <h3 style="margin:0 0 8px 0;font-size:16px;">自定义页面DOM</h3>
+    <div class="ctrl-panel" style="width:1476px;margin-left:17px;">
+        <h3 style="margin:0 0 5px 0;font-size:16px;">自定义页面DOM</h3>
         <textarea 
             id="domHtmlInput"
             style="width:100%;min-height:120px;padding:10px;font-family:Consolas;font-size:14px;white-space:pre;resize:vertical;tab-size:4;-moz-tab-size:4;"
@@ -296,6 +296,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
 }
 let cursorWA,SeCus=-1;
 function show(u,x,y){
+    const boldtext=["new","function"];
     let s=u.val,word="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
     let temp=[],Temp=[],temp3;
@@ -304,7 +305,7 @@ function show(u,x,y){
     if(!s)s=u;
     const len=s.length;
     const p=[{size:20,y:0}];
-    const SQs=[],NLKC=["rgb(229,178,9)","rgb(130,55,158)","rgb(0,0,150)"];
+    const SQs=[],NLKC=["rgb(-1,162,65)","rgb(129,104,0)","rgb(0,0,150)"];
     let left_se=0,NLK=0,IsInS=false,IsIns=false,SeLeX=-1,SeRiX=-1;
     ctx.font=`20px Consolas`;
     ctx.fillStyle="#333";
@@ -315,7 +316,7 @@ function show(u,x,y){
         const now=p[p.length-1];
         if(u===dragUnit){
             if(x<mousex-now.size/4)cursorWA=i+1;
-            if(cursorAt==i){
+            if(cursorAt==i){ctx.fillStyle="#000";
                 ctx.fillText(cursorLook,x,y+now.y,100),SeRiX=x,x+=1,filler=(!IsIns&&!IsInS)?filler:[];
                 if(Funcs.length>0){
                 let temp2=[...funcTour,...globalFuncBuff].find(FU=>FU.name==Funcs[Funcs.length-1][0]);
@@ -338,7 +339,9 @@ function show(u,x,y){
             if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
-                if(!("0123456789".includes(s[i-1])&&word.length==0)&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];else{if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
+                if(!("0123456789".includes(s[i-1])&&word.length==0)&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];
+                else{if(boldtext.includes(word)){ctx.font=`${now.size*0.906}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-word.length*now.size/2,y);}
+                if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
                     if(now.else==1){
@@ -536,6 +539,7 @@ const funcTour=[
     {name:".toBlob",text:"canvas.toBlob(callback, type?, quality?):void"},
     {name:".transferToImageBitmap",text:"offscreenCanvas.transferToImageBitmap():ImageBitmap"},
     {name:".addColorStop",text:"gradient.addColorStop(offset, color):void"},
+    {name:"function",text:"function(...parameters){ Logic }:function"},
 ];
 const hasChil={
     number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
@@ -617,7 +621,7 @@ hasChil.folder[0].has=hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:
     {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
     {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
     {text:".Line",back:0,has:hasChil.number,type:"AR"}];
-const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",back:1,has:[],type:"CL"},{text:"Date()",back:1,has:[],type:"CL"},
+const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",back:1,has:[],type:"CL"},{text:"Date()",back:1,has:[],type:"CL"},{text:"function()",back:1,has:[],type:"AR"},
     {text:"XMLHttpRequest()",back:1,has:[],type:"CL"},{text:"ActiveXObject()",back:1,has:[],type:"CL"},{text:"Image()",back:1,has:[],type:"CL"},{text:"Option()",back:1,has:[],type:"CL"},
     {text:"Number()",back:1,has:[],type:"CL"},{text:"Array()",back:1,has:[],type:"CL"},{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
@@ -999,7 +1003,7 @@ function loop(){
         frameCount=0,lastTime=currentTime;}
     if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
-    if(dragUnit&&key.Control)dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
+    if(dragUnit&&key['`'])dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,W,H);
     ctx.save();
@@ -1122,7 +1126,7 @@ function loop(){
         }
     }
     if(find(mousex,mousey)){
-        if(key.Control)canvas.style.cursor="grabbing";
+        if(key['`'])canvas.style.cursor="grabbing";
         else canvas.style.cursor="text";
     }else{canvas.style.cursor=mousedown?"grabbing":"grab";}
     mousexf=mousex;
@@ -1278,9 +1282,9 @@ cMain.onmousedown=(e)=>{
     drawColorBox();
 };
 drawColorBox();
-const SAVE_KEY="flow_editor_saves";
-function getSaves(){
-    const raw=localStorage.getItem(SAVE_KEY);
+const SAVE_KEY="flow_editor_saves",SAVE_KEY2="las_unsaved_snapshot";
+function getSaves(SK){
+    const raw=localStorage.getItem(SK);
     return raw?JSON.parse(raw):[];
 }
 function UnitToJSON(){
@@ -1338,19 +1342,19 @@ function LoadJSON(){
     }
     fileInput.click();
 }
-function saveCurrentUnit(){
-    const saves=getSaves();
+function saveCurrentUnit(SK){
+    const saves=getSaves(SK);
     saves.push({
         time:new Date().toLocaleString(),
         data:JSON.parse(JSON.stringify([UnitToJSON(),domHtmlInput.value,`存档#${saves.length+1}`]))
     });
-    localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
+    localStorage.setItem(SK,JSON.stringify(saves));
     renderSaveList();
     _runner._log.innerText+=`\n⎗ 已保存副本，当前共${saves.length}份存档`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
 }
-function loadSave(index){
-    const saves=getSaves();
+function loadSave(index,SK){
+    const saves=getSaves(SK);
     if(!saves[index])return;
     const saveData=JSON.parse(JSON.stringify(saves[index].data));
     unit=saveData[0];
@@ -1361,13 +1365,18 @@ function loadSave(index){
         }}
     cam.x=0,cam.y=0;
     domHtmlInput.value=saveData[1];
-    _runner._log.innerText+=`\n⎘ 已加载 ${saveData[2]}`;
-    _runner._log.scrollTop=_runner._log.scrollHeight;
+    if(SK==SAVE_KEY){
+        _runner._log.innerHTML+=`<br>⎘ 已加载 ${saveData[2]}`;
+        _runner._log.scrollTop=_runner._log.scrollHeight;
+    }else{
+        _runner._log.innerHTML+=`<br>⎘ 已加载 快照`;
+        _runner._log.scrollTop=_runner._log.scrollHeight;
+    }
 }
 function deleteSave(index){
     if(!confirm("确定删除该存档？"))return;
     const saves=getSaves();
-    _runner._log.innerText+=`\n🗑 已删除 ${saves[index].data[2]}`;
+    _runner._log.innerHTML+=`<br>🗑 已删除 ${saves[index].data[2]}`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
     saves.splice(index,1);
     localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
@@ -1385,14 +1394,14 @@ function renameSave(index){
 }
 function renderSaveList(){
     const listDom=document.getElementById("saveList");
-    const saves=getSaves();
+    const saves=getSaves(SAVE_KEY);
     if(saves.length===0){
         listDom.innerHTML="<p style='color:#666;font-size:14px;'>暂无存档</p>";
         return;}
     let html="";
     saves.forEach((save,idx)=>{
         html+=`
-        <div style="position:relative;padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;" onclick="loadSave(${idx})">
+        <div style="position:relative;padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;" onclick="loadSave(${idx},SAVE_KEY)">
             <button class="del-save-btn" onclick="event.stopPropagation();deleteSave(${idx})">🗙</button>
             <button class="del-alter-btn" onclick="event.stopPropagation();renameSave(${idx})">🖎</button>
             <div style="font-weight:bold;font-size:14px;">${save.data[2]}</div>
@@ -1608,14 +1617,17 @@ function Help(){
 `;}
 function HelpKey(){
     _runner._log.innerHTML+=`<br><br>
+F5                                     --> 编译<br>
+F6                                     --> 运行<br>
 滚轮                                   --> 滚动画布<br>
 Enter                                  --> 在当前路径中新建单位<br>
 Ctrl+z                                 --> 撤回<br>
 Ctrl+f                                 --> 新建函数<br>
+ctrl+s                                 --> 保存<br>
 Shift+Enter                            --> 从当前单位新建单位<br>
 Alt+滚轮                               --> 滚动页面<br>
 shift+滚轮                             --> 横向滚动画布<br>
-Ctrl+鼠标移动                          --> 移动活动单位<br>
+\`+鼠标移动                            --> 移动活动单位<br>
 未选择文本 Ctrl+c                      --> 复制当前单位的所有内容<br>
 当前单位为空 Delete或BackSpace         --> 从路径中删除单位<br>
 Ctrl+Delete+点击单位                   --> 删除单位<br>
@@ -1637,13 +1649,19 @@ document.addEventListener("keydown",e=>{
         e.preventDefault();
         saveCurrentUnit();
     }
+    if(e.key=="F5"){
+        e.preventDefault();
+        document.getElementById("F5").onclick();
+    }
+    if(e.key=="F6"){
+        e.preventDefault();openDebugChildPage();
+    }
 });
 
-// window.addEventListener("beforeunload",(e)=>{
-//     const msg="确定没有未保存修改吗？";
-//     e.returnValue=msg;
-//     return msg;
-// });
+window.addEventListener("beforeunload",(e)=>{
+    localStorage.setItem(SAVE_KEY2,[]);
+    saveCurrentUnit(SAVE_KEY2);
+});
 renderSaveList();
 Init();
 
