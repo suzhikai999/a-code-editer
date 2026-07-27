@@ -1193,7 +1193,7 @@ function to_filler(s,canBeEmpty=false){
             else return [];
         }
         if(CLFC>0){attenOut=1;return [];}
-        while((Chars+"_0123456789").includes(s[i])){
+        while((Chars+"_0123456789").includes(s[i])||("0123456789".includes(word[0])&&s[i]=='.')){
             word=s[i]+word;
             i--;
         }
