@@ -413,7 +413,7 @@ function show(u,x,y){
             ctx.fillStyle="rgb(150,150,150)";
             ctx.fillText(fil.text.slice(0,fillerPos),SeRiX,y+30);
             ctx.fillStyle="rgb(250,250,250)";
-            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UN:"⚪︎",OP:"🔣︎",CL:"❒"};
+            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UD:"⚪︎",OP:"🔣︎",CL:"❒"};
             ctx.fillText(temp[fil.type],SeRiX-23,y+30);
             y+=30;
         }
@@ -1373,17 +1373,17 @@ function loadSave(index,SK){
         _runner._log.scrollTop=_runner._log.scrollHeight;
     }
 }
-function deleteSave(index){
+function deleteSave(index,SK){
     if(!confirm("确定删除该存档？"))return;
-    const saves=getSaves();
+    const saves=getSaves(SK);
     _runner._log.innerHTML+=`<br>🗑 已删除 ${saves[index].data[2]}`;
     _runner._log.scrollTop=_runner._log.scrollHeight;
     saves.splice(index,1);
     localStorage.setItem(SAVE_KEY,JSON.stringify(saves));
     renderSaveList();
 }
-function renameSave(index){
-    const saves=getSaves();
+function renameSave(index,SK){
+    const saves=getSaves(SK);
     const text=prompt(`命名为:`,saves[index].data[2]);
     if(!text)return;
     saves[index].data[2]=text;
@@ -1402,8 +1402,8 @@ function renderSaveList(){
     saves.forEach((save,idx)=>{
         html+=`
         <div style="position:relative;padding:8px 10px;border:1px solid #dde4f2;border-radius:6px;margin-bottom:8px;cursor:pointer;" onclick="loadSave(${idx},SAVE_KEY)">
-            <button class="del-save-btn" onclick="event.stopPropagation();deleteSave(${idx})">🗙</button>
-            <button class="del-alter-btn" onclick="event.stopPropagation();renameSave(${idx})">🖎</button>
+            <button class="del-save-btn" onclick="event.stopPropagation();deleteSave(${idx},SAVE_KEY)">🗙</button>
+            <button class="del-alter-btn" onclick="event.stopPropagation();renameSave(${idx},SAVE_KEY)">🖎</button>
             <div style="font-weight:bold;font-size:14px;">${save.data[2]}</div>
             <div style="font-size:12px;color:#666;">${save.time}</div>
             <div style="font-size:12px;color:#666;">节点数:${save.data[0].length}</div>
