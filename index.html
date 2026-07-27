@@ -769,7 +769,7 @@ document.addEventListener("keydown",async(e)=>{
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
                 dragUnit.val.slice(Math.max(SeCus,cursorAt));
                 cursorAt=Math.min(SeCus,cursorAt);
-            }else if(!e.ctrlKey&&!e.shiftKey&&!e.metaKey&&!e.altKey)dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
+            }else if(!e.ctrlKey&&!e.shiftKey&&!e.metaKey&&!e.altKey&&e.key!="`")dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
                 dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt=Math.min(SeCus,cursorAt)+1;
             if(!e.ctrlKey&&!e.shiftKey&&!e.metaKey&&!e.altKey)SeCus=-1;
@@ -1292,6 +1292,8 @@ function getSaves(SK){
 }
 function UnitToJSON(){
     const unitCopy=[];
+    let i=0;
+    for(const u of unit)u.POS=i,i++;
     for(const u of unit){
         const indexArr=[];
         for(const targetObj of u.to){
