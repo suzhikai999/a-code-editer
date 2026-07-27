@@ -1539,7 +1539,8 @@ _runner.${u.val.slice(0,temp2)}=function(${temp3}){
 <html ${IsHta?`xmlns:v="urn:schemas-microsoft-com:vml"`:``}
 onclick="return _runner.onclick(event);" onmousemove="return _runner.onmousemove(event);" 
 onmousedown="return _runner.onmousedown(event);" onmouseup="return _runner.onmouseup(event);" 
-onmousewheel="return _runner.onmousewheel(event);" oncontextmenu="return _runner.oncontextmenu(event);">
+onmousewheel="return _runner.onmousewheel(event);" oncontextmenu="return _runner.oncontextmenu(event);"
+onkeydown="return _runner.onkeydown(event);" onkeyup="return _runner.onkeyup(event);">
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="UTF-8">
@@ -1563,6 +1564,8 @@ var _runner={
     onmousewheel:function(event){return ;},
     onbeforeunload:function(event){return ;},
     oncontextmenu:function(event){return ;},
+    onkeydown:function(event){return ;},
+    onkeyup:function(event){return ;},
 };
 
 ${document.getElementById("forPolyfill").checked?Polyfill:""}
@@ -1648,9 +1651,9 @@ function HelpFun(){
 运行、下载前一定要编译！<br>
 `;}
 document.addEventListener("keydown",e=>{
-    if(e.ctrlKey&&e.key.toLowerCase()==="s"){
+    if(e.ctrlKey&&e.key=="s"){
         e.preventDefault();
-        saveCurrentUnit();
+        saveCurrentUnit(SAVE_KEY);
     }
     if(e.key=="F5"){
         e.preventDefault();
