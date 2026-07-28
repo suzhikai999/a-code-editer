@@ -100,8 +100,8 @@
         .drop-menu button:hover {background:#f0f4fc;}
         .dropIn-wrap {position:relative;display:inline-block;}
         .dropIn-btn {margin:4px;margin-top:2px;margin-bottom:2px;padding:8px 10px;border:none;border-radius:6px;background:#366ed8;color:white;font-size:15px;cursor:pointer;}
-        .dropIn-menu {pointer-events:none;transition:0.15s;position:absolute;top:0%;left:90px;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
-        .dropIn-wrap:hover > .dropIn-menu {pointer-events:all;filter:opacity(1);top:0%;left:120px;}
+        .dropIn-menu {pointer-events:none;transition:0.15s;position:absolute;top:0%;right:70%;margin:0;padding:0;background:#fff;border:2px solid #b4c2e0;border-radius:6px;min-width:120px;filter:opacity(0);z-index:99;}
+        .dropIn-wrap:hover > .dropIn-menu {pointer-events:all;filter:opacity(1);top:0%;right:100%;}
         .dropIn-menu li {list-style:none;padding:0;}
         .dropIn-menu button {width:100%;border:none;background:transparent;padding:8px 16px;text-align:left;font-size:14px;cursor:pointer;}
         .dropIn-menu button:hover {background:#f0f4fc;}
@@ -162,7 +162,7 @@ for(const u of unit){
 _runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</button>
                     <button class="ctrl-btn" onclick="/*RunFrom(unit[0])*/openDebugChildPage()">运行</button>
                     <div class="drop-wrap">
-                        <button class="drop-btn">程序选项 ▾</button>
+                        <button class="drop-btn">程序 ▾</button>
                         <ul class="drop-menu">
                             <li><div class="dropIn-wrap">
                                 <div class="dropIn-btn">
@@ -196,13 +196,39 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</butto
                         </ul>
                     </div>
                     <div class="drop-wrap">
-                        <button class="drop-btn">工程操作 ▾</button>
+                        <button class="drop-btn">工程 ▾</button>
                         <ul class="drop-menu">
                             <li><button onclick="localStorage.setItem(SAVE_KEY2,[]);saveCurrentUnit(SAVE_KEY)" style="display:flex;">保存副本<p style="font-size:8px;">(Ctrl+S)</p></button></li>
                             <li><button onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button></li>
                             <li><button onclick="Download()">下载HTA</button></li>
                             <li><button onclick="TakeJSON()">下载JSON</button></li>
                             <li><button onclick="LoadJSON()">加载JSON</button></li>
+                        </ul>
+                    </div>
+                    <div class="drop-wrap">
+                        <button class="drop-btn">编辑器 ▾</button>
+                        <ul class="drop-menu">
+                            <li>
+                                <label style="color:#000;" for="toughness">复位刚性:</label>
+                                <input type="range" min="1" max="1000000" value="100000" id="toughness" oninput="toughness=1000000/document.getElementById('toughness').value">
+                            </li>
+                            <li><div class="dropIn-wrap">
+                                <div class="dropIn-btn">自定义</div>
+                                <ul class="dropIn-menu" style="font-size:13px;">
+                                    <li>
+                                        <label for="GC-N" style="color:#000" id="F-GC-N">普通</label>
+                                        <input type="text" value="#000" id="GC-N" oninput="grammar_color.normal=document.getElementById('GC-N').value;document.getElementById('F-GC-N').style.color=document.getElementById('GC-N').value">
+                                    </li>
+                                    <li>
+                                        <label for="GC-S" style="color:rgb(19,3,146)" id="F-GC-S">符号</label>
+                                        <input type="text" value="rgb(19,3,146)" id="GC-S" oninput="grammar_color.normal=document.getElementById('GC-S').value;document.getElementById('F-GC-S').style.color=document.getElementById('GC-S').value">
+                                    </li>
+                                    <li>
+                                        <label for="GC-M" style="color:rgb(138,18,137)" id="F-GC-M">数字</label>
+                                        <input type="text" value="rgb(138,18,137)" id="GC-M" oninput="grammar_color.normal=document.getElementById('GC-M').value;document.getElementById('F-GC-M').style.color=document.getElementById('GC-M').value">
+                                    </li>
+                                </ul>
+                            </div></li>
                         </ul>
                     </div>
                 </div>
@@ -299,6 +325,11 @@ function prefixLocalVars(codeStr,globalVars=[]){
     }
     return code;
 }
+const grammar_color={
+    NLKC:["rgb(-1,162,65)","rgb(129,104,0)","rgb(0,0,150)"],
+    number:"rgb(138,18,137)",BFT:"rgb(146,132,111)",
+    sign:"rgb(19,3,146)",string:"rgb(151,60,25)",normal:"#000"
+};
 let cursorWA,SeCus=-1;
 function show(u,x,y){
     const boldtext=["new","function","null","NaN","undefined","false","true","_id_","return","delete"];
@@ -310,10 +341,10 @@ function show(u,x,y){
     if(!s)s=u;
     const len=s.length;
     const p=[{size:20,y:0}];
-    const SQs=[],NLKC=["rgb(-1,162,65)","rgb(129,104,0)","rgb(0,0,150)"];
+    const SQs=[],NLKC=grammar_color.NLKC;
     let left_se=0,NLK=0,IsInS=false,IsIns=false,SeLeX=-1,SeRiX=-1;
     ctx.font=`20px Consolas`;
-    ctx.fillStyle="#333";
+    ctx.fillStyle=grammar_color.normal;
     ctx.textBaseline="middle";
     if(u===dragUnit&&mousex<x+10)cursorWA=0;
     let hasBL=false;
@@ -355,7 +386,7 @@ function show(u,x,y){
                         ctx.lineWidth=1;
                         ctx.moveTo(temp+now.size/2-2,now.y-now.size*0.6+y);
                         ctx.lineTo(x                ,now.y-now.size*0.6+y);
-                        ctx.strokeStyle="rgb(3,23,112)";
+                        ctx.strokeStyle=grammar_color.sign;
                         ctx.stroke();
                         SQs.pop();
                     }
@@ -367,14 +398,14 @@ function show(u,x,y){
                 let ws=s[i];
                 if(ws=="*")ws="∙";
                 ctx.font=`${now.size}px Consolas`;
-                ctx.fillStyle="#333";
+                ctx.fillStyle=grammar_color.normal;
                 ctx.textBaseline="middle";
                 if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
                     if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
                     if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
-                    if(("0123456789.".includes(s[i])||("0123456789".includes(s[i-1])&&s[i]=='e'))&&!word)ctx.fillStyle="rgb(138,18,137)";
-                    if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle="rgb(19,3,146)";
-                }else ctx.fillStyle="rgb(151,60,25)";
+                    if(("0123456789.".includes(s[i])||("0123456789".includes(s[i-1])&&s[i]=='e'))&&!word)ctx.fillStyle=grammar_color.number;
+                    if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle=grammar_color.sign;
+                }else ctx.fillStyle=grammar_color.string;
                 ctx.fillText(ws,x,y+now.y,100);
                 if(s.codePointAt(i)<=256)x+=now.size/2;else
                 if("⌈⌉⌊⌋√".includes(s[i]))x+=now.size/2;else
@@ -382,7 +413,7 @@ function show(u,x,y){
             }
         }else{
             ctx.font=`${now.size}px Consolas`;
-            ctx.fillStyle="rgb(146,132,111)";
+            ctx.fillStyle=grammar_color.BFT;
             ctx.textBaseline="middle";
             ctx.fillText(s[i],x,y+now.y,100);
             x+=now.size/2;
@@ -998,7 +1029,7 @@ function Init(){
     requestAnimationFrame(loop);}
 let cursorLook="⎸",CLFC=20;
 let UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
-let CZUB=UnitBuff;
+let CZUB=UnitBuff,toughness=10;
 function loop(){
     mousexf=mousex-mousexf;
     mouseyf=mousey-mouseyf;
@@ -1010,7 +1041,7 @@ function loop(){
         frameCount=0,lastTime=currentTime;}
     if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
-    if(dragUnit&&key['`']){dragUnit.x+=mousexf,dragUnit.y+=mouseyf;if(dragUnit.lasadd){dragUnit.lasadd.x+=mousexf,dragUnit.lasadd.y+=mouseyf};}
+    if(dragUnit&&key['`']){dragUnit.x+=mousexf,dragUnit.y+=mouseyf;if(dragUnit.las){dragUnit.lasadd={x:dragUnit.x-dragUnit.las.endx,y:dragUnit.y-dragUnit.las.y}};}
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,W,H);
     ctx.save();
@@ -1056,7 +1087,7 @@ function loop(){
         const p=getPos(u);
         const r=8;
         if(u.las&&u.las!==unit[u.las.POS])u.las=null;
-        if(u.las)u.x-=(u.x-(u.las.endx+u.lasadd.x))/10,u.y-=(u.y-(u.las.y+u.lasadd.y))/10;
+        if(u.las&&u.y>u.las.y-300)u.x-=(u.x-(u.las.endx+u.lasadd.x))/toughness,u.y-=(u.y-(u.las.y+u.lasadd.y))/toughness;
         let end=p.endx+cam.x;
         if((u.endx>cam.x-500&&u.x<cam.x+W*1.6+500&&u.y>cam.y-500&&u.y<cam.y+H*1.6+500)||!p.endx||u===dragUnit){
             ctx.fillStyle="#e0e0e0";
