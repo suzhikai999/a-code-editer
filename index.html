@@ -984,7 +984,7 @@ const lanw={
     function:"函数",
     branch:"并行分支",
 };
-let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;"}];
+let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;",las:null,lasadd:{x:0,y:0}}];
 let dragUnit=null,cursorAt=0;
 function Init(){
     for(const obj in hasChil){
@@ -1010,7 +1010,7 @@ function loop(){
         frameCount=0,lastTime=currentTime;}
     if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
-    if(dragUnit&&key['`'])dragUnit.x+=mousexf,dragUnit.y+=mouseyf;
+    if(dragUnit&&key['`']){dragUnit.x+=mousexf,dragUnit.y+=mouseyf;if(dragUnit.lasadd){dragUnit.lasadd.x+=mousexf,dragUnit.lasadd.y+=mouseyf};}
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,W,H);
     ctx.save();
@@ -1020,6 +1020,7 @@ function loop(){
         if((u.type=='main'||u.type=='function')&&u.to.length>1)u.to=[u.to[0]];
         if(u.to.length>1&&u.type=="void")u.type="if";
         for(const u2 of u.to){
+            if(!u2.las&&u.endx)u2.lasadd={x:(u2.x-u.endx),y:u2.y-u.y},u2.las=u;
             const p2=getPos(u2);
             ctx.beginPath();
             ctx.moveTo((p.x+p.endx)/2,p.y+20);
@@ -1054,6 +1055,8 @@ function loop(){
         if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);CountI++;
         const p=getPos(u);
         const r=8;
+        if(u.las&&u.las!==unit[u.las.POS])u.las=null;
+        if(u.las)u.x-=(u.x-(u.las.endx+u.lasadd.x))/10,u.y-=(u.y-(u.las.y+u.lasadd.y))/10;
         let end=p.endx+cam.x;
         if((u.endx>cam.x-500&&u.x<cam.x+W*1.6+500&&u.y>cam.y-500&&u.y<cam.y+H*1.6+500)||!p.endx||u===dragUnit){
             ctx.fillStyle="#e0e0e0";
@@ -1070,7 +1073,7 @@ function loop(){
             }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
             ctx.fill();
             if(u.errow){
-                ctx.font="20px Comsolas";
+                ctx.font="20px Consolas";
                 ctx.fillStyle="red";
                 ctx.fillText("⚠",p.x-10,p.y);
             }
@@ -1080,8 +1083,7 @@ function loop(){
         let i=0;
         for(const u2 of u.to){
             if(!unit.includes(u2))u.to.splice(i,1);
-            if(u2.x>u.x-50&&u.y>u2.y-50&&u.y<u2.y+50&&u2.x<end+50)u2.x=end+50;
-            if(u2.x>u.endx+50&&u.y>u2.y-30&&u.y<u2.y+30)u2.x+=(end+50-u2.x)/10;
+            if(u2.lasadd&&u2.x>u.x&&u2.lasadd.x<50&&Math.abs(u2.y-u.y)<30)u2.lasadd.x=50;
             ++i;}
         u.endx=end;
     }
