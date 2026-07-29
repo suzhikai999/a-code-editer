@@ -774,8 +774,7 @@ document.addEventListener("mouseup",(e)=>{
 });
 const key={Shift:false,Delete:false,Control:false};
 const alter=[{from:"sqrt",to:"√`",back:1},
-    {from:"ln",to:"㏑()",back:2},
-    {from:"ceil",to:"⌈⌉",back:1},
+    {from:"ln",to:"㏑()",back:2},{from:"ceil",to:"⌈⌉",back:1},
     {from:"floor",to:"⌊⌋",back:1},];
 canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
@@ -1086,8 +1085,8 @@ function loop(){
         if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);CountI++;
         const p=getPos(u);
         const r=8;
-        if(u.las&&u.las!==unit[u.las.POS])u.las=null;
-        if(u.las&&u.y>u.las.y-300)u.x-=(u.x-(u.las.endx+u.lasadd.x))/toughness,u.y-=(u.y-(u.las.y+u.lasadd.y))/toughness;
+        if(u.las&&(u.las!==unit[u.las.POS]||!u.las.to.includes(u)))u.las=null;
+        if(u.las&&u.endx>u.las.x-50)u.x-=(u.x-(u.las.endx+u.lasadd.x))/toughness,u.y-=(u.y-(u.las.y+u.lasadd.y))/toughness;
         let end=p.endx+cam.x;
         if((u.endx>cam.x-500&&u.x<cam.x+W*1.6+500&&u.y>cam.y-500&&u.y<cam.y+H*1.6+500)||!p.endx||u===dragUnit){
             ctx.fillStyle="#e0e0e0";
