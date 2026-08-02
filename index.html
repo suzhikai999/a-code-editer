@@ -875,11 +875,11 @@ document.addEventListener("keydown",async(e)=>{
         if(cursorAt<0)cursorAt=0;if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;
         for(const alte of alter){if(dragUnit.val.slice(cursorAt-alte.from.length,cursorAt)==alte.from)dragUnit.val=dragUnit.val.slice(0,cursorAt-alte.from.length)+alte.to+dragUnit.val.slice(cursorAt),cursorAt-=alte.from.length-alte.back;}
         if(dragUnit.val=="for"&&dragUnit.type=="void"){
-            let temdo={type:"void",val:"i++",to:[],x:dragUnit.endx+70,y:dragUnit.y+110};
+            let temdo={type:"void",val:"i++",to:[],x:dragUnit.x,y:dragUnit.y+110};
             let temif={};
-            if(dragUnit.to.length>0)temif={type:"if",val:"i<",to:[temdo,dragUnit.to[0]],x:dragUnit.endx+50,y:dragUnit.y,endx:dragUnit.endx+50};
-            else{let temThenDo={type:"void",val:"",to:[],x:dragUnit.endx+120,y:dragUnit.y,endx:dragUnit.endx+120};
-                temif={type:"if",val:"i<",to:[temdo,temThenDo],x:dragUnit.endx+50,y:dragUnit.y,endx:dragUnit.endx+50};
+            if(dragUnit.to.length>0)temif={type:"if",val:"i<",to:[temdo,dragUnit.to[0]],x:dragUnit.x,y:dragUnit.y+55,endx:dragUnit.x},dragUnit.to[0].lasadd={x:100,y:0};
+            else{let temThenDo={type:"void",val:"",to:[],x:dragUnit.endx+50,y:dragUnit.y+55,endx:dragUnit.endx+50};
+                temif={type:"if",val:"i<",to:[temdo,temThenDo],x:dragUnit.x,y:dragUnit.y+55,endx:dragUnit.x};
                 unit.push(temThenDo);}
             temdo.to=[temif];
             dragUnit.val="i=0";
@@ -1134,10 +1134,10 @@ function loop(){
                 if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;if(s[i]=="(")func=word;word="";}
             }
             if(func!="|none|"&&u.type=="function"){
-                globalObj=globalObj.filter(obj=>(obj.text!=func&&obj.belong!==u));
-                globalObj.push({text:func+"()",back:1,has:[],type:"BS",belong:u});
-                globalFunc=globalFunc.filter(obj=>(obj.name!=func&&obj.belong!==u));
-                globalFunc.push({name:func,text:s+": any",belong:u});
+                globalObj=globalObj.filter(obj=>(obj.text!=func&&obj.belong!==u.POS));
+                globalObj.push({text:func+"()",back:1,has:[],type:"BS",belong:u.POS});
+                globalFunc=globalFunc.filter(obj=>(obj.name!=func&&obj.belong!==u.POS));
+                globalFunc.push({name:func,text:s+": any",belong:u.POS});
                 let CLFC=0,isInS=false,isIns=false,left=func.length+1,res=[];
                 for(let i=func.length+1;i<s.length-1;i++){
                     if(s[i]=="'")isInS=!isInS;
@@ -1145,19 +1145,19 @@ function loop(){
                     if(!isInS&&!isIns){
                         if("([{".includes(s[i]))CLFC++;else
                         if(")]}".includes(s[i]))CLFC--;else
-                        if(s[i]==','&&CLFC==0)globalObj.push({text:s.slice(left,i),back:0,has:[],type:"RC",belong:u}),left=i+1;
+                        if(s[i]==','&&CLFC==0)globalObj.push({text:s.slice(left,i),back:0,has:[],type:"RC",belong:u.POS}),left=i+1;
                     }
                 }
                 if(CLFC==0)globalObj.push({text:s.slice(left,s.length-1),back:0,has:
-                    ["onclick","onmousedown","onmouseup","onmousemove","onmousewheel","oncontextmenu","onkeydown","onkeyup"].includes(func)?hasChil.event:[],type:"RC",belong:u});
+                    ["onclick","onmousedown","onmouseup","onmousemove","onmousewheel","oncontextmenu","onkeydown","onkeyup"].includes(func)?hasChil.event:[],type:"RC",belong:u.POS});
             }else{
                 u.errow=false;
                 const s2=s.slice(beforeQe);
                 attenOut=0;
                 const temp=to_filler(s2);
                 if(!attenOut){
-                    globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)&&obj.belong!==u));
-                    for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.unshift({text:fi,back:0,has:temp,type:"BS",belong:u});}
+                    globalObj=globalObj.filter(obj=>(!fir.includes(obj.text)&&obj.belong!==u.POS));
+                    for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.unshift({text:fi,back:0,has:temp,type:"BS",belong:u.POS});}
                 }else if(u.val!="")u.errow=true;else u.errow=false;
             }
         }
