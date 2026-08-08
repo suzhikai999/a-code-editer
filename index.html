@@ -787,6 +787,9 @@ document.addEventListener("keydown",async(e)=>{
     if(dragUnit&&!mousedown){
         if(SeCus!==-1){
             if(e.ctrlKey&&e.key==="c")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)));else
+            if(e.ctrlKey&&e.key==="x")await navigator.clipboard.writeText(dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt))),dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+
+                dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
+                dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt=Math.min(SeCus,cursorAt);else
             if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
             if(e.ctrlKey&&e.key=="v"){const text=await navigator.clipboard.readText();dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+text+
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
@@ -802,11 +805,11 @@ document.addEventListener("keydown",async(e)=>{
                 dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt++,SeCus++;}else
             if(e.key==="ArrowLeft"){if(!e.shiftKey)cursorAt=Math.min(SeCus,cursorAt);else{cursorAt--;if(cursorAt<0)cursorAt=0;}}else
             if(e.key==="ArrowRight"){if(!e.shiftKey)cursorAt=Math.max(SeCus,cursorAt);else{cursorAt++;if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}}else
+            if(e.key==="End"){cursorAt=dragUnit.val.length;}else if(e.key==="Home"){cursorAt=0;}else
             if(e.key==="Backspace"||e.key==="Delete"){
                 dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
-                dragUnit.val.slice(Math.max(SeCus,cursorAt));
-                cursorAt=Math.min(SeCus,cursorAt);
+                dragUnit.val.slice(Math.max(SeCus,cursorAt));cursorAt=Math.min(SeCus,cursorAt);
             }else if(!e.ctrlKey&&!e.shiftKey&&!e.metaKey&&!e.altKey&&e.key!="`")dragUnit.val=dragUnit.val.slice(0,Math.min(SeCus,cursorAt))+e.key+
                 dragUnit.val.slice(Math.min(SeCus,cursorAt),Math.max(SeCus,cursorAt)).replace(/[^^_√`]/g,'').replace(/\^`/g,'').replace(/_`/g,'').replace(/√`/g,'')+
                 dragUnit.val.slice(Math.max(SeCus,cursorAt)),cursorAt=Math.min(SeCus,cursorAt)+1;
@@ -818,11 +821,13 @@ document.addEventListener("keydown",async(e)=>{
             cursorAt+=text.length;}else
         if(e.ctrlKey&&e.key=="c"){await navigator.clipboard.writeText(dragUnit.val);}else
         if(e.ctrlKey&&e.key=="a"){cursorAt=dragUnit.val.length,SeCus=0;}else
+        if(e.key==="End"){if(e.shiftKey)SeCus=cursorAt;cursorAt=dragUnit.val.length;}else
+        if(e.key==="Home"){if(e.shiftKey)SeCus=cursorAt;cursorAt=0;}else
         if(e.key==="ArrowLeft"){if(e.shiftKey)SeCus=cursorAt;const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(cursorAt==0&&temp!=-1)dragUnit=unit[temp],cursorAt=dragUnit.val.length+1;cursorAt--,CLFC=0,cursorLook=' ';}else
         if(e.key==="ArrowRight"){if(e.shiftKey)SeCus=cursorAt;if(cursorAt==dragUnit.val.length&&dragUnit.to.length>0)dragUnit=dragUnit.to[0],cursorAt=-1;cursorAt++,CLFC=0,cursorLook=' ';}else
-        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.x,y:dragUnit.y+55,endx:dragUnit.x};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length>0)temp.x=(dragUnit.to.length>0?dragUnit.to[0]:{endx:dragUnit.endx}).endx+70;dragUnit.to.unshift(temp);}else temp.to=dragUnit.to,dragUnit.to=[temp];if(cursorAt===0){temp.val=dragUnit.val;dragUnit.val="";}dragUnit=temp;}else
+        if(e.key==="Enter"){let temp={type:"void",val:"",to:[],x:dragUnit.x,y:dragUnit.y+55,endx:dragUnit.x};unit.push(temp);if(e.shiftKey){if(dragUnit.to.length>0)temp.x=(dragUnit.to.length>0?dragUnit.to[0]:{endx:dragUnit.endx}).endx+70;dragUnit.to.unshift(temp);}else temp.to=(dragUnit.to.length>0)?([dragUnit.to[0]]):[],dragUnit.to[0]=temp;if(cursorAt===0){temp.val=dragUnit.val;dragUnit.val="";}dragUnit=temp;}else
         if(e.key==="Backspace"){
-            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;cursorAt=dragUnit.val.length;return;}
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){const temp2=temp.to.findIndex(U2=>U2===dragUnit);temp.to.splice(temp2,1);temp.to.unshift(...dragUnit.to);}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=temp;cursorAt=dragUnit.val.length;return;}
             let temp=dragUnit.val[cursorAt-1];
             if(cursorAt==0)temp="none";
             if(["√`","()","[]","{}","''",'""'].includes(dragUnit.val.slice(cursorAt-1,cursorAt+1)))dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
@@ -830,7 +835,7 @@ document.addEventListener("keydown",async(e)=>{
             else if(dragUnit.val[cursorAt-1]!='`'&&cursorAt>0)dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt);
             cursorAt--;}else
         if(e.key==="Delete"&&!e.ctrlKey){
-            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){temp.to[temp.to.findIndex(U2=>U2===dragUnit)]=dragUnit.to[0];}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=dragUnit.to[0];return;}
+            if(dragUnit.val.length==0){const temp=unit.find(U=>U.to.includes(dragUnit));if(temp&&dragUnit.to.length>0){const temp2=temp.to.findIndex(U2=>U2===dragUnit);temp.to.splice(temp2,1);temp.to.unshift(...dragUnit.to);}unit.splice(unit.findIndex(u=>u===dragUnit),1);dragUnit=dragUnit.to[0];return;}
             const temp=dragUnit.val[cursorAt];
             const temp2=dragUnit.val[cursorAt-1];
             if((temp=="√")&&dragUnit.val[cursorAt+1]=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+2);else
