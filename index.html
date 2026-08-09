@@ -273,7 +273,7 @@ const domHtmlInput=document.getElementById("domHtmlInput");
 let lastTime=performance.now();
 let frameCount=0;
 let fps=0;
-let mousex=0,mousey=0,mousexf=0,mouseyf=0,mousedown=false,dragOffX,dragOffY;
+let mousex=0,mousey=0,mousexf=0,mouseyf=0,mousedown=false,mouserd=false,dragOffX,dragOffY;
 const Chars="abcdefghijklnmopqrstuvwxyzABCDEFGHIJKLNMOPQRSTUVWXYZ";//Why is this?
 function RunFrom(now){
     while(true){
@@ -287,7 +287,6 @@ function RunFrom(now){
 }
 let _runner={
     _log:document.getElementById("runner_log"),
-    _return:null,
 };
 function Expr(str){
     let code=str
@@ -352,7 +351,7 @@ function show(u,x,y){
         const now=p[p.length-1];
         if(u===dragUnit){
             if(x<mousex-now.size/4)cursorWA=i+1;
-            if(cursorAt==i){ctx.fillStyle="#000";
+            if(cursorAt==i){ctx.fillStyle="#000";ctx.font=`${now.size*1.1}px Consolas`;
                 ctx.fillText(cursorLook,x,y+now.y,100),SeRiX=x,x+=1,filler=(!IsIns&&!IsInS)?filler:[];
                 if(Funcs.length>0){
                 let temp2=[...funcTour,...globalFuncBuff].find(FU=>FU.name==Funcs[Funcs.length-1][0]);
@@ -424,7 +423,7 @@ function show(u,x,y){
     }
     const now=p[p.length-1];
     if(boldtext.includes(word)){ctx.font=`${now.size*0.906}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-word.length*now.size/2,y);}
-    if(u===dragUnit&&cursorAt==len)ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
+    if(u===dragUnit&&cursorAt==len)ctx.font=`${now.size*1.1}px Consolas`,ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
     if(SeCus==len)SeLeX=x;
     if(SeLeX!==-1&&SeRiX!==-1){
         ctx.beginPath();
@@ -736,7 +735,7 @@ function getPos(u){
     return {x:u.x-cam.x,y:u.y-cam.y,endx:u.endx-cam.x};
 }
 function find(x,y){
-    for(let i=unit.length-1;i>=0;i--){
+    for(let i=0;i<unit.length;i++){
         const u=unit[i];
         const temp=getPos(u);
         if(mousex>=temp.x-20&&mousex<=temp.endx+20&&mousey>=temp.y&&mousey<=temp.y+40){
@@ -745,34 +744,85 @@ function find(x,y){
     }
     return null;
 }
+function clearCtrl(){
+    let i=0;
+    while(unit[i]&&unit[i].type.startsWith("ctrl-"))i++;
+    unit.splice(0,i);
+}
+function line_from(U){
+    let res=[U];
+    for(const U2 of U.to){res.push(...line_from(U2));}
+    return res;
+}
+
+function copy_line_from(U){
+    const CU={
+        type:U.type,
+        val:U.val,
+        x:U.x+200,
+        y:U.y,
+        to:[],
+        endx:U.endx,
+        lasadd:{...U.lasadd}
+    };
+    let res=[CU];
+    for(const U2 of U.to){
+        const temp=copy_line_from(U2);
+        CU.to.push(temp[1]);
+        res.push(...temp[0]);
+    }
+    return [res,CU];
+}
+canvas.addEventListener("contextmenu",(e)=>{
+    e.preventDefault();
+    return 0;
+});
 canvas.addEventListener("mousemove",(e)=>{
     const rect=canvas.getBoundingClientRect();
     const X=e.clientX-rect.left,Y=e.clientY-rect.top;
     mousex=X,mousey=Y;
 });
 document.addEventListener("mousedown",(e)=>{
-    mousedown=true,filler=[];
-    SeCus=-1;
-    dragOffX=mousex;
-    dragOffY=mousey;
+    if(e.button==2){mouserd=true;clearCtrl();}
+    mousedown=true,filler=[];SeCus=-1;
+    dragOffX=mousex,dragOffY=mousey;
     dragUnit=find(mousex,mousey);
     cursorAt="un";
 });
+document.addEventListener("wheel",clearCtrl);
 document.addEventListener("mouseup",(e)=>{
-    mousedown=false;
+    clearCtrl();mousedown=false;
+    if(e.button==2){if(dragUnit&&!dragUnit.type.startsWith("ctrl-")&&Math.pow(dragOffX-mousex,2)+Math.pow(dragOffY-mousey,2)<5)
+        unit.unshift({type:"ctrl-menu-delete",val:"删除路径",to:[],x:mousex+cam.x,y:mousey+cam.y,for:dragUnit}),
+        unit.unshift({type:"ctrl-menu-copy",val:"复制路径",to:[],x:mousex+cam.x,y:mousey+cam.y+30,for:dragUnit});
+    mouserd=false;return ;}
+    if(dragUnit.type.startsWith("ctrl-")){
+        switch(dragUnit.type){
+            case"ctrl-menu-delete":
+                const delSet=new Set(line_from(dragUnit.for));
+                unit=unit.filter(U=>!delSet.has(U));
+                break;
+            case"ctrl-menu-copy":
+                unit.push(...copy_line_from(dragUnit.for)[0]);
+                break;
+            default:break;
+        }
+    return ;}
     if(!dragUnit)return ;
     let temp=find(mousex,mousey);
     if(key.Shift)return ;
-    if(temp==dragUnit){if(key.Delete&&key.Control)unit.splice(unit.findIndex(u=>u===dragUnit),1);return ;}
-    if(temp&&key.Delete&&key.Control){
+    if(temp==dragUnit){if(key.Control&&key.x)unit.splice(unit.findIndex(u=>u===dragUnit),1);return ;}
+    if(temp){
         const tem1=temp.to.findIndex(item=>item===dragUnit);
         const tem2=dragUnit.to.findIndex(item=>item===temp);
         if(tem1>-1)temp.to.splice(tem1,1);
         if(tem2>-1)dragUnit.to.splice(tem2,1);
+        if(tem1==-1&&tem2==-1)dragUnit.to.push(temp);
+        dragUnit=temp;
         return ;}
     if(!temp)temp={type:"void",val:"",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length,endx:mousex+cam.x},unit.push(temp);
     if(!dragUnit.to.includes(temp))dragUnit.to.push(temp);
-    dragUnit=null;
+    dragUnit=temp;
 });
 const key={Shift:false,Delete:false,Control:false};
 const alter=[{from:"sqrt",to:"√`",back:1},
@@ -781,7 +831,7 @@ const alter=[{from:"sqrt",to:"√`",back:1},
 canvas.addEventListener("keydown",(e)=>{e.preventDefault();});
 document.addEventListener("keydown",async(e)=>{
     key[e.key]=true;
-    if(e.ctrlKey&&e.key=="f"){unit.unshift({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});return;}
+    if(e.ctrlKey&&e.key=="f"){unit.push({type:"function",val:"func(a)",to:[],x:mousex+cam.x-30,y:mousey+cam.y-20,POS:unit.length});return;}
     if(e.ctrlKey&&e.key=="m"){dragUnit=unit.find(U=>U.type=="main");cursorAt=0;CLFC=0,cursorLook=' ';return;}
     if(e.ctrlKey&&e.key=="z"&&e.target==canvas){unit=CZUB.unit;cursorAt=CZUB.cursorAt;SeCus=CZUB.SeCus;CLFC=0,cursorLook=' ';dragUnit=unit[CZUB.DrUnId];for(const u of unit)u.to=u.to.map(U=>unit[U]);return;}
     if(dragUnit&&!mousedown){
@@ -1020,7 +1070,9 @@ const lanw={
     else:"否则",
     case:"分支",
     function:"函数",
+    deleted:"已删除",
     branch:"并行分支",
+    "ctrl-menu-delete":"删除分支",
 };
 let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;",las:null,lasadd:{x:0,y:0}}];
 let dragUnit=null,cursorAt=0;
@@ -1048,7 +1100,7 @@ function loop(){
         frameCount=0,lastTime=currentTime;}
     if(CLFC<=0)cursorLook=cursorLook==' ' ? '⎸' :' ',CLFC=30;else CLFC--;
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
-    if(dragUnit&&key['`']){dragUnit.x+=mousexf,dragUnit.y+=mouseyf;if(dragUnit.lasadd)dragUnit.lasadd.x+=mousexf,dragUnit.lasadd.y+=mouseyf;}
+    if(dragUnit&&mouserd){dragUnit.x+=mousexf,dragUnit.y+=mouseyf;if(dragUnit.lasadd)dragUnit.lasadd.x+=mousexf,dragUnit.lasadd.y+=mouseyf;}
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,W,H);
     ctx.save();
@@ -1079,13 +1131,13 @@ function loop(){
             i++;
         }
     }
-    let CountI=0;
     let flag=false,changeUnit=[];
-    for(const u of unit){
+    for(let CountI=unit.length-1;CountI>=0;CountI--){
+        const u=unit[CountI];
         u.val=u.val.trimStart();
         u.POS=CountI;
         const UBU=UnitBuff.unit[CountI];
-        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);CountI++;
+        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);
         const p=getPos(u);
         const r=8;
         if(u.las&&(u.las!==unit[u.las.POS]||!u.las.to.includes(u)))u.las=null;
@@ -1103,14 +1155,19 @@ function loop(){
                 ctx.lineTo(p.endx,p.y+40);
                 ctx.lineTo(p.endx+20,p.y+20);
                 ctx.lineTo(p.endx,p.y);
-            }else ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
+            }else if(u.type.startsWith("ctrl-")){
+                ctx.fillStyle="#fff";
+                ctx.roundRect(p.x,p.y,p.endx-p.x+5,30,2);
+                ctx.stroke();
+            }else
+            ctx.roundRect(p.x,p.y,p.endx-p.x+20,40,r);
             ctx.fill();
-            if(u.errow){
+            if(u.errow&&!u.type.startsWith("ctrl-")){
                 ctx.font="25px Consolas";
                 ctx.fillStyle="red";
                 ctx.fillText("⚠",p.x-10,p.y);
             }
-            end=show(u,p.x+20,p.y+20)+cam.x;
+            end=u.type.startsWith("ctrl-")?show(u,p.x+15,p.y+15):show(u,p.x+20,p.y+20)+cam.x;
         }
         if(u.type=="if"&&u.to.length==0)u.type="void";
         let i=0;
@@ -1168,7 +1225,7 @@ function loop(){
         }
     }
     if(find(mousex,mousey)){
-        if(key['`'])canvas.style.cursor="grabbing";
+        if(mouserd)canvas.style.cursor="grabbing";
         else canvas.style.cursor="text";
     }else{canvas.style.cursor=mousedown?"grabbing":"grab";}
     mousexf=mousex;
@@ -1670,17 +1727,16 @@ Ctrl+z                                 --> 撤回<br>
 Ctrl+f                                 --> 新建函数<br>
 ctrl+s                                 --> 保存<br>
 ctrl+m                                 --> 回到主函数<br>
-Shift+Enter                            --> 从当前单位新建单位<br>
 Alt+滚轮                               --> 滚动页面<br>
 shift+滚轮                             --> 横向滚动画布<br>
-\`+鼠标移动                            --> 移动活动单位<br>
+Shift+Enter                            --> 从当前单位新建单位<br>
+右键拖动单位                           --> 移动单位<br>
+Ctrl+x+点击单位                        --> 删除单位<br>
 未选择文本 Ctrl+c                      --> 复制当前单位的所有内容<br>
-当前单位为空 Delete或BackSpace         --> 从路径中删除单位<br>
-Ctrl+Delete+点击单位                   --> 删除单位<br>
+鼠标从一个单位拖到另一单位             --> 创建连线或删除已有连线<br>
 光标在单位最左端 LeftArrow             --> 移到上一个单位<br>
 光标在单位最右端 RightArrow            --> 移到下一个单位<br>
-鼠标从一个单位拖到另一单位             --> 创建连线<br>
-鼠标从一个单位拖到另一单位+Ctrl+Delete --> 删除已有连线<br>
+当前单位为空 Delete或BackSpace         --> 从路径中删除单位<br>
 `;}
 function HelpFun(){
     _runner._log.innerHTML+=`<br><br>
