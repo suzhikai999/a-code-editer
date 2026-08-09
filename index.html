@@ -796,6 +796,7 @@ document.addEventListener("mouseup",(e)=>{
         unit.unshift({type:"ctrl-menu-delete",val:"删除路径",to:[],x:mousex+cam.x,y:mousey+cam.y,for:dragUnit}),
         unit.unshift({type:"ctrl-menu-copy",val:"复制路径",to:[],x:mousex+cam.x,y:mousey+cam.y+30,for:dragUnit});
     mouserd=false;return ;}
+    if(!dragUnit)return ;
     if(dragUnit.type.startsWith("ctrl-")){
         switch(dragUnit.type){
             case"ctrl-menu-delete":
@@ -808,7 +809,6 @@ document.addEventListener("mouseup",(e)=>{
             default:break;
         }
     return ;}
-    if(!dragUnit)return ;
     let temp=find(mousex,mousey);
     if(key.Shift)return ;
     if(temp==dragUnit){if(key.Control&&key.x)unit.splice(unit.findIndex(u=>u===dragUnit),1);return ;}
