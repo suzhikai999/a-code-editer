@@ -752,12 +752,14 @@ function clearCtrl(){
     unit.splice(0,i);
 }
 function line_from(U){
+    if(U.copy==="delete")return [];
     let res=[U];
+    U.copy="delete";
     for(const U2 of U.to){res.push(...line_from(U2));}
     return res;
 }
-
 function copy_line_from(U){
+    if(U.copy)return [[],U.copy];
     const CU={
         type:U.type,
         val:U.val,
@@ -768,6 +770,7 @@ function copy_line_from(U){
         lasadd:{...U.lasadd}
     };
     let res=[CU];
+    U.copy=CU;
     for(const U2 of U.to){
         const temp=copy_line_from(U2);
         CU.to.push(temp[1]);
@@ -1110,6 +1113,7 @@ function loop(){
     for(const u of unit){
         const p=getPos(u);
         let i=0;
+        if(u.copy)delete u.copy;
         if((u.type=='main'||u.type=='function')&&u.to.length>1)u.to=[u.to[0]];
         if(u.to.length>1&&u.type=="void")u.type="if";
         for(const u2 of u.to){
