@@ -171,6 +171,8 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</butto
                                 </div>
                                 <ul class="dropIn-menu" style="font-size:10px;">
                                     <li><h3>&emsp;补丁：</h3></li>
+                                    <li><p>&emsp;String.startsWith</p></li>
+                                    <li><p>&emsp;String.endsWith</p></li>
                                     <li><p>&emsp;String.includes</p></li>
                                     <li><p>&emsp;Array.includes</p></li>
                                     <li><p>&emsp;Array.findIndex</p></li>
@@ -996,7 +998,7 @@ const domFiller=["div","span","input","button","option","img","table","a","ifram
 "width:0px","height:0px","top:0px","left:0px","right:0px","bottom:0px","backgroundColor:'red'","backgroundColor:#000000","backgroundColor:rgb(0,0,0)","color:'red'",
 "color:'white'","color:#000","color:rgb(0,0,0)","font-size:14px","font-weight:bold","display:block","display:none","position:absolute","position:relative","margin:0px",
 "padding:0px","border:1px solid #000","cursor:pointer","textAlign:center","overflow:hidden","transition","filter","id","textarea","font-family","transform: rotate(___deg);","transform-origin","canvas",
-"matrix","translate","scale","matrix3d","translate3d","scale3d",];
+"matrix","translate","scale","matrix3d","translate3d","scale3d","perspective"];
 let dofil=[],dofilPos=0;
 function updateHtmlInputTip(){
     const ta=domHtmlInput;
@@ -1168,7 +1170,7 @@ function loop(){
                 ctx.fillStyle="red";
                 ctx.fillText("⚠",p.x-10,p.y);
             }
-            end=u.type.startsWith("ctrl-")?show(u,p.x+15,p.y+15):show(u,p.x+20,p.y+20)+cam.x;
+            end=(u.type.startsWith("ctrl-")?show(u,p.x+15,p.y+15):show(u,p.x+20,p.y+20))+cam.x;
         }
         if(u.type=="if"&&u.to.length==0)u.type="void";
         let i=0;
@@ -1518,6 +1520,12 @@ function renderSaveList(){
 String.prototype.indexOf;
 const Polyfill=`
 //===============补丁===============
+if(!String.prototype.startsWith)String.prototype.startsWith=function(searchString){
+    return this.indexOf(searchString)===0;
+};
+if(!String.prototype.endsWith)String.prototype.endsWith=function(searchString){
+    return this.lastIndexOf(searchString)===this.length-searchString.length;
+};
 if(!String.prototype.includes)String.prototype.includes=function(searchString,position){
     position=typeof position==='number'?position:0;
     return this.indexOf(searchString,position)!==-1;
@@ -1563,6 +1571,11 @@ if(!Array.prototype.filter)Array.prototype.filter=function(cb){
     var res=[];
     for(var i=0;i<this.length;i++)if(cb(this[i],i,this))res.push(this[i]);
     return res;
+}
+if(!Element.prototype.remove){
+    Element.prototype.remove=function(){
+        if(this.parentNode)this.parentNode.removeChild(this);
+    };
 }
 function runCMD(cmdStr){
     try{
