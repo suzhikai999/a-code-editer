@@ -202,7 +202,8 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</butto
                         <ul class="drop-menu">
                             <li><button onclick="localStorage.setItem(SAVE_KEY2,[]);saveCurrentUnit(SAVE_KEY)" style="display:flex;">保存副本<p style="font-size:8px;">(Ctrl+S)</p></button></li>
                             <li><button onclick="if(!confirm('确定删除所有存档？'))return;localStorage.clear();renderSaveList()">清空存档</button></li>
-                            <li><button onclick="Download()">下载HTA</button></li>
+                            <li><button onclick="DownloadHta()">下载HTA</button></li>
+                            <li><button onclick="DownloadHtml()">下载HTML</button></li>
                             <li><button onclick="TakeJSON()">下载JSON</button></li>
                             <li><button onclick="LoadJSON()">加载JSON</button></li>
                         </ul>
@@ -579,6 +580,51 @@ const funcTour=[
     {name:".addColorStop",text:"gradient.addColorStop(offset, color):void"},
     {name:"function",text:"function(...parameters){ Logic }:function"},
     {name:"Function",text:"Function(value):function"},
+    {name:"scroll",text:"scroll(x?, y?): void"},
+    {name:"scrollTo",text:"scrollTo(x?, y?): void"},
+    {name:"scrollBy",text:"scrollBy(dx?, dy?): void"},
+    {name:"close",text:"close(): void"},
+    {name:"moveTo",text:"moveTo(x, y): void"},
+    {name:"moveBy",text:"moveBy(dx, dy): void"},
+    {name:"resizeTo",text:"resizeTo(width, height): void"},
+    {name:"resizeBy",text:"resizeBy(dw, dh): void"},
+    {name:"setTimeout",text:"setTimeout(callback, delay?): number"},
+    {name:"setInterval",text:"setInterval(callback, delay?): number"},
+    {name:"clearTimeout",text:"clearTimeout(timerId?): void"},
+    {name:"clearInterval",text:"clearInterval(timerId?): void"},
+    {name:"reload",text:"reload(force?): void"},
+    {name:"assign",text:"assign(url): void"},
+    {name:"replace",text:"replace(url): void"},
+    {name:"historyBack",text:"historyBack(): void"},
+    {name:"historyForward",text:"historyForward(): void"},
+    {name:"historyGo",text:"historyGo(offset): void"},
+    {name:"localStorageGetItem",text:"localStorageGetItem(key): string | null"},
+    {name:"localStorageSetItem",text:"localStorageSetItem(key, value): void"},
+    {name:"localStorageRemoveItem",text:"localStorageRemoveItem(key): void"},
+    {name:"localStorageClear",text:"localStorageClear(): void"},
+    {name:"sessionStorageGetItem",text:"sessionStorageGetItem(key): string | null"},
+    {name:"sessionStorageSetItem",text:"sessionStorageSetItem(key, value): void"},
+    {name:"sessionStorageRemoveItem",text:"sessionStorageRemoveItem(key): void"},
+    {name:"sessionStorageClear",text:"sessionStorageClear(): void"},
+    {name:"querySelector",text:"querySelector(selector): Element | null"},
+    {name:"querySelectorAll",text:"querySelectorAll(selector): NodeList"},
+    {name:"createElement",text:"createElement(tagName): Element"},
+    {name:"createTextNode",text:"createTextNode(text): Text"},
+    {name:"createAttribute",text:"createAttribute(name): Attr"},
+    {name:"appendChild",text:"appendChild(node): Node"},
+    {name:"append",text:"append(...nodes): void"},
+    {name:"removeChild",text:"removeChild(node): Node"},
+    {name:"replaceChild",text:"replaceChild(newNode, oldNode): Node"},
+    {name:"insertBefore",text:"insertBefore(newNode, refNode?): Node"},
+    {name:"cloneNode",text:"cloneNode(deep?): Node"},
+    {name:"getElementById",text:"getElementById(id): Element | null"},
+    {name:"getElementsByClassName",text:"getElementsByClassName(className): HTMLCollection"},
+    {name:"getElementsByName",text:"getElementsByName(name): NodeList"},
+    {name:"getElementsByTagName",text:"getElementsByTagName(tagName): HTMLCollection"},
+    {name:"write",text:"write(...text): void"},
+    {name:"writeln",text:"writeln(...text): void"},
+    {name:"exitFullscreen",text:"exitFullscreen(): void"},
+    {name:"exitPointerLock",text:"exitPointerLock(): void"}
 ];
 const hasChil={
     number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
@@ -674,7 +720,46 @@ const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",
     {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},{text:"pow()",back:1,has:[],type:"AR"},
     {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},{text:".ln()",back:1,has:hasChil.number,type:"AR"},
         {text:".sqrt()",back:1,has:hasChil.number,type:"AR"},{text:".floor()",back:1,has:hasChil.number,type:"AR"},{text:".ceil()",back:1,has:hasChil.number,type:"AR"},],type:"AR"},
-    {text:"document",back:0,has:[{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
+    {text:"window",back:0,has:[
+        {text:".innerWidth",back:0,has:hasChil.number,type:"AR"},{text:".innerHeight",back:0,has:hasChil.number,type:"AR"},
+        {text:".outerWidth",back:0,has:hasChil.number,type:"AR"},{text:".outerHeight",back:0,has:hasChil.number,type:"AR"},
+        {text:".screenX",back:0,has:hasChil.number,type:"AR"},{text:".screenY",back:0,has:hasChil.number,type:"AR"},
+        {text:".scrollX",back:0,has:hasChil.number,type:"AR"},{text:".scrollY",back:0,has:hasChil.number,type:"AR"},
+        {text:".scroll()",back:1,has:[],type:"AR"},{text:".scrollTo()",back:1,has:[],type:"AR"},{text:".scrollBy()",back:1,has:[],type:"AR"},
+        {text:".screen",back:0,has:[{text:".width",back:0,has:hasChil.number,type:"AR"},
+            {text:".height",back:0,has:hasChil.number,type:"AR"},{text:".availWidth",back:0,has:hasChil.number,type:"AR"},
+            {text:".availHeight",back:0,has:hasChil.number,type:"AR"},{text:".colorDepth",back:0,has:hasChil.number,type:"AR"}],type:"AR"},
+        {text:".location",back:0,has:[{text:".href",back:0,has:hasChil.string,type:"AR"},
+            {text:".protocol",back:0,has:hasChil.string,type:"AR"},{text:".host",back:0,has:hasChil.string,type:"AR"},
+            {text:".hostname",back:0,has:hasChil.string,type:"AR"},{text:".port",back:0,has:hasChil.string,type:"AR"},
+            {text:".pathname",back:0,has:hasChil.string,type:"AR"},{text:".search",back:0,has:hasChil.string,type:"AR"},
+            {text:".hash",back:0,has:hasChil.string,type:"AR"},{text:".reload()",back:1,has:[],type:"AR"},
+            {text:".assign()",back:1,has:[],type:"AR"},{text:".replace()",back:1,has:[],type:"AR"}],type:"AR"},
+        {text:".history",back:0,has:[{text:".length",back:0,has:hasChil.number,type:"AR"},{text:".back()",back:1,has:[],type:"AR"},
+            {text:".forward()",back:1,has:[],type:"AR"},{text:".go()",back:1,has:[],type:"AR"}],type:"AR"},
+        {text:".navigator",back:0,has:[{text:".userAgent",back:0,has:hasChil.string,type:"AR"},{text:".appName",back:0,has:hasChil.string,type:"AR"},
+            {text:".appVersion",back:0,has:hasChil.string,type:"AR"}],type:"AR"},
+        {text:".setTimeout()",back:1,has:[],type:"AR"},{text:".setInterval()",back:1,has:[],type:"AR"},
+        {text:".clearTimeout()",back:1,has:[],type:"AR"},{text:".clearInterval()",back:1,has:[],type:"AR"},
+        {text:".alert()",back:1,has:[],type:"AR"},{text:".confirm()",back:1,has:[],type:"AR"},
+        {text:".prompt()",back:1,has:[],type:"AR"},{text:".close()",back:1,has:[],type:"AR"},
+        {text:".moveTo()",back:1,has:[],type:"AR"},{text:".moveBy()",back:1,has:[],type:"AR"},
+        {text:".resizeTo()",back:1,has:[],type:"AR"},{text:".resizeBy()",back:1,has:[],type:"AR"},
+        {text:".onresize",back:0,has:[],type:"AR"},{text:".onscroll",back:0,has:[],type:"AR"},
+        {text:".onload",back:0,has:[],type:"AR"},{text:".onunload",back:0,has:[],type:"AR"},
+        {text:".localStorage",back:0,has:[{text:".getItem()",back:1,has:[],type:"AR"},{text:".setItem()",back:1,has:[],type:"AR"},
+            {text:".removeItem()",back:1,has:[],type:"AR"},{text:".clear()",back:1,has:[],type:"AR"},{text:".length",back:0,has:hasChil.number,type:"AR"}
+        ],type:"AR"},{text:".sessionStorage",back:0,has:[{text:".getItem()",back:1,has:[],type:"AR"},{text:".setItem()",back:1,has:[],type:"AR"},
+            {text:".removeItem()",back:1,has:[],type:"AR"},{text:".clear()",back:1,has:[],type:"AR"},{text:".length",back:0,has:hasChil.number,type:"AR"}
+        ],type:"AR"},{text:".document",back:0,has:[],type:"AR"}],type:"AR"},
+    {text:"document",back:0,has:[{text:".documentElement",back:0,has:hasChil.element,type:"AR"},{text:".documentURI",back:0,has:hasChil.string,type:"AR"},
+        {text:".title",back:0,has:hasChil.string,type:"AR"},{text:".domain",back:0,has:hasChil.string,type:"AR"},{text:".readyState",back:0,has:hasChil.string,type:"AR"},
+        {text:".forms",back:0,has:hasChil.array,type:"AR"},{text:".images",back:0,has:hasChil.array,type:"AR"},
+        {text:".links",back:0,has:hasChil.array,type:"AR"},{text:".querySelector()",back:1,has:hasChil.element,type:"AR"},
+        {text:".querySelectorAll()",back:1,has:hasChil.array,type:"AR"},{text:".createTextNode()",back:1,has:[],type:"AR"},{text:".createAttribute()",back:1,has:[],type:"AR"},
+        {text:".cloneNode()",back:1,has:[],type:"AR"},{text:".removeChild()",back:1,has:[],type:"AR"},{text:".replaceChild()",back:1,has:[],type:"AR"},
+        {text:".insertBefore()",back:1,has:[],type:"AR"},{text:".write()",back:1,has:[],type:"AR"},{text:".writeln()",back:1,has:[],type:"AR"},
+        {text:".getElementsByTagName()",back:1,has:hasChil.array,type:"AR"},{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
         {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
         {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:hasChil.element,type:"AR"},
@@ -1200,7 +1285,8 @@ function loop(){
             if(s.startsWith("return "))continue;
             let word="",fir=[],func="|none|",beforeQe=0;
             for(let i=0;i<s.length;++i){
-                if((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))word+=s[i];else{if(s[i]=="=")fir.push(word),beforeQe=i+1;if(s[i]=="(")func=word;word="";}
+                if(s[i]==".")word="|no|";else
+                if(((Chars+"_").includes(s[i])||("0123456789".includes(s[i])&&word.length>0))&&word!="|no|")word+=s[i];else{if(s[i]=="="&&word!=="|no|")fir.push(word),beforeQe=i+1;if(s[i]=="(")func=word;word="";}
             }
             if(func!="|none|"&&u.type=="function"){
                 globalObj=globalObj.filter(obj=>(obj.text!=func&&obj.belong!==u.POS));
@@ -1707,13 +1793,23 @@ RunFrom(unit[${mainPOS}]);
 </html>`;
     return htmlContent;
 }
-function Download(){
+function DownloadHta(){
     const htmlContent=UnitToHtml(true);
     const blob=new Blob([htmlContent],{type:'text/hta'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
     a.download='test.hta';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+function DownloadHtml(){
+    const htmlContent=UnitToHtml();
+    const blob=new Blob([htmlContent],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='test.html';
     a.click();
     URL.revokeObjectURL(url);
 }
