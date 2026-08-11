@@ -652,7 +652,7 @@ const hasChil={
         {text:".apply()",back:1,has:[],type:"AR"},{text:".bind()",back:1,has:[],type:"AR"},],
     date:[{text:".getTime()",back:0,has:"number",type:"AR"},{text:".getFullYear()",back:0,has:"number",type:"AR"},{text:".getMonth()",back:0,has:"number",type:"AR"},
         {text:".getDate()",back:0,has:"number",type:"AR"}, {text:".getDay()",back:0,has:"number",type:"AR"},{text:".getHours()",back:0,has:"number",type:"AR"},
-        {text:".getMinutes()",back:0,has:"number",type:"AR"},{text:".getSeconds()",back:0,has:"number",type:"AR"},{text:".toLocaleString()",back:0,has:["string"],type:"AR"},
+        {text:".getMinutes()",back:0,has:"number",type:"AR"},{text:".getSeconds()",back:0,has:"number",type:"AR"},{text:".toLocaleString()",back:0,has:"string",type:"AR"},
         {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},],
     element:[{text:".value",back:0,has:"string",type:"AR"},{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},
         {text:".textContent",back:0,has:"string",type:"AR"},{text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},
@@ -686,8 +686,12 @@ const hasChil={
             {text:".lineJoin",back:0,has:"string",type:"AR"},{text:".miterLimit",back:0,has:"number",type:"AR"},{text:".shadowBlur",back:0,has:"number",type:"AR"},
             {text:".shadowColor",back:0,has:"string",type:"AR"},{text:".shadowOffsetX",back:0,has:"number",type:"AR"},{text:".shadowOffsetY",back:0,has:"number",type:"AR"},{text:".font",back:0,has:"string",type:"AR"},
             {text:".textAlign",back:0,has:"string",type:"AR"},{text:".textBaseline",back:0,has:"string",type:"AR"},{text:".isPointInPath()",back:1,has:"boolean",type:"AR"},
-        ],type:"AR"},{text:".toDataURL()",back:1,has:"string",type:"AR"},],
-    folder:[{name:".CreateTextFile",text:"Folder.CreateTextFile(filename, overwrite?, unicode?):TextStream",has:[],type:"AR"},
+        ],type:"AR"},{text:".toDataURL()",back:1,has:"string",type:"AR"},{text:".dataset",back:1,has:"object",type:"AR"},],
+            folder:[{name:".CreateTextFile",text:"Folder.CreateTextFile(filename, overwrite?, unicode?):TextStream",has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:"string",type:"AR"},
+            {text:".ReadAll()",back:0,has:"string",type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
+            {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
+            {text:".AtEndOfStream",back:0,has:[],type:"AR"},{text:".Column",back:0,has:"number",type:"AR"},
+            {text:".Line",back:0,has:"number",type:"AR"}],type:"AR"},
         {name:".Copy",text:"Folder.Copy(destination, overwrite?):void",has:[],type:"AR"},
         {name:".Move",text:"Folder.Move(destination):void",has:[],type:"AR"},
         {name:".Delete",text:"Folder.Delete(force?):void",has:[],type:"AR"},
@@ -701,11 +705,6 @@ const hasChil={
         {name:".DateLastAccessed",text:"Folder.DateLastAccessed:Date",has:"date",type:"AR"},
         {name:".DateLastModified",text:"Folder.DateLastModified:Date",has:"date",type:"AR"}],
 };
-hasChil.folder[0].has=hasChil.folder[0].has=[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:hasChil.string,type:"AR"},
-    {text:".ReadAll()",back:0,has:hasChil.string,type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
-    {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
-    {text:".AtEndOfStream",back:0,has:hasChil.bool,type:"AR"},{text:".Column",back:0,has:hasChil.number,type:"AR"},
-    {text:".Line",back:0,has:hasChil.number,type:"AR"}];
 const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",back:1,has:[],type:"CL"},{text:"Date()",back:1,has:[],type:"CL"},{text:"Function()",back:1,has:[],type:"CL"},{text:"function()",back:1,has:[],type:"AR"},
     {text:"XMLHttpRequest()",back:1,has:[],type:"CL"},{text:"ActiveXObject()",back:1,has:[],type:"CL"},{text:"Image()",back:1,has:[],type:"CL"},{text:"Option()",back:1,has:[],type:"CL"},
     {text:"Number()",back:1,has:[],type:"CL"},{text:"Array()",back:1,has:[],type:"CL"},{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
@@ -756,14 +755,14 @@ const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",
         {text:".title",back:0,has:hasChil.string,type:"AR"},{text:".domain",back:0,has:hasChil.string,type:"AR"},{text:".readyState",back:0,has:hasChil.string,type:"AR"},
         {text:".forms",back:0,has:hasChil.array,type:"AR"},{text:".images",back:0,has:hasChil.array,type:"AR"},
         {text:".links",back:0,has:hasChil.array,type:"AR"},{text:".querySelector()",back:1,has:hasChil.element,type:"AR"},
-        {text:".querySelectorAll()",back:1,has:hasChil.array,type:"AR"},{text:".createTextNode()",back:1,has:[],type:"AR"},{text:".createAttribute()",back:1,has:[],type:"AR"},
+        {text:".querySelectorAll()",back:1,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},{text:".createTextNode()",back:1,has:[],type:"AR"},{text:".createAttribute()",back:1,has:[],type:"AR"},
         {text:".cloneNode()",back:1,has:[],type:"AR"},{text:".removeChild()",back:1,has:[],type:"AR"},{text:".replaceChild()",back:1,has:[],type:"AR"},
         {text:".insertBefore()",back:1,has:[],type:"AR"},{text:".write()",back:1,has:[],type:"AR"},{text:".writeln()",back:1,has:[],type:"AR"},
-        {text:".getElementsByTagName()",back:1,has:hasChil.array,type:"AR"},{text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
+        {text:".URL",back:0,has:hasChil.string,type:"AR"},{text:".cookie",back:0,has:hasChil.string,type:"AR"},
         {text:".fullscreen",back:0,has:[],type:"AR"},{text:".activeElement",back:0,has:hasChil.element,type:"AR"},{text:".body",back:0,has:hasChil.element,type:"AR"},
         {text:".append()",back:1,has:[],type:"AR"},{text:".appendChild()",back:1,has:[],type:"AR"},{text:".createElement()",back:1,has:[],type:"AR"},
         {text:".exitPointerLock()",back:1,has:[],type:"AR"},{text:".exitFullscreen()",back:1,has:[],type:"AR"},{text:".getElementById()",back:1,has:hasChil.element,type:"AR"},
-        {text:".getElementsByClassName()",back:1,has:hasChil.array,type:"AR"},{text:".getElementsByName()",back:1,has:hasChil.array,type:"AR"}],type:"AR"},
+        {text:".getElementsByClassName()",back:1,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},{text:".getElementsByTagName()",back:1,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},{text:".getElementsByName()",back:1,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"}],type:"AR"},
     {text:"onclick(event)",back:0,has:[],type:"UD"},{text:"onmousedown(event)",back:0,has:[],type:"UD"},{text:"onmouseup(event)",back:0,has:[],type:"UD"},{text:"onmousemove(event)",back:0,has:[],type:"UD"},
     {text:"onkeydown(event)",back:0,has:[],type:"UD"},{text:"onkeyup(event)",back:0,has:[],type:"UD"},{text:"onmousewheel(event)",back:0,has:[],type:"UD"},
     {text:"oncontextmenu(event)",back:0,has:[],type:"UD"},{text:"JSON",back:0,has:[{text:".parse()",back:0,has:[],type:"AR"},{text:".stringify()",back:0,has:[],type:"AR"},],type:"AR"},
@@ -1163,16 +1162,23 @@ const lanw={
     function:"函数",
     deleted:"已删除",
     branch:"并行分支",
-    "ctrl-menu-delete":"删除分支",
 };
 let unit=[{type:"main",val:"",to:[],x:100,y:100,endx:120,fu:new Function("return 0;"),POS:0,Fu:"return 0;",las:null,lasadd:{x:0,y:0}}];
 let dragUnit=null,cursorAt=0;
+function St2Hs(obj,parent){
+    if(typeof obj.has==="object"){
+        for(const obj2 of obj.has){
+            St2Hs(obj2,parent);
+        }
+    }
+    else if(obj.has=="this")obj.has=hasChil[parent];
+    else if(typeof obj.has==="string")obj.has=hasChil[obj.has];
+}
 function Init(){
     for(const obj in hasChil){
         if(hasChil.hasOwnProperty(obj))
         for(const obj2 of hasChil[obj]){
-            if(obj2.has=="this")obj2.has=hasChil[obj];
-            else if(typeof obj2.has=="string")obj2.has=hasChil[obj2.has];
+            St2Hs(obj2,obj);
         }
     }
     filler=[];
