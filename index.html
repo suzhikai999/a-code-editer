@@ -118,6 +118,47 @@
             display:none;
             box-shadow:0 2px 10px rgba(0,0,0,0.15);
         }
+        kbd{
+            border: 1px solid #aaa;
+            border-radius: 3px;
+            padding: 1px 6px;
+            margin:0 2px;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+            background:#f8f8f8;
+        }
+        .mouse-icon {
+            display: inline-block;
+            width: 22px;
+            height: 32px;
+            border: 1px solid #444;
+            border-radius: 11px;
+            position: relative;
+            vertical-align: middle;
+            background: #f4f4f4;
+            overflow-y: hidden;
+        }
+        .mouse-icon::before {
+            content: '';
+            position:absolute;
+            left:50%;
+            top:5px;
+            width:1px;
+            height:8px;
+            background:#444;
+            transform: translateX(-50%);
+        }
+        .mouse-icon::after {
+            content: '';
+            position:absolute;
+            top:0;
+            width:43%;
+            height:50%;
+            background:rgba(0,0,0,0.22);
+            z-index:1;
+        }
+        .mouse-l::after{left:0;}
+        .mouse-r::after{right:0;}
+        .mouse-m::after{left:50%;top:3px;width:5px;height:12px;transform: translateX(-50%);}
     </style>
 </head>
 <body>
@@ -1840,24 +1881,26 @@ function Help(){
 `;}
 function HelpKey(){
     _runner._log.innerHTML+=`<br>
-F5                                     --> 编译
-F6                                     --> 运行
-滚轮                                   --> 滚动画布
-Enter                                  --> 在当前路径中新建单位
-Ctrl+z                                 --> 撤回
-ctrl+s                                 --> 保存
-Ctrl+f                                 --> 新建函数
-ctrl+m                                 --> 回到主函数
-Alt+滚轮                               --> 滚动页面
-shift+滚轮                             --> 横向滚动画布
-Shift+Enter                            --> 从当前单位新建单位
-右键拖动单位                           --> 移动单位
-Ctrl+x+点击单位                        --> 删除单位
-未选择文本 Ctrl+c                      --> 复制当前单位的所有内容
-鼠标从一个单位拖到另一单位             --> 创建连线或删除已有连线
-光标在单位最左端 LeftArrow             --> 移到上一个单位
-光标在单位最右端 RightArrow            --> 移到下一个单位
-当前单位为空 Delete或BackSpace         --> 从路径中删除单位
+<table><tbody>
+    <tr> <td><kbd>F5</kbd></td>                                                         <td>编译</td>                   </tr>
+    <tr> <td><kbd>F6</kbd></td>                                                         <td>运行</td>                   </tr>
+    <tr> <td><kbd>Ctrl</kbd><kbd>Z</kbd></td>                                           <td>撤回</td>                   </tr>
+    <tr> <td><kbd>Ctrl</kbd><kbd>S</kbd></td>                                           <td>保存</td>                   </tr>
+    <tr> <td><kbd>Ctrl</kbd><kbd>F</kbd></td>                                           <td>新建函数</td>               </tr>
+    <tr> <td><kbd>Ctrl</kbd><kbd>M</kbd></td>                                           <td>回到主函数</td>             </tr>
+    <tr> <td>光标在单位最左端<kbd>←</kbd></td>                                          <td>移到上一个单位</td>         </tr>
+    <tr> <td>光标在单位最右端<kbd>→</kbd></td>                                          <td>移到下一个单位</td>         </tr>
+    <tr> <td><span class="mouse-icon mouse-m"></span></td>                              <td>滚动画布</td>               </tr>
+    <tr> <td><kbd>Alt</kbd><span class="mouse-icon mouse-m"></span></td>                <td>滚动页面</td>               </tr>
+    <tr> <td><kbd>Shift</kbd><span class="mouse-icon mouse-m"></span></td>              <td>横向滚动画布</td>           </tr>
+    <tr> <td><kbd>Enter</kbd></td>                                                      <td>在当前路径中新建单位</td>   </tr>
+    <tr> <td><kbd>Shift</kbd><kbd>Enter</kbd></td>                                      <td>从当前单位新建单位</td>     </tr>
+    <tr> <td>未选择文本时<kbd>Ctrl</kbd><kbd>C</kbd></td>                               <td>复制当前单位的所有内容</td> </tr>
+    <tr> <td><span class="mouse-icon mouse-r"></span>拖动单位</td>                      <td>移动单位</td>               </tr>
+    <tr> <td><kbd>Ctrl</kbd><kbd>X</kbd><span class="mouse-icon mouse-l"></span></td>   <td>删除单位</td>               </tr>
+    <tr> <td>当前单位为空时<kbd>Delete</kbd> / <kbd>BackSpace</kbd></td>                <td>从路径中删除单位</td>       </tr>
+    <tr> <td><span class="mouse-icon mouse-l"></span>从一个单位拖到另一单位</td>        <td>创建连线或删除已有连线</td> </tr>
+</tbody></table>
 `;}
 function HelpFun(){
     _runner._log.innerHTML+=`<br>
