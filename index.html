@@ -1236,7 +1236,7 @@ function loop(){
         u.val=u.val.trimStart();
         u.POS=CountI;
         const UBU=UnitBuff.unit[CountI];
-        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.push(u);
+        if(!UBU||UBU.val!=u.val||UBU.type!=u.type||UBU.to.join(",")!=u.to.map(U2=>U2.POS).join(","))flag=true,changeUnit.unshift(u);
         const p=getPos(u);
         const r=8;
         if(u.las&&(u.las!==unit[u.las.POS]||!u.las.to.includes(u)))u.las=null;
