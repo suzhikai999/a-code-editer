@@ -632,7 +632,7 @@ const hasChil={
     string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:"this",type:"AR"},{text:".codePointAt()",back:1,has:"number",type:"AR"},
         {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:"number",type:"AR"},{text:".lastIndexOf()",back:1,has:"number",type:"AR"},
         {text:".replace()",back:1,has:[],type:"AR"},{text:".replaceAll()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},
-        {text:".substring()",back:1,has:"this",type:"AR"},{text:".split()",back:1,has:"array",type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
+        {text:".substring()",back:1,has:"this",type:"AR"},{text:".split()",back:1,has:"array-string",type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
         {text:".toUpperCase()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},
         {text:".padStart()",back:1,has:[],type:"AR"},{text:".padEnd()",back:1,has:[],type:"AR"},],
     array:[{text:".length",back:0,has:"number",type:"AR"},{text:".pop()",back:0,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},
@@ -656,13 +656,13 @@ const hasChil={
         {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},],
     element:[{text:".value",back:0,has:"string",type:"AR"},{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},
         {text:".textContent",back:0,has:"string",type:"AR"},{text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},
-        {text:".classList",back:0,has:"array",type:"AR"},{text:".style",back:0,has:[{text:".top",back:0,has:"string",type:"AR"},{text:".left",back:0,has:"string",type:"AR"},
+        {text:".classList",back:0,has:"array-string",type:"AR"},{text:".style",back:0,has:[{text:".top",back:0,has:"string",type:"AR"},{text:".left",back:0,has:"string",type:"AR"},
             {text:".button",back:0,has:"string",type:"AR"},{text:".right",back:0,has:"string",type:"AR"},{text:".color",back:0,has:"string",type:"AR"},
             {text:".backgroundcolor",back:0,has:"string",type:"AR"},{text:".filter",back:0,has:"string",type:"AR"},{text:".cursor",back:0,has:"string",type:"AR"},
             {text:".fontsize",back:0,has:"string",type:"AR"},{text:".fontfamily",back:0,has:"string",type:"AR"},{text:".display",back:0,has:"string",type:"AR"},
             {text:".position",back:0,has:"string",type:"AR"},{text:".padding",back:0,has:"string",type:"AR"},{text:".magin",back:0,has:"string",type:"AR"},
             {text:".width",back:0,has:"string",type:"AR"},{text:".height",back:0,has:"string",type:"AR"},{text:".transition",back:0,has:"string",type:"AR"},
-            {text:".overflow",back:0,has:"string",type:"AR"}],type:"AR"},{text:".parentElement",back:0,has:"element",type:"AR"},{text:".children",back:0,has:"array",type:"AR"},
+            {text:".overflow",back:0,has:"string",type:"AR"}],type:"AR"},{text:".parentElement",back:0,has:"element",type:"AR"},{text:".children",back:0,has:"array-element",type:"AR"},
         {text:".nextElementSibling",back:0,has:"element",type:"AR"},{text:".previousElementSibling",back:0,has:"element",type:"AR"},{text:".append()",back:1,has:[],type:"AR"},
         {text:".appendChild()",back:1,has:[],type:"AR"},{text:".prepend()",back:1,has:[],type:"AR"},{text:".remove()",back:0,has:[],type:"AR"},
         {text:".removeChild()",back:1,has:[],type:"AR"},{text:".setAttribute()",back:1,has:[],type:"AR"},{text:".getAttribute()",back:1,has:[],type:"AR"},
@@ -677,7 +677,7 @@ const hasChil={
             {text:".clearRect()",back:1,has:[],type:"AR"},{text:".fillRect()",back:1,has:[],type:"AR"},{text:".strokeRect()",back:1,has:[],type:"AR"},
             {text:".fillText()",back:1,has:[],type:"AR"},{text:".strokeText()",back:1,has:[],type:"AR"},{text:".measureText()",back:1,has:[{text:".width",back:0,has:"number",type:"AR"},],type:"AR"},
             {text:".drawImage()",back:1,has:[],type:"AR"},{text:".getImageData()",back:1,has:[{text:".width",back:0,has:"number",type:"AR"},
-                {text:".height",back:0,has:"number",type:"AR"},{text:".data",back:0,has:"array",type:"AR"}
+                {text:".height",back:0,has:"number",type:"AR"},{text:".data",back:0,has:"array-object",type:"AR"}
             ],type:"AR"},{text:".putImageData()",back:1,has:[],type:"AR"},{text:".createImageData()",back:1,has:[],type:"AR"},{text:".createLinearGradient()",back:1,has:[
                 {text:".addColorStop()",back:1,has:[],type:"AR"}],type:"AR"},
             {text:".createRadialGradient()",back:1,has:[{text:".addColorStop()",back:1,has:[],type:"AR"}],type:"AR"},
@@ -1172,6 +1172,7 @@ function St2Hs(obj,parent){
         }
     }
     else if(obj.has=="this")obj.has=hasChil[parent];
+    else if(obj.has.startsWith("array"))obj.has=[{text:"child",back:0,has:hasChil[obj.has.slice(obj.has.indexOf("-")+1)],type:"AR"}].concat(hasChil["array"]);
     else if(typeof obj.has==="string")obj.has=hasChil[obj.has];
 }
 function Init(){
@@ -1385,7 +1386,7 @@ function to_filler(s,canBeEmpty=false){
         }
         if(s[i+1]=="["){
             const temp=to_filler(s.slice(0,i+1));
-            if(temp)return temp[0].has;
+            if(temp&&temp.length>0)return temp.find(obj=>obj.text==="child").has;
             else return [];
         }
         if(CLFC>0){attenOut=1;return [];}
