@@ -86,6 +86,7 @@
             font-size:14px;
             line-height:1.6;
             overflow-y:auto;
+            white-space:pre-wrap;
         }
         .color-panel{margin-top:5px;border:2px solid #8fa0c7;border-radius:10px;background:#f8faff;padding:8px;display:block;gap:8px;max-width:260px;overflow:hidden}
         .color-canvas{width:200px;height:200px;cursor:default;padding-right:6px;}
@@ -235,10 +236,9 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</butto
                         </ul>
                     </div>
                 </div>
-                <div id="runner_log">
-                    日志：<br>
-                    <u class="log-btn" onclick="Help()">💁︎ 帮助</u><br>
-                    <u class="log-btn" onclick="if(getSaves(SAVE_KEY2).length>0)loadSave(0,SAVE_KEY2);else _runner.log.innerHTML+=`<br>您并没有上次的工作。`;">📽 上次关闭前的工作</u><br>
+                <div id="runner_log">日志：
+<u class="log-btn" onclick="Help()">💁︎ 帮助</u>
+<u class="log-btn" onclick="if(getSaves(SAVE_KEY2).length>0)loadSave(0,SAVE_KEY2);else _runner.log.innerHTML+=`<br>您并没有上次的工作。`;">📽 上次关闭前的工作</u>
                 </div>
             </div>
         </div>
@@ -332,7 +332,7 @@ const grammar_color={
     number:"rgb(138,18,137)",BFT:"rgb(146,132,111)",
     sign:"rgb(19,3,146)",string:"rgb(151,60,25)",normal:"#000"
 };
-let cursorWA,SeCus=-1;
+let cursorWA,SeCus=-1,cursorAtXY={x:0,y:0};
 function show(u,x,y){
     const boldtext=["new","function","null","NaN","undefined","false","true","_id_","return","delete","Infinity","this"];
     let s=u.val,word="",Funcs=[];
@@ -359,14 +359,14 @@ function show(u,x,y){
                 if(Funcs.length>0){
                 let temp2=[...funcTour,...globalFuncBuff].find(FU=>FU.name==Funcs[Funcs.length-1][0]);
                 if(temp2!=undefined){
-                    const temx=Funcs[Funcs.length-1][1]-(temp2.text.indexOf("(")+1)*now.size/2;
+                    const temx=Funcs[Funcs.length-1][1]-ctx.measureText(temp2.text.slice(0,temp2.text.indexOf("(")+1)).width;
                     ctx.beginPath();
                     ctx.lineWidth=30;
                     ctx.moveTo(temx,y-30);
                     ctx.lineTo(temx+700,y-30);
                     ctx.strokeStyle="rgba(0,0,0,0.7)";
                     ctx.stroke();
-                    ctx.font=`${now.size*0.906}px Consolas`;
+                    ctx.font=`${now.size}px Consolas`;
                     ctx.fillStyle="#fff";
                     ctx.fillText(temp2.text,temx+10,y-30);}}
             }
@@ -378,7 +378,7 @@ function show(u,x,y){
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
             if(!IsIns&&!IsInS){
                 if(!("0123456789".includes(s[i-1])&&word.length==0)&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];
-                else{if(boldtext.includes(word)){ctx.font=`${now.size*0.906}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-word.length*now.size/2,y);}
+                else{if(boldtext.includes(word)){ctx.font=`bold ${now.size}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-ctx.measureText(word).width,y);}
                 if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
                 if(s[i]=='√')p.push({size:now.size*0.9,y:now.y+now.size*0.1,else:1}),SQs.push(x);
                 if(s[i]=='`'){
@@ -386,8 +386,9 @@ function show(u,x,y){
                         const temp=SQs[SQs.length-1];
                         ctx.beginPath();
                         ctx.lineWidth=1;
-                        ctx.moveTo(temp+now.size/2-2,now.y-now.size*0.6+y);
-                        ctx.lineTo(x                ,now.y-now.size*0.6+y);
+                        ctx.font=`${now.size}px Consolas`;
+                        ctx.moveTo(temp+now.size/2-2,now.y-ctx.measureText('0').width+y);
+                        ctx.lineTo(x                ,now.y-ctx.measureText('0').width+y);
                         ctx.strokeStyle=grammar_color.sign;
                         ctx.stroke();
                         SQs.pop();
@@ -409,23 +410,23 @@ function show(u,x,y){
                     if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle=grammar_color.sign;
                 }else ctx.fillStyle=grammar_color.string;
                 ctx.fillText(ws,x,y+now.y,100);
-                if(s.codePointAt(i)<=256)x+=now.size/2;else
-                if("⌈⌉⌊⌋√".includes(s[i]))x+=now.size/2;else
-                x+=now.size;
+                if(s.codePointAt(i)<=256)x+=ctx.measureText('0').width;else
+                if("⌈⌉⌊⌋√".includes(s[i]))x+=ctx.measureText('0').width;else
+                x+=ctx.measureText('我').width;
             }
         }else{
             ctx.font=`${now.size}px Consolas`;
             ctx.fillStyle=grammar_color.BFT;
             ctx.textBaseline="middle";
             ctx.fillText(s[i],x,y+now.y,100);
-            x+=now.size/2;
+            x+=ctx.measureText('0').width;
         }
         if(hasBL)hasBL=false;else
         if(s[i]=='\\')hasBL=true;
         if(")]}".includes(s[i]))NLK--;
     }
     const now=p[p.length-1];
-    if(boldtext.includes(word)){ctx.font=`${now.size*0.906}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-word.length*now.size/2,y);}
+    if(boldtext.includes(word)){ctx.font=`bold ${now.size}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-ctx.measureText(word).width,y);}
     if(u===dragUnit&&cursorAt==len)ctx.font=`${now.size*1.1}px Consolas`,ctx.fillText(cursorLook,x,y+now.y),SeRiX=x;
     if(SeCus==len)SeLeX=x;
     if(SeLeX!==-1&&SeRiX!==-1){
@@ -436,27 +437,7 @@ function show(u,x,y){
         ctx.strokeStyle="rgba(0,0,200,0.2)";
         ctx.stroke();
     }
-    if(SeRiX!==-1){
-        for(let i=0;i<filler.length;++i){
-            const fil=filler[i];
-            ctx.beginPath();
-            ctx.lineWidth=30;
-            ctx.moveTo(SeRiX-30,y+30);
-            ctx.lineTo(SeRiX+300,y+30);
-            ctx.strokeStyle="rgba(0,0,0,0.7)";
-            if(ChoosingFiller==i)ctx.strokeStyle="rgba(0,0,100,0.7)";
-            ctx.stroke();
-            ctx.fillStyle="#fff";
-            ctx.font="17px Consolas";
-            ctx.fillText(fil.text,SeRiX,y+30);
-            ctx.fillStyle="rgb(150,150,150)";
-            ctx.fillText(fil.text.slice(0,fillerPos),SeRiX,y+30);
-            ctx.fillStyle="rgb(250,250,250)";
-            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UD:"⚪︎",OP:"🔣︎",CL:"❒"};
-            ctx.fillText(temp[fil.type],SeRiX-23,y+30);
-            y+=30;
-        }
-    }
+    if(SeRiX!==-1){cursorAtXY={x:SeRiX,y:y};}
     return x;
 }
 const funcTour=[
@@ -1188,8 +1169,7 @@ let cursorLook="⎸",CLFC=20;
 let UnitBuff={unit:unit.map(U=>{return{type:U.type,val:U.val,to:U.to.map(U2=>U2.POS),x:U.x,y:U.y};}),cursorAt:cursorAt,SeCus:SeCus,DrUnId:dragUnit?(dragUnit.POS):null};
 let CZUB=UnitBuff,toughness=10;
 function loop(){
-    mousexf=mousex-mousexf;
-    mouseyf=mousey-mouseyf;
+    mousexf=mousex-mousexf,mouseyf=mousey-mouseyf;
     frameCount++;
     const currentTime=performance.now();
     const deltaTime=currentTime-lastTime;
@@ -1200,8 +1180,8 @@ function loop(){
     if(!dragUnit&&mousedown)cam.x-=mousexf,cam.y-=mouseyf;
     if(dragUnit&&mouserd){dragUnit.x+=mousexf,dragUnit.y+=mouseyf;if(dragUnit.lasadd)dragUnit.lasadd.x+=mousexf,dragUnit.lasadd.y+=mouseyf;}
     ctx.fillStyle="#fff";
-    ctx.fillRect(0,0,W,H);
-    ctx.save();
+    ctx.fillRect(0,0,W,H);ctx.save();
+    cursorAtXY=null;
     for(const u of unit){
         const p=getPos(u);
         let i=0;
@@ -1322,8 +1302,28 @@ function loop(){
                     for(const fi of fir){if(staticFiller.findIndex(obj=>(obj.text==fi))==-1)globalObj.unshift({text:fi,back:0,has:temp,type:"BS",belong:u.POS});}
                 }else if(u.val!="")u.errow=true;else u.errow=false;
             }
-        }
-    }
+        }}
+    if(cursorAtXY){
+    for(let i=0;i<filler.length;++i){
+        const fil=filler[i];
+        const acf=fil.text.slice(0,fillerPos);
+        ctx.beginPath();
+        ctx.lineWidth=30;
+        ctx.moveTo(cursorAtXY.x-30-ctx.measureText(acf).width,cursorAtXY.y+30);
+        ctx.lineTo(cursorAtXY.x+300,cursorAtXY.y+30);
+        ctx.strokeStyle="rgba(0,0,0,0.7)";
+        if(ChoosingFiller==i)ctx.strokeStyle="rgba(0,0,100,0.7)";
+        ctx.stroke();
+        ctx.fillStyle="#fff";
+        ctx.font="20px Consolas";
+        ctx.fillText(fil.text,cursorAtXY.x-ctx.measureText(acf).width,cursorAtXY.y+35);
+        ctx.fillStyle="rgb(150,150,150)";
+        ctx.fillText(fil.text.slice(0,fillerPos),cursorAtXY.x-ctx.measureText(acf).width,cursorAtXY.y+35);
+        ctx.fillStyle="rgb(250,250,250)";
+        const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UD:"⚪︎",OP:"🔣︎",CL:"❒"};
+        ctx.fillText(temp[fil.type],cursorAtXY.x-ctx.measureText(acf).width-23,cursorAtXY.y+35);
+        cursorAtXY.y+=30;
+    }}
     if(find(mousex,mousey)){
         if(mouserd)canvas.style.cursor="grabbing";
         else canvas.style.cursor="text";
@@ -1755,7 +1755,7 @@ onkeydown="return _runner.onkeydown(event);" onkeyup="return _runner.onkeyup(eve
         ${IsHta?`<style>v\:*{behavior:url(#default#VML);}</style>`:``}
     </head>
     <body>
-        <div id="runner_log"></div>
+        <div id="runner_log" style="font-family:Consolas,monospace;font-size:14px;white-space:pre-wrap;"></div>
         ${domHtmlInput.value}
     </${"body"}>
     <script>
@@ -1835,37 +1835,37 @@ function openDebugChildPage(){
 }
 function Help(){
     _runner._log.innerHTML+=`<br>
-<u class="log-btn" onclick="HelpKey()">- 快捷键帮助</u><br>
+<u class="log-btn" onclick="HelpKey()">- 快捷键帮助</u>
 <u class="log-btn" onclick="HelpFun()">- 功能帮助</u>
 `;}
 function HelpKey(){
-    _runner._log.innerHTML+=`<br><br>
-F5                                     --> 编译<br>
-F6                                     --> 运行<br>
-滚轮                                   --> 滚动画布<br>
-Enter                                  --> 在当前路径中新建单位<br>
-Ctrl+z                                 --> 撤回<br>
-Ctrl+f                                 --> 新建函数<br>
-ctrl+s                                 --> 保存<br>
-ctrl+m                                 --> 回到主函数<br>
-Alt+滚轮                               --> 滚动页面<br>
-shift+滚轮                             --> 横向滚动画布<br>
-Shift+Enter                            --> 从当前单位新建单位<br>
-右键拖动单位                           --> 移动单位<br>
-Ctrl+x+点击单位                        --> 删除单位<br>
-未选择文本 Ctrl+c                      --> 复制当前单位的所有内容<br>
-鼠标从一个单位拖到另一单位             --> 创建连线或删除已有连线<br>
-光标在单位最左端 LeftArrow             --> 移到上一个单位<br>
-光标在单位最右端 RightArrow            --> 移到下一个单位<br>
-当前单位为空 Delete或BackSpace         --> 从路径中删除单位<br>
+    _runner._log.innerHTML+=`<br>
+F5                                     --> 编译
+F6                                     --> 运行
+滚轮                                   --> 滚动画布
+Enter                                  --> 在当前路径中新建单位
+Ctrl+z                                 --> 撤回
+ctrl+s                                 --> 保存
+Ctrl+f                                 --> 新建函数
+ctrl+m                                 --> 回到主函数
+Alt+滚轮                               --> 滚动页面
+shift+滚轮                             --> 横向滚动画布
+Shift+Enter                            --> 从当前单位新建单位
+右键拖动单位                           --> 移动单位
+Ctrl+x+点击单位                        --> 删除单位
+未选择文本 Ctrl+c                      --> 复制当前单位的所有内容
+鼠标从一个单位拖到另一单位             --> 创建连线或删除已有连线
+光标在单位最左端 LeftArrow             --> 移到上一个单位
+光标在单位最右端 RightArrow            --> 移到下一个单位
+当前单位为空 Delete或BackSpace         --> 从路径中删除单位
 `;}
 function HelpFun(){
-    _runner._log.innerHTML+=`<br><br>
-所有变量、函数均挂载到_runner下，自定义DOM元素调用需注意。<br>
-所有错误信息均不会输出到日志内，需用原生F12查看。<br>
-输出为HTA，向下兼容，所以可能新版功能无法使用。<br>
-函数参数已做定义域隔离，可放心使用。<br>
-运行、下载前一定要编译！<br>
+    _runner._log.innerHTML+=`<br>
+所有变量、函数均挂载到_runner下，自定义DOM元素调用需注意。
+所有错误信息均不会输出到日志内，需用原生F12查看。
+输出为HTA，向下兼容，所以可能新版功能无法使用。
+函数参数已做定义域隔离，可放心使用。
+运行、下载前一定要编译！
 `;}
 document.addEventListener("keydown",e=>{
     if(e.ctrlKey&&e.key=="s"){
