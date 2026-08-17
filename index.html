@@ -374,8 +374,9 @@ const grammar_color={
     sign:"rgb(19,3,146)",string:"rgb(151,60,25)",normal:"#000"
 };
 let cursorWA,SeCus=-1,cursorAtXY={x:0,y:0};
-function show(u,x,y){
-    const boldtext=["new","function","null","NaN","undefined","false","true","_id_","return","delete","Infinity","this"];
+function show(u,x,y,moreboldtext=[],GrCol=grammar_color){
+    const initialX=x;
+    const boldtext=["new","function","null","NaN","undefined","false","true","_id_","return","delete","Infinity","this"].concat(moreboldtext);
     let s=u.val,word="",Funcs=[];
     const TELIS=[...staticFiller,...globalObj];
     let temp=[],Temp=[],temp3;
@@ -384,10 +385,10 @@ function show(u,x,y){
     if(!s)s=u;
     const len=s.length;
     const p=[{size:20,y:0}];
-    const SQs=[],NLKC=grammar_color.NLKC;
+    const SQs=[],NLKC=GrCol.NLKC;
     let left_se=0,NLK=0,IsInS=false,IsIns=false,SeLeX=-1,SeRiX=-1;
     ctx.font=`20px Consolas`;
-    ctx.fillStyle=grammar_color.normal;
+    ctx.fillStyle=GrCol.normal;
     ctx.textBaseline="middle";
     if(u===dragUnit&&mousex<x+10)cursorWA=0;
     let hasBL=false;
@@ -413,11 +414,12 @@ function show(u,x,y){
             }
             if(SeCus==i)SeLeX=x;}
         let flag=false;
+        if(s[i]=='\n'){y+=20,x=initialX;continue;}
         if(!hasBL&&s[i]!='\\'){
-            if("([{".includes(s[i]))NLK++;
-            if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(s[i]=='"')IsIns=!IsIns;else if(s[i]=="'")IsInS=!IsInS;
+            if("\"\'[{".includes(s[i])&&!temp3)temp3=s[i];
             if(!IsIns&&!IsInS){
+                if("([{".includes(s[i]))NLK++;
                 if(!("0123456789".includes(s[i-1])&&word.length==0)&&((Chars+'_').includes(s[i])||(word.length>0&&"0123456789".includes(s[i]))))word+=s[i];
                 else{if(boldtext.includes(word)){ctx.font=`bold ${now.size}px Consolas`;ctx.fillStyle="#000";ctx.fillText(word,x-ctx.measureText(word).width,y);}
                 if(s[i]=='('&&dragUnit===u)Funcs.push([word,x]);if(s[i]=="."&&word)word=".";else word="";}
@@ -430,7 +432,7 @@ function show(u,x,y){
                         ctx.font=`${now.size}px Consolas`;
                         ctx.moveTo(temp+now.size/2-2,now.y-ctx.measureText('0').width+y);
                         ctx.lineTo(x                ,now.y-ctx.measureText('0').width+y);
-                        ctx.strokeStyle=grammar_color.sign;
+                        ctx.strokeStyle=GrCol.sign;
                         ctx.stroke();
                         SQs.pop();
                     }
@@ -441,23 +443,23 @@ function show(u,x,y){
             if(flag||IsIns||IsInS){
                 let ws=s[i];
                 if(ws=="*")ws="∙";
-                ctx.font=`${now.size}px Consolas`;
-                ctx.fillStyle=grammar_color.normal;
+                ctx.font=`${now.size*(s[i]=="┊"?0.8:1)}px Consolas`;
+                ctx.fillStyle=GrCol.normal;
                 ctx.textBaseline="middle";
                 if(!IsInS&&!IsIns&&s[i]!=="'"&&s[i]!=='"'){
                     if(u!=s&&(u.type=="main"||u.type=="function")&&":;?<>~!@#$%^&*=+-*/⌈⌉⌊⌋√%\"\'`\\|㏑".includes(s[i]))ctx.fillStyle="red";else
                     if("()[]{}".includes(s[i]))ctx.fillStyle=NLKC[NLK%3];
-                    if(("0123456789.".includes(s[i])||("0123456789".includes(s[i-1])&&s[i]=='e'))&&!word)ctx.fillStyle=grammar_color.number;
-                    if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle=grammar_color.sign;
-                }else ctx.fillStyle=grammar_color.string;
+                    if(("0123456789.".includes(s[i])||("0123456789".includes(s[i-1])&&s[i]=='e'))&&!word)ctx.fillStyle=GrCol.number;
+                    if("+-*/&*^%$#@!?|~√><=:;,".includes(s[i]))ctx.fillStyle=GrCol.sign;
+                }else ctx.fillStyle=GrCol.string;
                 ctx.fillText(ws,x,y+now.y,100);
                 if(s.codePointAt(i)<=256)x+=ctx.measureText('0').width;else
                 if("⌈⌉⌊⌋√".includes(s[i]))x+=ctx.measureText('0').width;else
-                x+=ctx.measureText('我').width;
+                x+=ctx.measureText('0').width*2;
             }
         }else{
             ctx.font=`${now.size}px Consolas`;
-            ctx.fillStyle=grammar_color.BFT;
+            ctx.fillStyle=GrCol.BFT;
             ctx.textBaseline="middle";
             ctx.fillText(s[i],x,y+now.y,100);
             x+=ctx.measureText('0').width;
@@ -482,126 +484,126 @@ function show(u,x,y){
     return x;
 }
 const funcTour=[
-    {name:"swap",text:"swap(A, B): void"},{name:"wait",text:"wait(delay):void"},{name:"print",text:"print(content):void"},
-    {name:"alert",text:"alert(message?):void"},{name:"confirm",text:"confirm(message?):void"},
-    {name:"prompt",text:"prompt(message?, default?):string | null"},{name:"getValue",text:"getValue(name):any"},
-    {name:".toFixed",text:"Number.toFixed(fractionDigits?):string"},{name:".toPrecision",text:"Number.toPrecision(precision?):string"},
-    {name:".codePointAt",text:"String.codePointAt(index):number"},{name:".indexOf",text:"String.indexOf(searchStr, fromIndex?):number"},
-    {name:".findIndex",text:"String.findIndex(callback):number"},{name:".replace",text:"String.replace(pattern, replacement):string"},
-    {name:".slice",text:"String.slice(start, end?):string"},{name:".includes",text:"(String | Array).includes(item, fromIndex?):boolean"},
-    {name:".push",text:"Array.push(...items):number"},{name:".unshift",text:"Array.unshift(...items):number"},
-    {name:".fill",text:"Array.fill(value, start?, end?):Array"},{name:".splice",text:"Array.splice(start, deleteCount?, ...items):Array"},
-    {name:".slice",text:"Array.slice(start?, end?):Array"},{name:".findIndex",text:"Array.findIndex(callback):number"},
-    {name:".append",text:"Element.append(...nodes/text)"},{name:".appendChild",text:"Element.appendChild(childNode):Node"},
-    {name:"max",text:"Math.max(...values):number"},{name:"min",text:"Math.min(...values):number"},
-    {name:"sin",text:"Math.sin(radians):number"},{name:"cos",text:"Math.cos(radians):number"},
-    {name:"tan",text:"Math.tan(radians):number"},{name:"asin",text:"Math.asin(x):number"},
-    {name:"acos",text:"Math.acos(x):number"},{name:"atan",text:"Math.atan(x):number"},
-    {name:"atan2",text:"Math.atan2(y, x):number"},{name:"pow",text:"Math.pow(base, power):number"},
-    {name:"setTimeout",text:"setTimeout(callback, delay?):number"},{name:"setInterval",text:"setInterval(callback, delay?):number"},
-    {name:".getElementById",text:"document.getElementById(id):Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className):HTMLCollection"},
-    {name:".getElementsByName",text:"document.getElementsByName(name):NodeList"},{name:".createElement",text:"document.createElement(tagName):HTMLElement"},
+    {name:"swap",text:"swap(A, B): void"},{name:"wait",text:"wait(delay): void"},{name:"print",text:"print(content): void"},
+    {name:"alert",text:"alert(message?): void"},{name:"confirm",text:"confirm(message?): void"},
+    {name:"prompt",text:"prompt(message?, default?): string | null"},{name:"getValue",text:"getValue(name): any"},
+    {name:".toFixed",text:"Number.toFixed(fractionDigits?): string"},{name:".toPrecision",text:"Number.toPrecision(precision?): string"},
+    {name:".codePointAt",text:"String.codePointAt(index): number"},{name:".indexOf",text:"String.indexOf(searchStr, fromIndex?): number"},
+    {name:".findIndex",text:"String.findIndex(callback): number"},{name:".replace",text:"String.replace(pattern, replacement): string"},
+    {name:".slice",text:"String.slice(start, end?): string"},{name:".includes",text:"(String | Array).includes(item, fromIndex?): boolean"},
+    {name:".push",text:"Array.push(...items): number"},{name:".unshift",text:"Array.unshift(...items): number"},
+    {name:".fill",text:"Array.fill(value, start?, end?): Array"},{name:".splice",text:"Array.splice(start, deleteCount?, ...items): Array"},
+    {name:".slice",text:"Array.slice(start?, end?): Array"},{name:".findIndex",text:"Array.findIndex(callback): number"},
+    {name:".append",text:"Element.append(...nodes/text)"},{name:".appendChild",text:"Element.appendChild(childNode): Node"},
+    {name:"max",text:"Math.max(...values): number"},{name:"min",text:"Math.min(...values): number"},
+    {name:"sin",text:"Math.sin(radians): number"},{name:"cos",text:"Math.cos(radians): number"},
+    {name:"tan",text:"Math.tan(radians): number"},{name:"asin",text:"Math.asin(x): number"},
+    {name:"acos",text:"Math.acos(x): number"},{name:"atan",text:"Math.atan(x): number"},
+    {name:"atan2",text:"Math.atan2(y, x): number"},{name:"pow",text:"Math.pow(base, power): number"},
+    {name:"setTimeout",text:"setTimeout(callback, delay?): number"},{name:"setInterval",text:"setInterval(callback, delay?): number"},
+    {name:".getElementById",text:"document.getElementById(id): Element|null"},{name:".getElementsByClassName",text:"document.getElementsByClassName(className): HTMLCollection"},
+    {name:".getElementsByName",text:"document.getElementsByName(name): NodeList"},{name:".createElement",text:"document.createElement(tagName): HTMLElement"},
     {name:".exitPointerLock",text:"document.exitPointerLock()"},{name:".exitFullscreen",text:"document.exitFullscreen()"},
     {name:"onclick",text:"onclick=function(event){}"},{name:"oncontextmenu",text:"oncontextmenu=function(event){}"},
     {name:"onmousedown",text:"onmousedown=function(event){}"},{name:"onmouseup",text:"onmouseup=function(event){}"},
     {name:"onmousemove",text:"onmousemove=function(event){}"},{name:"onmousewheel",text:"onmousewheel=function(event){}"},
-    {name:"parseInt",text:"parseInt(string, radix?):number"},{name:"parseFloat",text:"parseFloat(string):number"},
-    {name:"isNaN",text:"isNaN(value):boolean"},{name:"isFinite",text:"isFinite(value):boolean"},
-    {name:"encodeURI",text:"encodeURI(uri):string"},{name:"decodeURI",text:"decodeURI(encodedURI):string"},
-    {name:"encodeURIComponent",text:"encodeURIComponent(uriComponent):string"},{name:"decodeURIComponent",text:"decodeURIComponent(encodedURI):string"},
-    {name:"clearTimeout",text:"clearTimeout(timeoutId):void"},{name:"clearInterval",text:"clearInterval(intervalId):void"},
-    {name:"requestAnimationFrame",text:"requestAnimationFrame(callback):number"},{name:"cancelAnimationFrame",text:"cancelAnimationFrame(requestId):void"},
-    {name:".match",text:"String.match(regexp):RegExpMatchArray|null"},{name:".matchAll",text:"String.matchAll(regexp):RegExpStringIterator"},
-    {name:".search",text:"String.search(regexp):number"},{name:".parse",text:"JSON.parse(text, reviver?):any"},
-    {name:".stringify",text:"JSON.stringify(value, replacer?, space?):string"},{name:".querySelector",text:"document.querySelector(selectors):Element|null"},
-    {name:".querySelectorAll",text:"document.querySelectorAll(selectors):NodeList"},{name:".classList.add",text:"Element.classList.add(...tokens):void"},
-    {name:".classList.remove",text:"Element.classList.remove(...tokens):void"},{name:".classList.toggle",text:"Element.classList.toggle(token, force?):boolean"},
-    {name:".classList.contains",text:"Element.classList.contains(token):boolean"},{name:".closest",text:"Element.closest(selectors):Element|null"},
-    {name:".matches",text:"Element.matches(selectors):boolean"},
-    {name:".OpenTextFile",text:"fso.OpenTextFile(filePath, mode?, create?, format?):TextStream"},{name:".FileExists",text:"fso.FileExists(path):boolean"},
-    {name:".FolderExists",text:"fso.FolderExists(path):boolean"},{name:".CreateFolder",text:"fso.CreateFolder(path):Folder"},
-    {name:".DeleteFile",text:"fso.DeleteFile(path, force?):void"},{name:".DeleteFolder",text:"fso.DeleteFolder(path, force?):void"},
-    {name:".CopyFile",text:"fso.CopyFile(source, dest, overwrite?):void"},{name:".CopyFolder",text:"fso.CopyFolder(source, dest, overwrite?):void"},
-    {name:".MoveFile",text:"fso.MoveFile(source, dest):void"},{name:".MoveFolder",text:"fso.MoveFolder(source, dest):void"},
-    {name:".BuildPath",text:"fso.BuildPath(folder, file):string"},{name:".GetParentFolderName",text:"fso.GetParentFolderName(path):string"},
-    {name:".GetAbsolutePathName",text:"fso.GetAbsolutePathName(path):string"},{name:".GetFileName",text:"fso.GetFileName(path):string"},
-    {name:".GetBaseName",text:"fso.GetBaseName(path):string"},{name:".GetExtensionName",text:"fso.GetExtensionName(path):string"},
-    {name:".GetSpecialFolder",text:"fso.GetSpecialFolder(folderType):Folder"},{name:".GetTempName",text:"fso.GetTempName():string"},
-    {name:".GetFile",text:"fso.GetFile(path):File"},{name:".GetFolder",text:"fso.GetFolder(path):Folder"},
-    {name:".OpenAsTextStream",text:"File.OpenAsTextStream(mode?, format?):TextStream"},{name:".Copy",text:"File.Copy(dest, overwrite?):void"},
-    {name:".Move",text:"File.Move(dest):void"},{name:".Delete",text:"File.Delete(force?):void"},
-    {name:".CreateTextFile",text:"(Folder|fso).CreateTextFile(name, overwrite?, unicode?):TextStream"},{name:".Copy",text:"Folder.Copy(dest, overwrite?):void"},
-    {name:".Move",text:"Folder.Move(dest):void"},{name:".Delete",text:"Folder.Delete(force?):void"},
-    {name:".Read",text:"TextStream.Read(charCount):string"},{name:".ReadLine",text:"TextStream.ReadLine():string"},
-    {name:".ReadAll",text:"TextStream.ReadAll():string"},{name:".Write",text:"TextStream.Write(str):void"},
-    {name:".WriteLine",text:"TextStream.WriteLine(str?):void"},{name:".WriteBlankLines",text:"TextStream.WriteBlankLines(lineCount):void"},{name:".Close",text:"TextStream.Close():void"},
-    {name:".Open",text:"stream.Open():void"},{name:".LoadFromFile",text:"stream.LoadFromFile(path):void"},
-    {name:".SaveToFile",text:"stream.SaveToFile(path, saveOpt):void"},{name:".WriteText",text:"stream.WriteText(str, options?):void"},
-    {name:".Close",text:"stream.Close():void"},{name:".getTime",text:"Date.getTime():number"},
-    {name:".getFullYear",text:"Date.getFullYear():number"},{name:".getMonth",text:"Date.getMonth():number"},
-    {name:".getDate",text:"Date.getDate():number"},{name:".getHours",text:"Date.getHours():number"},
-    {name:".getMinutes",text:"Date.getMinutes():number"},{name:".getSeconds",text:"Date.getSeconds():number"},
-    {name:".now",text:"Date.now():number"},{name:".pop",text:"Array.pop():any"},
-    {name:".shift",text:"Array.shift():any"},{name:".sort",text:"Array.sort(compareFn?):Array"},
-    {name:".filter",text:"Array.filter(callback):Array"},{name:".map",text:"Array.map(callback):Array"},
-    {name:".every",text:"Array.every(callback):boolean"},{name:".some",text:"Array.some(callback):boolean"},
-    {name:".trim",text:"String.trim():string"},{name:".trimStart",text:"String.trimStart():string"},
-    {name:".trimEnd",text:"String.trimEnd():string"},{name:".split",text:"String.split(separator, limit?):string[]"},
-    {name:".startsWith",text:"String.startsWith(str, pos?):boolean"},{name:".endsWith",text:"String.endsWith(str, len?):boolean"},
-    {name:"Math.round",text:"Math.round(x):number"},{name:"Math.random",text:"Math.random():number"},
-    {name:"Math.abs",text:"Math.abs(x):number"},{name:".remove",text:"Element.remove():void"},
-    {name:".setAttribute",text:"Element.setAttribute(name, value):void"},{name:".getAttribute",text:"Element.getAttribute(name):string|null"},
-    {name:".removeAttribute",text:"Element.removeAttribute(name):void"},{name:".focus",text:"Element.focus():void"},
-    {name:".blur",text:"Element.blur():void"},{name:"runCMD",text:"runCMD(cmdstr):void"},
-    {name:"String",text:"new String(value):String"},{name:"Number",text:"new Number(value):Number"},
-    {name:"Boolean",text:"new Boolean(value):Boolean"},{name:"Object",text:"new Object():Object"},
-    {name:"Array",text:"new Array(length/items):Array"},{name:"Date",text:"new Date(timestamp/dateStr):Date"},
-    {name:"RegExp",text:"new RegExp(pattern,flags):RegExp"},{name:"XMLHttpRequest",text:"new XMLHttpRequest():XMLHttpRequest"},
-    {name:"Image",text:"new Image(width?,height?):HTMLImageElement"},{name:"Option",text:"new Option(text,value,defaultSelected?,selected?):HTMLOptionElement"},
-    {name:"CanvasRenderingContext2D",text:"new CanvasRenderingContext2D():CanvasRenderingContext2D"},
-    {name:"OffscreenCanvas",text:"new OffscreenCanvas(width, height):OffscreenCanvas"},
-    {name:"createLinearGradient",text:"ctx.createLinearGradient(x0,y0,x1,y1):CanvasGradient"},
-    {name:"createRadialGradient",text:"ctx.createRadialGradient(x0,y0,r0,x1,y1,r1):CanvasGradient"},
-    {name:"createPattern",text:"ctx.createPattern(image,repetition):CanvasPattern"},
-    {name:".save",text:"ctx.save():void"},
-    {name:".restore",text:"ctx.restore():void"},
-    {name:".scale",text:"ctx.scale(x,y):void"},
-    {name:".rotate",text:"ctx.rotate(angle):void"},
-    {name:".translate",text:"ctx.translate(x,y):void"},
-    {name:".transform",text:"ctx.transform(a,b,c,d,e,f):void"},
-    {name:".setTransform",text:"ctx.setTransform(a,b,c,d,e,f):void"},
-    {name:".clearRect",text:"ctx.clearRect(x,y,w,h):void"},
-    {name:".fillRect",text:"ctx.fillRect(x,y,w,h):void"},
-    {name:".strokeRect",text:"ctx.strokeRect(x,y,w,h):void"},
-    {name:".beginPath",text:"ctx.beginPath():void"},
-    {name:".closePath",text:"ctx.closePath():void"},
-    {name:".moveTo",text:"ctx.moveTo(x,y):void"},
-    {name:".lineTo",text:"ctx.lineTo(x,y):void"},
-    {name:".arc",text:"ctx.arc(x,y,r,startAngle,endAngle,anticlockwise?):void"},
-    {name:".arcTo",text:"ctx.arcTo(x1,y1,x2,y2,r):void"},
-    {name:".ellipse",text:"ctx.ellipse(x,y,rx,ry,rot,sAngle,eAngle,anticlockwise?):void"},
-    {name:".rect",text:"ctx.rect(x,y,w,h):void"},
-    {name:".bezierCurveTo",text:"ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,x,y):void"},
-    {name:".quadraticCurveTo",text:"ctx.quadraticCurveTo(cpx,cpy,x,y):void"},
-    {name:".fill",text:"ctx.fill(fillRule?):void"},
-    {name:".stroke",text:"ctx.stroke():void"},
-    {name:".clip",text:"ctx.clip(fillRule?):void"},
-    {name:".isPointInPath",text:"ctx.isPointInPath(x,y,fillRule?):boolean"},
-    {name:".isPointInStroke",text:"ctx.isPointInStroke(x,y):boolean"},
-    {name:".fillText",text:"ctx.fillText(text,x,y,maxWidth?):void"},
-    {name:".strokeText",text:"ctx.strokeText(text,x,y,maxWidth?):void"},
-    {name:".measureText",text:"ctx.measureText(text):TextMetrics"},
-    {name:".drawImage",text:"ctx.drawImage(img,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight):void"},
-    {name:".getImageData",text:"ctx.getImageData(x,y,w,h):ImageData"},
-    {name:".putImageData",text:"ctx.putImageData(imageData,dx,dy,dirtyX?,dirtyY?,dirtyW?,dirtyH?):void"},
-    {name:".createImageData",text:"ctx.createImageData(width,height):ImageData"},
-    {name:".getContext",text:"canvas.getContext(contextType, contextAttributes?):CanvasRenderingContext2D|null"},
-    {name:".toDataURL",text:"canvas.toDataURL(type?, quality?):string"},
-    {name:".toBlob",text:"canvas.toBlob(callback, type?, quality?):void"},
-    {name:".transferToImageBitmap",text:"offscreenCanvas.transferToImageBitmap():ImageBitmap"},
-    {name:".addColorStop",text:"gradient.addColorStop(offset, color):void"},
+    {name:"parseInt",text:"parseInt(string, radix?): number"},{name:"parseFloat",text:"parseFloat(string): number"},
+    {name:"isNaN",text:"isNaN(value): boolean"},{name:"isFinite",text:"isFinite(value): boolean"},
+    {name:"encodeURI",text:"encodeURI(uri): string"},{name:"decodeURI",text:"decodeURI(encodedURI): string"},
+    {name:"encodeURIComponent",text:"encodeURIComponent(uriComponent): string"},{name:"decodeURIComponent",text:"decodeURIComponent(encodedURI): string"},
+    {name:"clearTimeout",text:"clearTimeout(timeoutId): void"},{name:"clearInterval",text:"clearInterval(intervalId): void"},
+    {name:"requestAnimationFrame",text:"requestAnimationFrame(callback): number"},{name:"cancelAnimationFrame",text:"cancelAnimationFrame(requestId): void"},
+    {name:".match",text:"String.match(regexp): RegExpMatchArray|null"},{name:".matchAll",text:"String.matchAll(regexp): RegExpStringIterator"},
+    {name:".search",text:"String.search(regexp): number"},{name:".parse",text:"JSON.parse(text, reviver?): any"},
+    {name:".stringify",text:"JSON.stringify(value, replacer?, space?): string"},{name:".querySelector",text:"document.querySelector(selectors): Element|null"},
+    {name:".querySelectorAll",text:"document.querySelectorAll(selectors): NodeList"},{name:".classList.add",text:"Element.classList.add(...tokens): void"},
+    {name:".classList.remove",text:"Element.classList.remove(...tokens): void"},{name:".classList.toggle",text:"Element.classList.toggle(token, force?): boolean"},
+    {name:".classList.contains",text:"Element.classList.contains(token): boolean"},{name:".closest",text:"Element.closest(selectors): Element|null"},
+    {name:".matches",text:"Element.matches(selectors): boolean"},
+    {name:".OpenTextFile",text:"fso.OpenTextFile(filePath, mode?, create?, format?): TextStream"},{name:".FileExists",text:"fso.FileExists(path): boolean"},
+    {name:".FolderExists",text:"fso.FolderExists(path): boolean"},{name:".CreateFolder",text:"fso.CreateFolder(path): Folder"},
+    {name:".DeleteFile",text:"fso.DeleteFile(path, force?): void"},{name:".DeleteFolder",text:"fso.DeleteFolder(path, force?): void"},
+    {name:".CopyFile",text:"fso.CopyFile(source, dest, overwrite?): void"},{name:".CopyFolder",text:"fso.CopyFolder(source, dest, overwrite?): void"},
+    {name:".MoveFile",text:"fso.MoveFile(source, dest): void"},{name:".MoveFolder",text:"fso.MoveFolder(source, dest): void"},
+    {name:".BuildPath",text:"fso.BuildPath(folder, file): string"},{name:".GetParentFolderName",text:"fso.GetParentFolderName(path): string"},
+    {name:".GetAbsolutePathName",text:"fso.GetAbsolutePathName(path): string"},{name:".GetFileName",text:"fso.GetFileName(path): string"},
+    {name:".GetBaseName",text:"fso.GetBaseName(path): string"},{name:".GetExtensionName",text:"fso.GetExtensionName(path): string"},
+    {name:".GetSpecialFolder",text:"fso.GetSpecialFolder(folderType): Folder"},{name:".GetTempName",text:"fso.GetTempName(): string"},
+    {name:".GetFile",text:"fso.GetFile(path): File"},{name:".GetFolder",text:"fso.GetFolder(path): Folder"},
+    {name:".OpenAsTextStream",text:"File.OpenAsTextStream(mode?, format?): TextStream"},{name:".Copy",text:"File.Copy(dest, overwrite?): void"},
+    {name:".Move",text:"File.Move(dest): void"},{name:".Delete",text:"File.Delete(force?): void"},
+    {name:".CreateTextFile",text:"(Folder|fso).CreateTextFile(name, overwrite?, unicode?): TextStream"},{name:".Copy",text:"Folder.Copy(dest, overwrite?): void"},
+    {name:".Move",text:"Folder.Move(dest): void"},{name:".Delete",text:"Folder.Delete(force?): void"},
+    {name:".Read",text:"TextStream.Read(charCount): string"},{name:".ReadLine",text:"TextStream.ReadLine(): string"},
+    {name:".ReadAll",text:"TextStream.ReadAll(): string"},{name:".Write",text:"TextStream.Write(str): void"},
+    {name:".WriteLine",text:"TextStream.WriteLine(str?): void"},{name:".WriteBlankLines",text:"TextStream.WriteBlankLines(lineCount): void"},{name:".Close",text:"TextStream.Close(): void"},
+    {name:".Open",text:"stream.Open(): void"},{name:".LoadFromFile",text:"stream.LoadFromFile(path): void"},
+    {name:".SaveToFile",text:"stream.SaveToFile(path, saveOpt): void"},{name:".WriteText",text:"stream.WriteText(str, options?): void"},
+    {name:".Close",text:"stream.Close(): void"},{name:".getTime",text:"Date.getTime(): number"},
+    {name:".getFullYear",text:"Date.getFullYear(): number"},{name:".getMonth",text:"Date.getMonth(): number"},
+    {name:".getDate",text:"Date.getDate(): number"},{name:".getHours",text:"Date.getHours(): number"},
+    {name:".getMinutes",text:"Date.getMinutes(): number"},{name:".getSeconds",text:"Date.getSeconds(): number"},
+    {name:".now",text:"Date.now(): number"},{name:".pop",text:"Array.pop(): any"},
+    {name:".shift",text:"Array.shift(): any"},{name:".sort",text:"Array.sort(compareFn?): Array"},
+    {name:".filter",text:"Array.filter(callback): Array"},{name:".map",text:"Array.map(callback): Array"},
+    {name:".every",text:"Array.every(callback): boolean"},{name:".some",text:"Array.some(callback): boolean"},
+    {name:".trim",text:"String.trim(): string"},{name:".trimStart",text:"String.trimStart(): string"},
+    {name:".trimEnd",text:"String.trimEnd(): string"},{name:".split",text:"String.split(separator, limit?): string[]"},
+    {name:".startsWith",text:"String.startsWith(str, pos?): boolean"},{name:".endsWith",text:"String.endsWith(str, len?): boolean"},
+    {name:"Math.round",text:"Math.round(x): number"},{name:"Math.random",text:"Math.random(): number"},
+    {name:"Math.abs",text:"Math.abs(x): number"},{name:".remove",text:"Element.remove(): void"},
+    {name:".setAttribute",text:"Element.setAttribute(name, value): void"},{name:".getAttribute",text:"Element.getAttribute(name): string|null"},
+    {name:".removeAttribute",text:"Element.removeAttribute(name): void"},{name:".focus",text:"Element.focus(): void"},
+    {name:".blur",text:"Element.blur(): void"},{name:"runCMD",text:"runCMD(cmdstr): void"},
+    {name:"String",text:"new String(value): String"},{name:"Number",text:"new Number(value): Number"},
+    {name:"Boolean",text:"new Boolean(value): Boolean"},{name:"Object",text:"new Object(): Object"},
+    {name:"Array",text:"new Array(length/items): Array"},{name:"Date",text:"new Date(timestamp/dateStr): Date"},
+    {name:"RegExp",text:"new RegExp(pattern,flags): RegExp"},{name:"XMLHttpRequest",text:"new XMLHttpRequest(): XMLHttpRequest"},
+    {name:"Image",text:"new Image(width?,height?): HTMLImageElement"},{name:"Option",text:"new Option(text,value,defaultSelected?,selected?): HTMLOptionElement"},
+    {name:"CanvasRenderingContext2D",text:"new CanvasRenderingContext2D(): CanvasRenderingContext2D"},
+    {name:"OffscreenCanvas",text:"new OffscreenCanvas(width, height): OffscreenCanvas"},
+    {name:"createLinearGradient",text:"ctx.createLinearGradient(x0,y0,x1,y1): CanvasGradient"},
+    {name:"createRadialGradient",text:"ctx.createRadialGradient(x0,y0,r0,x1,y1,r1): CanvasGradient"},
+    {name:"createPattern",text:"ctx.createPattern(image,repetition): CanvasPattern"},
+    {name:".save",text:"ctx.save(): void"},
+    {name:".restore",text:"ctx.restore(): void"},
+    {name:".scale",text:"ctx.scale(x,y): void"},
+    {name:".rotate",text:"ctx.rotate(angle): void"},
+    {name:".translate",text:"ctx.translate(x,y): void"},
+    {name:".transform",text:"ctx.transform(a,b,c,d,e,f): void"},
+    {name:".setTransform",text:"ctx.setTransform(a,b,c,d,e,f): void"},
+    {name:".clearRect",text:"ctx.clearRect(x,y,w,h): void"},
+    {name:".fillRect",text:"ctx.fillRect(x,y,w,h): void"},
+    {name:".strokeRect",text:"ctx.strokeRect(x,y,w,h): void"},
+    {name:".beginPath",text:"ctx.beginPath(): void"},
+    {name:".closePath",text:"ctx.closePath(): void"},
+    {name:".moveTo",text:"ctx.moveTo(x,y): void"},
+    {name:".lineTo",text:"ctx.lineTo(x,y): void"},
+    {name:".arc",text:"ctx.arc(x,y,r,startAngle,endAngle,anticlockwise?): void"},
+    {name:".arcTo",text:"ctx.arcTo(x1,y1,x2,y2,r): void"},
+    {name:".ellipse",text:"ctx.ellipse(x,y,rx,ry,rot,sAngle,eAngle,anticlockwise?): void"},
+    {name:".rect",text:"ctx.rect(x,y,w,h): void"},
+    {name:".bezierCurveTo",text:"ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,x,y): void"},
+    {name:".quadraticCurveTo",text:"ctx.quadraticCurveTo(cpx,cpy,x,y): void"},
+    {name:".fill",text:"ctx.fill(fillRule?): void"},
+    {name:".stroke",text:"ctx.stroke(): void"},
+    {name:".clip",text:"ctx.clip(fillRule?): void"},
+    {name:".isPointInPath",text:"ctx.isPointInPath(x,y,fillRule?): boolean"},
+    {name:".isPointInStroke",text:"ctx.isPointInStroke(x,y): boolean"},
+    {name:".fillText",text:"ctx.fillText(text,x,y,maxWidth?): void"},
+    {name:".strokeText",text:"ctx.strokeText(text,x,y,maxWidth?): void"},
+    {name:".measureText",text:"ctx.measureText(text): TextMetrics"},
+    {name:".drawImage",text:"ctx.drawImage(img,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight): void"},
+    {name:".getImageData",text:"ctx.getImageData(x,y,w,h): ImageData"},
+    {name:".putImageData",text:"ctx.putImageData(imageData,dx,dy,dirtyX?,dirtyY?,dirtyW?,dirtyH?): void"},
+    {name:".createImageData",text:"ctx.createImageData(width,height): ImageData"},
+    {name:".getContext",text:"canvas.getContext(contextType, contextAttributes?): CanvasRenderingContext2D|null"},
+    {name:".toDataURL",text:"canvas.toDataURL(type?, quality?): string"},
+    {name:".toBlob",text:"canvas.toBlob(callback, type?, quality?): void"},
+    {name:".transferToImageBitmap",text:"offscreenCanvas.transferToImageBitmap(): ImageBitmap"},
+    {name:".addColorStop",text:"gradient.addColorStop(offset, color): void"},
     {name:"function",text:"function(...parameters){ Logic }:function"},
-    {name:"Function",text:"Function(value):function"},
+    {name:"Function",text:"Function(value): function"},
     {name:"scroll",text:"scroll(x?, y?): void"},
     {name:"scrollTo",text:"scrollTo(x?, y?): void"},
     {name:"scrollBy",text:"scrollBy(dx?, dy?): void"},
@@ -650,32 +652,39 @@ const funcTour=[
 ];
 const hasChil={
     number:[{text:".toString()",back:0,has:"string",type:"AR"},{text:".toFixed()",back:1,has:"string",type:"AR"},{text:".toPrecision()",back:1,has:"string",type:"AR"},
-        {text:".toExponential()",back:1,has:[],type:"AR"},],
+        {text:".toExponential()",back:1,has:[],type:"AR"},
+        {text:"type",has:[],type:"number"},{text:".prototype",back:0,has:"this",type:"AR"},],
     string:[{text:".length",back:0,has:"number",type:"AR"},{text:".charAt()",back:1,has:"this",type:"AR"},{text:".codePointAt()",back:1,has:"number",type:"AR"},
         {text:".includes()",back:1,has:[],type:"AR"},{text:".indexOf()",back:1,has:"number",type:"AR"},{text:".lastIndexOf()",back:1,has:"number",type:"AR"},
         {text:".replace()",back:1,has:[],type:"AR"},{text:".replaceAll()",back:1,has:[],type:"AR"},{text:".slice()",back:1,has:[],type:"AR"},
         {text:".substring()",back:1,has:"this",type:"AR"},{text:".split()",back:1,has:"array-string",type:"AR"},{text:".trim()",back:0,has:"this",type:"AR"},
         {text:".toUpperCase()",back:0,has:"this",type:"AR"},{text:".toLowerCase()",back:0,has:"this",type:"AR"},
-        {text:".padStart()",back:1,has:[],type:"AR"},{text:".padEnd()",back:1,has:[],type:"AR"},],
+        {text:".padStart()",back:1,has:[],type:"AR"},{text:".padEnd()",back:1,has:[],type:"AR"},
+        {text:"type",has:[],type:"string"},{text:".prototype",has:"this",type:"AR"},],
     array:[{text:".length",back:0,has:"number",type:"AR"},{text:".pop()",back:0,has:[],type:"AR"},{text:".push()",back:1,has:[],type:"AR"},
         {text:".shift()",back:0,has:[],type:"AR"},{text:".unshift()",back:1,has:[],type:"AR"},{text:".includes()",back:1,has:[],type:"AR"},
         {text:".find()",back:1,has:[],type:"AR"},{text:".findIndex()",back:1,has:"number",type:"AR"},{text:".some()",back:1,has:[],type:"AR"},
         {text:".every()",back:1,has:[],type:"AR"},{text:".filter()",back:1,has:"this",type:"AR"},{text:".map()",back:1,has:"this",type:"AR"},
         {text:".reduce()",back:1,has:[],type:"AR"},{text:".splice()",back:1,has:[],type:"AR"},{text:".join()",back:1,has:"string",type:"AR"},
-        {text:".slice()",back:1,has:"this",type:"AR"},{text:".reverse()",back:0,has:"this",type:"AR"},{text:".sort()",back:0,has:"this",type:"AR"},],
+        {text:".slice()",back:1,has:"this",type:"AR"},{text:".reverse()",back:0,has:"this",type:"AR"},{text:".sort()",back:0,has:"this",type:"AR"},
+        {text:"type",has:[],type:"object"},{text:".prototype",has:"this",type:"AR"},],
     object:[{text:".hasOwnProperty()",back:1,has:[],type:"AR"},{text:".toString()",back:0,has:"string",type:"AR"},],
     event:[{text:".screenX",back:0,has:"number",type:"AR"},{text:".screenY",back:0,has:"number",type:"AR"},{text:".pageX",back:0,has:"number",type:"AR"},
         {text:".pageY",back:0,has:"number",type:"AR"},{text:".clientX",back:0,has:"number",type:"AR"},{text:".clientY",back:0,has:"number",type:"AR"},
         {text:".offsetX",back:0,has:"number",type:"AR"},{text:".offsetY",back:0,has:"number",type:"AR"},{text:".button",back:0,has:"number",type:"AR"},
         {text:".key",back:0,has:"string",type:"AR"},{text:".keyCode",back:0,has:"number",type:"AR"},{text:".target",back:0,has:"element",type:"AR"},
         {text:".currentTarget",back:0,has:"element",type:"AR"},{text:".wheelDelta",back:0,has:"number",type:"AR"},{text:".preventDefault()",back:0,has:[],type:"AR"},
-        {text:".stopPropagation()",back:0,has:[],type:"AR"},],boolean:[],
-    function:[{text:".name",back:0,has:"string",type:"AR"},{text:".length",back:0,has:"number",type:"AR"},
-        {text:".apply()",back:1,has:[],type:"AR"},{text:".bind()",back:1,has:[],type:"AR"},],
+        {text:".stopPropagation()",back:0,has:[],type:"AR"},
+        {text:"type",has:[],type:"event"},{text:".prototype",has:"this",type:"AR"},],
+    boolean:[{text:"type",has:[],type:"boolean"},{text:".prototype",has:"this",type:"AR"},],
+    function:[{text:".name",back:0,has:"function",type:"AR"},{text:".length",back:0,has:"number",type:"AR"},
+        {text:".apply()",back:1,has:[],type:"AR"},{text:".bind()",back:1,has:[],type:"AR"},
+        {text:"type",has:[],type:"function"},{text:".prototype",has:"this",type:"AR"},],
     date:[{text:".getTime()",back:0,has:"number",type:"AR"},{text:".getFullYear()",back:0,has:"number",type:"AR"},{text:".getMonth()",back:0,has:"number",type:"AR"},
         {text:".getDate()",back:0,has:"number",type:"AR"}, {text:".getDay()",back:0,has:"number",type:"AR"},{text:".getHours()",back:0,has:"number",type:"AR"},
         {text:".getMinutes()",back:0,has:"number",type:"AR"},{text:".getSeconds()",back:0,has:"number",type:"AR"},{text:".toLocaleString()",back:0,has:"string",type:"AR"},
-        {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},],
+        {text:".toLocaleDateString()",back:0,has:"string",type:"AR"},
+        {text:"type",has:[],type:"date"},{text:".prototype",has:"this",type:"AR"},],
     element:[{text:".value",back:0,has:"string",type:"AR"},{text:".innerHTML",back:0,has:"string",type:"AR"},{text:".innerText",back:0,has:"string",type:"AR"},
         {text:".textContent",back:0,has:"string",type:"AR"},{text:".id",back:0,has:"string",type:"AR"},{text:".className",back:0,has:"string",type:"AR"},
         {text:".classList",back:0,has:"array-string",type:"AR"},{text:".style",back:0,has:[{text:".top",back:0,has:"string",type:"AR"},{text:".left",back:0,has:"string",type:"AR"},
@@ -703,13 +712,14 @@ const hasChil={
             ],type:"AR"},{text:".putImageData()",back:1,has:[],type:"AR"},{text:".createImageData()",back:1,has:[],type:"AR"},{text:".createLinearGradient()",back:1,has:[
                 {text:".addColorStop()",back:1,has:[],type:"AR"}],type:"AR"},
             {text:".createRadialGradient()",back:1,has:[{text:".addColorStop()",back:1,has:[],type:"AR"}],type:"AR"},
-            {text:".globalAlpha",back:0,has:"number",type:"AR"},{text:".globalCompositeOperation",back:0,has:"string",type:"AR"},{text:".fillStyle",back:0,has:[],type:"AR"},
-            {text:".strokeStyle",back:0,has:[],type:"AR"},{text:".lineWidth",back:0,has:"number",type:"AR"},{text:".lineCap",back:0,has:"string",type:"AR"},
+            {text:".globalAlpha",back:0,has:"number",type:"AR"},{text:".globalCompositeOperation",back:0,has:"string",type:"AR"},{text:".fillStyle",back:0,has:"string",type:"AR"},
+            {text:".strokeStyle",back:0,has:"string",type:"AR"},{text:".lineWidth",back:0,has:"number",type:"AR"},{text:".lineCap",back:0,has:"string",type:"AR"},
             {text:".lineJoin",back:0,has:"string",type:"AR"},{text:".miterLimit",back:0,has:"number",type:"AR"},{text:".shadowBlur",back:0,has:"number",type:"AR"},
             {text:".shadowColor",back:0,has:"string",type:"AR"},{text:".shadowOffsetX",back:0,has:"number",type:"AR"},{text:".shadowOffsetY",back:0,has:"number",type:"AR"},{text:".font",back:0,has:"string",type:"AR"},
             {text:".textAlign",back:0,has:"string",type:"AR"},{text:".textBaseline",back:0,has:"string",type:"AR"},{text:".isPointInPath()",back:1,has:"boolean",type:"AR"},
-        ],type:"AR"},{text:".toDataURL()",back:1,has:"string",type:"AR"},{text:".dataset",back:1,has:"object",type:"AR"},],
-            folder:[{text:".CreateTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:"string",type:"AR"},
+        ],type:"AR"},{text:".toDataURL()",back:1,has:"string",type:"AR"},{text:".dataset",back:1,has:"object",type:"AR"},
+        {text:"type",has:[],type:"element"},{text:".prototype",has:"this",type:"AR"},],
+    folder:[{text:".CreateTextFile()",back:1,has:[{text:".Read()",back:1,has:[],type:"AR"},{text:".ReadLine()",back:0,has:"string",type:"AR"},
             {text:".ReadAll()",back:0,has:"string",type:"AR"},{text:".Write()",back:1,has:[],type:"AR"},
             {text:".WriteLine()",back:1,has:[],type:"AR"},{text:".Close()",back:1,has:[],type:"AR"},
             {text:".AtEndOfStream",back:0,has:[],type:"AR"},{text:".Column",back:0,has:"number",type:"AR"},
@@ -725,20 +735,21 @@ const hasChil={
         {text:".SubFolders",back:0,has:[],type:"AR"},
         {text:".DateCreated",back:0,has:"date",type:"AR"},
         {text:".DateLastAccessed",back:0,has:"date",type:"AR"},
-        {text:".DateLastModified",back:0,has:"date",type:"AR"}],
+        {text:".DateLastModified",back:0,has:"date",type:"AR"},
+        {text:"type",has:[],type:"folder"},{text:".prototype",has:"this",type:"AR"}],
 };
-const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",back:1,has:[],type:"CL"},{text:"Date()",back:1,has:[],type:"CL"},{text:"Function()",back:1,has:[],type:"CL"},{text:"function()",back:1,has:[],type:"AR"},
+const staticFiller=[{text:"Boolean()",back:1,has:hasChil.boolean,type:"CL"},{text:"String()",back:1,has:hasChil.string,type:"CL"},{text:"Date()",back:1,has:hasChil.date,type:"CL"},{text:"Function()",back:1,has:hasChil.function,type:"CL"},{text:"function()",back:1,has:hasChil.function,type:"AR"},
     {text:"XMLHttpRequest()",back:1,has:[],type:"CL"},{text:"ActiveXObject()",back:1,has:[],type:"CL"},{text:"Image()",back:1,has:[],type:"CL"},{text:"Option()",back:1,has:[],type:"CL"},
-    {text:"Number()",back:1,has:[],type:"CL"},{text:"Array()",back:1,has:[],type:"CL"},{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
+    {text:"Number()",back:1,has:hasChil.number,type:"CL"},{text:"Array()",back:1,has:hasChil.array.concat({text:"child",back:0,has:[{text:"type",has:[],type:"any"}],type:"AR"}),type:"CL"},{text:"branch",back:0,has:[],type:"OP"},{text:"if",back:0,has:[],type:"OP"},
     {text:"print()",back:1,has:[],type:"AR"},{text:"swap()",back:1,has:[],type:"AR"},{text:"runCMD()",back:1,has:[],type:"AR"},{text:"_id_",back:0,has:hasChil.string,type:"AR"},{text:"getValue()",back:1,has:[],type:"AR"},
-    {text:"typeof ",back:0,has:[],type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
+    {text:"typeof ",back:0,has:hasChil.string,type:"AR"},{text:"alert()",back:1,has:[],type:"AR"},{text:"confirm()",back:1,has:[],type:"AR"},{text:"prompt()",back:1,has:[],type:"AR"},
     {text:"new ",back:0,has:[],type:"AR"},{text:"wait()",back:1,has:[],type:"AR"},{text:"undefined",back:0,has:[],type:"AR"},{text:"NaN",back:0,has:hasChil.number,type:"AR"},
-    {text:"null",back:0,has:[],type:"AR"},{text:"false",back:0,has:[],type:"AR"},{text:"true",back:0,has:[],type:"AR"},{text:"Infinity",back:0,has:[],type:"AR"},{text:"this",back:0,has:[],type:"AR"},
+    {text:"null",back:0,has:[],type:"AR"},{text:"false",back:0,has:hasChil.boolean,type:"AR"},{text:"true",back:0,has:hasChil.boolean,type:"AR"},{text:"Infinity",back:0,has:hasChil.number,type:"AR"},{text:"this",back:0,has:[{text:"type",has:[],type:"any"}],type:"AR"},
     {text:"return ",back:0,has:[],type:"AR"},{text:"delete ",back:0,has:[],type:"AR"},{text:"setTimeout()",back:1,has:[],type:"AR"},{text:"setInterval()",back:1,has:[],type:"AR"},
     {text:"sqrt",back:0,has:[],type:"AR"},{text:"floor",back:0,has:[],type:"AR"},{text:"ceil",back:0,has:[],type:"AR"},{text:"ln",back:0,has:[],type:"AR"},
-    {text:"max()",back:1,has:[],type:"AR"},{text:"min()",back:1,has:[],type:"AR"},
-    {text:"sin()",back:1,has:[],type:"AR"},{text:"cos()",back:1,has:[],type:"AR"},{text:"tan()",back:1,has:[],type:"AR"},{text:"asin()",back:1,has:[],type:"AR"},
-    {text:"acos()",back:1,has:[],type:"AR"},{text:"atan()",back:1,has:[],type:"AR"},{text:"atan2()",back:1,has:[],type:"AR"},{text:"pow()",back:1,has:[],type:"AR"},
+    {text:"max()",back:1,has:hasChil.number,type:"AR"},{text:"min()",back:1,has:hasChil.number,type:"AR"},
+    {text:"sin()",back:1,has:hasChil.number,type:"AR"},{text:"cos()",back:1,has:hasChil.number,type:"AR"},{text:"tan()",back:1,has:hasChil.number,type:"AR"},{text:"asin()",back:1,has:hasChil.number,type:"AR"},
+    {text:"acos()",back:1,has:hasChil.number,type:"AR"},{text:"atan()",back:1,has:hasChil.number,type:"AR"},{text:"atan2()",back:1,has:hasChil.number,type:"AR"},{text:"pow()",back:1,has:hasChil.number,type:"AR"},
     {text:"Math",back:0,has:[{text:".E",back:0,has:hasChil.number,type:"AR"},{text:".PI",back:0,has:hasChil.number,type:"AR"},{text:".ln()",back:1,has:hasChil.number,type:"AR"},
         {text:".sqrt()",back:1,has:hasChil.number,type:"AR"},{text:".floor()",back:1,has:hasChil.number,type:"AR"},{text:".ceil()",back:1,has:hasChil.number,type:"AR"},],type:"AR"},
     {text:"window",back:0,has:[
@@ -775,8 +786,8 @@ const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",
         ],type:"AR"},{text:".document",back:0,has:[],type:"AR"}],type:"AR"},
     {text:"document",back:0,has:[{text:".documentElement",back:0,has:hasChil.element,type:"AR"},{text:".documentURI",back:0,has:hasChil.string,type:"AR"},
         {text:".title",back:0,has:hasChil.string,type:"AR"},{text:".domain",back:0,has:hasChil.string,type:"AR"},{text:".readyState",back:0,has:hasChil.string,type:"AR"},
-        {text:".forms",back:0,has:hasChil.array,type:"AR"},{text:".images",back:0,has:hasChil.array,type:"AR"},
-        {text:".links",back:0,has:hasChil.array,type:"AR"},{text:".querySelector()",back:1,has:hasChil.element,type:"AR"},
+        {text:".forms",back:0,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},{text:".images",back:0,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},
+        {text:".links",back:0,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},{text:".querySelector()",back:1,has:hasChil.element,type:"AR"},
         {text:".querySelectorAll()",back:1,has:hasChil.array.concat({text:"child",back:0,has:hasChil.element,type:"AR"}),type:"AR"},{text:".createTextNode()",back:1,has:[],type:"AR"},{text:".createAttribute()",back:1,has:[],type:"AR"},
         {text:".cloneNode()",back:1,has:[],type:"AR"},{text:".removeChild()",back:1,has:[],type:"AR"},{text:".replaceChild()",back:1,has:[],type:"AR"},
         {text:".insertBefore()",back:1,has:[],type:"AR"},{text:".write()",back:1,has:[],type:"AR"},{text:".writeln()",back:1,has:[],type:"AR"},
@@ -836,7 +847,7 @@ const staticFiller=[{text:"Boolean()",back:1,has:[],type:"CL"},{text:"String()",
         ],type:"AR"}
 ];
 let globalFunc=[],globalObj=[],globalFuncBuff=[],addFiller=[];
-let filler=[{text:"print()",has:[],back:6}];
+let filler=[],clickTimer=0;
 let fillerPos=0,ChoosingFiller=0;
 let cam={x:0,y:0};
 function getPos(u){
@@ -897,8 +908,11 @@ document.addEventListener("mousedown",(e)=>{
     if(e.button==2){mouserd=true;clearCtrl();}
     mousedown=true,filler=[];SeCus=-1;
     dragOffX=mousex,dragOffY=mousey;
-    dragUnit=find(mousex,mousey);
-    cursorAt="un";
+    const temp=find(mousex,mousey);
+    if(dragUnit===temp&&cursorAt==cursorWA&&clickTimer>1){
+        const f=(s,p,a=p,b=p)=>{for(;a>=0&&/[0-9a-z]/i.test(s[--a]););for(;b<=s.length&&/[0-9a-z]/i.test(s[b++]););return[a+1,b-1];}
+        [cursorAt,SeCus]=f(dragUnit.val,cursorAt);mousedown=false;
+    }else dragUnit=temp,cursorAt="un",clickTimer=30;
 });
 document.addEventListener("wheel",clearCtrl);
 document.addEventListener("mouseup",(e)=>{
@@ -1299,6 +1313,7 @@ function loop(){
     addFiller=[...globalObj,...staticFiller];globalFuncBuff=[...globalFunc];
     if(mousedown&&dragUnit){if(cursorAt=="un"){cursorAt=cursorWA,CLFC=0,cursorLook=' ';if(cursorAt>dragUnit.val.length)cursorAt=dragUnit.val.length;}
         SeCus=cursorWA;if(SeCus>dragUnit.val.length)SeCus=dragUnit.val.length;if(SeCus==cursorAt)SeCus=-1;}
+    if(clickTimer>0.5)clickTimer--;
     ctx.font="18px sans-serif";
     ctx.fillStyle="#000";
     ctx.textAlign="left";
@@ -1365,6 +1380,20 @@ function loop(){
         ctx.fillText(temp[fil.type],cursorAtXY.x-ctx.measureText(acf).width-23,cursorAtXY.y+35);
         cursorAtXY.y+=30;
     }}
+    if(SeCus!=-1&&dragUnit){const S=dragUnit.val.slice(Math.min(cursorAt,SeCus),Math.max(cursorAt,SeCus));
+        const fsgo=globalObj.concat(staticFiller).find(O=>O.text===S);
+        if(fsgo){
+            ctx.fillStyle="rgba(255,255,255,0.9)";
+            ctx.font="20px Consolas";
+            const X=cursorAtXY.x+((cursorAt<SeCus)?(ctx.measureText(S).width):0);
+            const s="="+JXG(fsgo);
+            const temp=s.split("\n");
+            ctx.beginPath();
+            ctx.rect(X+2,cursorAtXY.y-20,Math.max(...temp.map(S=>S.length))*ctx.measureText("0").width+20,temp.length*20+20);
+            ctx.fill();
+            show(s,X+3,cursorAtXY.y,["object","string","number","folder","date","boolean","element","function","void","any"]);
+        }
+    }
     if(find(mousex,mousey)){
         if(mouserd)canvas.style.cursor="grabbing";
         else canvas.style.cursor="text";
@@ -1377,7 +1406,7 @@ let attenOut=0;
 function to_filler(s,canBeEmpty=false){
     s=Expr(s.trim());
     if("-0123456789".includes(s[0]))return hasChil.number;
-    if(!s&&canBeEmpty)return [];
+    if(!s&&canBeEmpty)return [{text:"type",type:"any"}];
     if(s.endsWith("++")||s.endsWith("--"))return to_filler(s.slice(0,-2));
     if(s.startsWith("typeof "))return hasChil.string;
     if(s.startsWith("delete "))return [];
@@ -1398,7 +1427,7 @@ function to_filler(s,canBeEmpty=false){
     if(s[0]=="["&&s[s.length-1]=="]"){return [{text:"child",back:0,has:to_filler(s.slice(1,-1),true),type:"BS"},...hasChil.array];}else
     if(s[0]=="("&&s[s.length-1]==")")return to_filler(s.slice(1,-1));else
     if(s[0]=="{"&&s[s.length-1]=="}"){
-        let CLFC=0,isInS=false,isIns=false,left=1,res=[],wordPos=-1;
+        let CLFC=0,isInS=false,isIns=false,left=1,res=[...hasChil.object],wordPos=-1;
         for(let i=1;i<s.length-1;i++){
             if(s[i]=="'")isInS=!isInS;
             if(s[i]=='"')isIns=!isIns;
@@ -1452,6 +1481,21 @@ function to_filler(s,canBeEmpty=false){
     }
     attenOut=1;
     return [];
+}
+function JXG(obj,d=""){
+            console.log(obj);
+    if(obj.has.length==0)return "void";
+    else{
+        const type=obj.has.find(O=>O.text==="type");
+        if(type){
+            if(type.type==="object")return JXG(obj.has.find(O=>O.text==="child"),d)+"[]";
+            return type.type;
+        }else{
+            if(obj.has.some(O=>O.type==="BS"))
+            return "{\n"+obj.has.filter(O=>O.type==="BS").map(O=>("┊  "+d+((O.text.endsWith("()")&&funcTour.some(OJ=>OJ.name===O.text.slice(0,-2)&&OJ.text.startsWith(OJ.name)))?(funcTour.find(OJ=>OJ.name===O.text.slice(0,-2)).text):(O.text.slice(1))+": "+JXG(O,d+"┊  ")))).join(",\n")+" \n"+d+"}";
+            return "{\n"+obj.has                         .map(O=>("┊  "+d+((O.text.endsWith("()")&&funcTour.some(OJ=>OJ.name===O.text.slice(0,-2)&&OJ.text.startsWith(OJ.name)))?(funcTour.find(OJ=>OJ.name===O.text.slice(0,-2)).text):(O.text.slice(1))+": "+JXG(O,d+"┊  ")))).join(",\n")+" \n"+d+"}";
+        }
+    }
 }
 let currentHue=0;
 let currentColor={r:123,g:95,b:95};
