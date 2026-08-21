@@ -847,8 +847,8 @@ const staticFiller=[{text:"Boolean()",back:1,has:hasChil.boolean,type:"CL"},{tex
         ],type:"AR"}
 ];
 let globalFunc=[],globalObj=[],globalFuncBuff=[],addFiller=[];
-let filler=[],clickTimer=0;
-let fillerPos=0,ChoosingFiller=0;
+let clickTimer=0,ChoosingFiller=0;
+let fillerPos=0,fillerFilt="",filler=[],fillerOK=false;
 let cam={x:0,y:0};
 function getPos(u){
     return {x:u.x-cam.x,y:u.y-cam.y,endx:u.endx-cam.x};
@@ -1017,14 +1017,14 @@ document.addEventListener("keydown",async(e)=>{
             if((temp2=="√")&&temp=="`")dragUnit.val=dragUnit.val.slice(0,cursorAt-1)+dragUnit.val.slice(cursorAt+1);else
             if(temp=="√"||temp=="`")cursorAt++;
             else dragUnit.val=dragUnit.val.slice(0,cursorAt)+dragUnit.val.slice(cursorAt+1);}else
-        if(e.key==="Tab"&&filler.length>0){dragUnit.val=dragUnit.val.slice(0,cursorAt)+filler[ChoosingFiller].text.slice(fillerPos)+dragUnit.val.slice(cursorAt);
-            cursorAt+=filler[ChoosingFiller].text.length-filler[ChoosingFiller].back-fillerPos,filler=filler[ChoosingFiller].has,fillerPos=0;
+        if(e.key==="Tab"&&filler.length>0){dragUnit.val=dragUnit.val.slice(0,cursorAt-fillerPos)+filler[ChoosingFiller].text+dragUnit.val.slice(cursorAt);
+            cursorAt+=filler[ChoosingFiller].text.length-filler[ChoosingFiller].back-fillerPos,filler=[],fillerPos=0;
         }else if(e.key==="ArrowDown"){if(filler.length>0)ChoosingFiller++;else{const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(temp>-1)dragUnit=unit[temp].to[(unit[temp].to.findIndex(U=>U===dragUnit)+1+unit[temp].to.length)%unit[temp].to.length],cursorAt=0,CLFC=0,cursorLook=' ';}}else
         if(e.key==="ArrowUp"){if(filler.length>0)ChoosingFiller--;else{const temp=unit.findIndex(U=>U.to.includes(dragUnit));if(temp>-1)dragUnit=unit[temp].to[(unit[temp].to.findIndex(U=>U===dragUnit)-1+unit[temp].to.length)%unit[temp].to.length],cursorAt=0,CLFC=0,cursorLook=' ';}}else
         if(e.key.length==1&&!"`".includes(e.key))dragUnit.val=dragUnit.val.slice(0,cursorAt)+e.key+dragUnit.val.slice(cursorAt),cursorAt++;
         if((Chars+"_.").includes(e.key)||e.key==="Backspace"){
             const s=dragUnit.val;let temp=cursorAt,temp2=cursorAt;
-            filler=[...globalObj,...staticFiller];
+            filler=[];
             for(let i=cursorAt-1;i>=0&&(Chars+"0123456789_.)'\"}]").includes(s[i]);i--){
                 if(")]}".includes(s[i])){
                     let CLFC=1;i--;
@@ -1043,8 +1043,8 @@ document.addEventListener("keydown",async(e)=>{
                 if(".".includes(s[i]))if(temp2==cursorAt)temp2=i;
                 temp=i;}
             if(temp2==cursorAt)temp2=temp;temp2=Math.max(temp2,0);const word=s.slice(temp2,cursorAt);
-            if(temp2>temp)attenOut=0,filler=to_filler(s.slice(temp,temp2));else filler=[...globalObj,...staticFiller];
-            if(word.length>0)filler=filler.filter(fil=>fil.text.startsWith(word));else filler=[];fillerPos=word.length;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
+            if(temp2>temp)attenOut=0,filler=to_filler(s.slice(temp,temp2)).map(O=>({text:O.text,back:O.back,type:O.type}));else filler=[...globalObj,...staticFiller].map(O=>({text:O.text,back:O.back,type:O.type}));
+            if(word.length>0);else filler=[];fillerPos=word.length;fillerFilt=word;fillerOK=false;}else if(!["ArrowDown","ArrowUp"].includes(e.key))filler=[];
         if(e.key==="(")dragUnit.val=dragUnit.val.slice(0,cursorAt)+")"+dragUnit.val.slice(cursorAt);else
         if(e.key==="[")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"]"+dragUnit.val.slice(cursorAt);else
         if(e.key==="{")dragUnit.val=dragUnit.val.slice(0,cursorAt)+"}"+dragUnit.val.slice(cursorAt);else
@@ -1212,6 +1212,7 @@ function St2Hs(obj,parent){
     else if(typeof obj.has==="string")obj.has=hasChil[obj.has];
 }
 function Init(){
+    console.log(staticFiller);
     for(const obj in hasChil){
         if(hasChil.hasOwnProperty(obj))
         for(const obj2 of hasChil[obj]){
@@ -1360,26 +1361,41 @@ function loop(){
             }
         }}
     if(cursorAtXY){
-    for(let i=0;i<filler.length;++i){
-        const fil=filler[i];
-        const acf=fil.text.slice(0,fillerPos);
-        ctx.beginPath();
-        ctx.lineWidth=30;
-        ctx.moveTo(cursorAtXY.x-30-ctx.measureText(acf).width,cursorAtXY.y+30);
-        ctx.lineTo(cursorAtXY.x+300,cursorAtXY.y+30);
-        ctx.strokeStyle="rgba(0,0,0,0.7)";
-        if(ChoosingFiller==i)ctx.strokeStyle="rgba(0,0,100,0.7)";
-        ctx.stroke();
-        ctx.fillStyle="#fff";
-        ctx.font="20px Consolas";
-        ctx.fillText(fil.text,cursorAtXY.x-ctx.measureText(acf).width,cursorAtXY.y+35);
-        ctx.fillStyle="rgb(150,150,150)";
-        ctx.fillText(fil.text.slice(0,fillerPos),cursorAtXY.x-ctx.measureText(acf).width,cursorAtXY.y+35);
-        ctx.fillStyle="rgb(250,250,250)";
-        const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UD:"⚪︎",OP:"🔣︎",CL:"❒"};
-        ctx.fillText(temp[fil.type],cursorAtXY.x-ctx.measureText(acf).width-23,cursorAtXY.y+35);
-        cursorAtXY.y+=30;
-    }}
+        if(!fillerOK){
+            for(let i=0;i<filler.length;){
+                const fil=filler[i];
+                const Str=fil.text;
+                const acf=fillerFilt;
+                if((!fil.accept||!(fil.accept.length>0))){fil.accept="";let j=0;
+                    for(let i=0;i<Str.length&&j<acf.length;++i){
+                        if(Str[i]==acf[j])j++,fil.accept+=Str[i];
+                        else fil.accept+=" ";
+                    }
+                    if(j<acf.length){filler.splice(i,1);continue;}
+                }i++;
+            }filler.sort((a,b)=>((a.accept<b.accept)?1:-1));fillerOK=true;}
+        for(let i=0;i<filler.length;){
+            const fil=filler[i];
+            const Str=fil.text;
+            const acf=fillerFilt;
+            ctx.beginPath();
+            ctx.lineWidth=30;
+            ctx.moveTo(cursorAtXY.x-30-ctx.measureText(acf).width,cursorAtXY.y+30);
+            ctx.lineTo(cursorAtXY.x+300,cursorAtXY.y+30);
+            ctx.strokeStyle="rgba(0,0,0,0.7)";
+            if(ChoosingFiller==i)ctx.strokeStyle="rgba(0,0,100,0.7)";
+            ctx.stroke();
+            ctx.fillStyle="#fff";
+            ctx.font="20px Consolas";
+            ctx.fillText(fil.text,cursorAtXY.x-ctx.measureText(acf).width,cursorAtXY.y+35);
+            ctx.fillStyle="rgb(150,150,150)";
+            ctx.fillText(fil.accept,cursorAtXY.x-ctx.measureText(acf).width,cursorAtXY.y+35);
+            ctx.fillStyle="rgb(250,250,250)";
+            const temp={AR:"⿻",BS:"🔤︎",RC:"♺",UD:"⚪︎",OP:"🔣︎",CL:"❒"};
+            ctx.fillText(temp[fil.type],cursorAtXY.x-ctx.measureText(acf).width-23,cursorAtXY.y+35);
+            cursorAtXY.y+=30;
+            i++;
+        }}
     if(SeCus!=-1&&dragUnit){const S=dragUnit.val.slice(Math.min(cursorAt,SeCus),Math.max(cursorAt,SeCus));
         const fsgo=globalObj.concat(staticFiller).find(O=>O.text===S);
         if(fsgo){
