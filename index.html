@@ -212,7 +212,7 @@ _runner._log.innerText+=`\n⭮ 已将全部编译完成`;" id="F5">编译</butto
 if(this.checked)temp.disabled=true,temp.checked=false,moreFiller=[{text:'FramePiecesRenderer()',back:1,has:[
     {text:'.beginFrame()',back:1,has:[],type:'AR'},{text:'.endFrame()',back:1,has:[],type:'AR'},{text:'.drawPolygon()',back:1,has:[],type:'AR'}],type:'CL'}],
     moreFunctour=[{name:'FramePiecesRenderer',text:'FramePiecesRenderer(canvas: element): FramePiecesRenderer'},
-    {name:'.drawPolygon',text:'FramePiecesRenderer.drawPolygon({x:number,y:number}[]): void'},
+    {name:'.drawPolygon',text:'FramePiecesRenderer.drawPolygon({x:number,y:number}[], number[4]): void'},
     {name:'.beginFrame',text:'FramePiecesRenderer.beginFrame(): void'},{name:'.endFrame',text:'FramePiecesRenderer.endFrame(): void'},];else temp.disabled=false;">
                                     <label for="forHtml" style="cursor:pointer;">Html</label>
                                 </div>
@@ -356,7 +356,7 @@ function prefixLocalVars(codeStr,globalVars=[]){
     const builtInGlobals=[
         'window','document','console','Math','Date','Array','Object','String','Number','Boolean','Option','XMLHttpRequest','ActiveXObject','Image','Canvas',
         'setTimeout','setInterval','null','undefined','true','false','Infinity','this','arguments','Promise','RegExp','return','function','let','var','const',
-        'swap','fso','try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert','_id_','JSON'];
+        'swap','fso','try','catch','throw','new','typeof','instanceof','in','delete','class','import','export','print','event','alert','_id_','JSON','FramePiecesRenderer'];
     const MathGlobals=['sin','cos','tan','asin','acos','atan','atan2','min','max','random','pow'];
     codeStr+=" ";
     const globalSet=new Set([...builtInGlobals,...globalVars]);
@@ -1520,7 +1520,9 @@ function to_filler(s,canBeEmpty=false){
     if(s.startsWith("new ")){
         let i=4;
         while((Chars+"_").includes(s[i]))i++;
-        return hasChil[s.slice(4,i).toLowerCase()];
+        const temp=s.slice(4,i).toLowerCase();
+        if(temp==="framepiecesrenderer")return moreFiller.find(O=>O.text==="FramePiecesRenderer()").has;
+        return hasChil[temp];
     }
     if(s.startsWith("getValue")){
         let str=s.slice(9,-1);
